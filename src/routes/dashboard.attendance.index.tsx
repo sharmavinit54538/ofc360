@@ -1,17 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CalendarDays, Check, Clock, X, ScrollText, Palmtree, ArrowRight, Timer, FileText } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { CalendarDays, Check, Clock, X, ScrollText, Palmtree, ArrowRight, Timer, FileText, Fingerprint } from "lucide-react";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 
 export const Route = createFileRoute("/dashboard/attendance/")({
-  head: () => ({ meta: [{ title: "Attendance — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Attendance — ofc360" }] }),
   component: AttendancePage,
 });
 
 function AttendancePage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const navigate = useNavigate();
   const today = "Thursday, June 25, 2026";
 
@@ -39,6 +39,16 @@ function AttendancePage() {
   ] as const;
 
   const quickNavCards = [
+    {
+      title: "Check In / Check Out",
+      description: "Clock in, log breaks, selfie & geolocation verification, and daily work logs.",
+      icon: Fingerprint,
+      path: "/dashboard/attendance/checkin",
+      gradient: "from-emerald-600/20 to-teal-600/20",
+      accentBorder: "border-emerald-500/30 hover:border-emerald-500/60",
+      iconColor: "text-emerald-500 bg-emerald-500/10",
+      buttonColor: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    },
     {
       title: "Shifts Management",
       description: "Manage working shifts, timing policies, break schedules, and overtime rules.",

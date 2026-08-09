@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Clock, AlertTriangle, UserX, Timer, ShieldAlert, CheckCircle2, CalendarX,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/attendance-monitor")({
-  head: () => ({ meta: [{ title: "AI Attendance Monitor — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Attendance Monitor — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Attendance Trend", xKey: "d",
           series: [{ key: "present", label: "Present %" }],
-          data: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d,i)=>({d, present: 92+((i*5)%6)})),
+          data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => ({ d, present: 92 + ((i * 5) % 6) })),
         },
         {
           type: "bar", title: "Late Arrivals by Day", xKey: "d",
           series: [{ key: "late", label: "Late" }],
-          data: ["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>({d, late: 4+((i*7)%8)})),
+          data: ["Mon", "Tue", "Wed", "Thu", "Fri"].map((d, i) => ({ d, late: 4 + ((i * 7) % 8) })),
         },
       ]}
       features={[

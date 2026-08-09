@@ -47,7 +47,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { fmtDate, fmtBudget } from "../utils";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 import * as LucideIcons from "lucide-react";
 
@@ -74,7 +74,7 @@ export function DepartmentProfileDrawer({
   onPromoteEmployee,
   onUpdateDepartment,
 }: DepartmentProfileDrawerProps) {
-  const ws = useAurix();
+  const ws = useofc360();
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [empToPromote, setEmpToPromote] = useState<{ id: string; name: string; designation: string } | null>(null);
   const [newDesignation, setNewDesignation] = useState("");

@@ -14,13 +14,13 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.post.title} — Aurix Blog` },
-          { name: "description", content: loaderData.post.excerpt },
-          { property: "og:title", content: loaderData.post.title },
-          { property: "og:description", content: loaderData.post.excerpt },
-          { property: "og:type", content: "article" },
-          { property: "og:url", content: `/blog/${loaderData.post.slug}` },
-        ]
+        { title: `${loaderData.post.title} — ofc360 Blog` },
+        { name: "description", content: loaderData.post.excerpt },
+        { property: "og:title", content: loaderData.post.title },
+        { property: "og:description", content: loaderData.post.excerpt },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `/blog/${loaderData.post.slug}` },
+      ]
       : [],
     links: loaderData ? [{ rel: "canonical", href: `/blog/${loaderData.post.slug}` }] : [],
   }),
@@ -78,7 +78,7 @@ function BlogPost() {
           <div>
             <div className="font-semibold">{post.author}</div>
             <div className="text-sm text-brand">{post.authorRole}</div>
-            <p className="mt-2 text-sm text-muted-foreground">Writing about product, craft, and the future of work at Aurix.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Writing about product, craft, and the future of work at ofc360.</p>
           </div>
         </div>
 

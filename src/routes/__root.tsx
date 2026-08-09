@@ -81,14 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Aurix — Operations & Intelligence Platform" },
-      { name: "description", content: "Futuristic operations and intelligence platform for modern enterprise teams." },
-      { name: "author", content: "Aurix" },
-      { property: "og:title", content: "Aurix" },
-      { property: "og:description", content: "Futuristic operations and intelligence platform for modern enterprise teams." },
+      { title: "OFC360 — AI-Powered HRMS Platform" },
+      { name: "description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
+      { name: "author", content: "EquinoxSphere Technologies" },
+      { property: "og:title", content: "OFC360" },
+      { property: "og:description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Aurix" },
+      { name: "twitter:site", content: "@OFC360" },
     ],
     links: [
       {
@@ -99,6 +99,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    scripts: [
+      {
+        src: "https://checkout.razorpay.com/v1/checkout.js",
+        async: true,
       },
     ],
   }),

@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Banknote, TrendingUp, Scale, AlertTriangle, ShieldAlert, HeartPulse, Calculator,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/payroll-insights")({
-  head: () => ({ meta: [{ title: "AI Payroll Insights — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Payroll Insights — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Payroll Forecast", xKey: "m",
           series: [{ key: "actual", label: "Actual" }, { key: "forecast", label: "Forecast" }],
-          data: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"].map((m,i)=>({ m, actual: 170+i*4, forecast: 175+i*4 })),
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"].map((m, i) => ({ m, actual: 170 + i * 4, forecast: 175 + i * 4 })),
         },
         {
           type: "bar", title: "Cost by Department (k$)", xKey: "d",
           series: [{ key: "cost", label: "Cost" }],
-          data: [{d:"Eng",cost:620},{d:"Sales",cost:410},{d:"Design",cost:180},{d:"Ops",cost:240},{d:"Support",cost:160},{d:"HR",cost:120}],
+          data: [{ d: "Eng", cost: 620 }, { d: "Sales", cost: 410 }, { d: "Design", cost: 180 }, { d: "Ops", cost: 240 }, { d: "Support", cost: 160 }, { d: "HR", cost: 120 }],
         },
       ]}
       features={[

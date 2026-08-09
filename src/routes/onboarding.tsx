@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import Papa from "papaparse";
 import { z } from "zod";
 import {
   ArrowLeft, ArrowRight, Building2, CheckCircle2, ChevronLeft, Pencil,
   Plus, Sparkles, Trash2, Upload, UserCog, UserPlus, Users, Loader2,
+  Lock, ShieldCheck, FileText, User, Briefcase, CreditCard, BookOpen,
+  Award, AlertCircle, RefreshCw, Eye, Check, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,44 +17,35 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Stepper } from "@/components/aurix/Stepper";
-import { aurix, useAurix, uid, type Employee, type HR, type Manager } from "@/lib/aurix-store";
-import { api, setTokens } from "@/api";
+import { ofc360, useofc360, uid } from "@/lib/aurix-store";
+import { api, setTokens, apiInstance } from "@/api";
 import { toast } from "sonner";
-
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 
 export const Route = createFileRoute("/onboarding")({
   validateSearch: z.object({
     token: z.string().optional(),
   }),
-  head: () => ({ meta: [{ title: "Set up your workspace — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Onboarding — ofc360" }] }),
   component: OnboardingPage,
 });
 
-const STEPS = ["Company", "Admin Profile", "HR Settings", "Departments & Designations", "Invite Employees", "Complete"];
+// Company Admin Wizard Constants
+const ADMIN_STEPS = ["Company", "Admin Profile", "HR Settings", "Departments & Designations", "Invite Employees", "Complete"];
 const INDUSTRIES = ["Software", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"];
 const SIZES = ["1–10", "11–50", "51–200", "201–500", "501–1000", "1000+"];
 const TIMEZONES = ["UTC", "America/New_York", "America/Los_Angeles", "Europe/London", "Europe/Berlin", "Asia/Kolkata", "Asia/Singapore", "Australia/Sydney"];
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// Maps the backend's onboarding_step (1-6) to the index of STEPS.
-// 1 = Company, 2 = Admin profile, 3 = HR settings, 4 = Departments/Designations,
-// 5 = Invite employees, 6 = Complete.
 function backendStepToUiIndex(backendStep: number): number {
   return Math.max(0, Math.min(5, backendStep - 1));
 }
 
-// Recomputes departments + designations from whatever HR/Employee/Manager
-// records exist so far and pushes them to the backend. Safe to call after
-// every step because /onboarding/departments and /onboarding/designations
-// replace the company's full list each time (delete-then-insert), so calling
-// this repeatedly as the admin adds more people just keeps the list in sync.
-async function syncDeptsAndDesignations(ws: ReturnType<typeof useAurix>) {
+async function syncDeptsAndDesignations(ws: ReturnType<typeof useofc360>) {
   const deptNames = Array.from(new Set([
     "Management",
-    ...ws.hrs.map((h) => h.department),
-    ...ws.employees.map((e) => e.department),
-    ...ws.managers.map((m) => m.department),
+    ...ws.hrs.map((h: any) => h.department),
+    ...ws.employees.map((e: any) => e.department),
+    ...ws.managers.map((m: any) => m.department),
   ].filter(Boolean)));
   const depts = deptNames.map((d, index) => ({
     department_code: d.substring(0, 3).toUpperCase() + "_" + (10 + index),
@@ -65,18 +56,16 @@ async function syncDeptsAndDesignations(ws: ReturnType<typeof useAurix>) {
 
   const designations = Array.from(new Set([
     "Company Owner",
-    ...ws.hrs.map((h) => h.designation),
-    ...ws.employees.map((e) => e.designation),
-    ...ws.managers.map((m) => m.designation),
+    ...ws.hrs.map((h: any) => h.designation),
+    ...ws.employees.map((e: any) => e.designation),
+    ...ws.managers.map((m: any) => m.designation),
   ].filter(Boolean)));
   await api.post("onboarding/designations", { designations });
 }
 
-// Builds the combined invite list from HR + Employees + Managers and pushes
-// it once (called from the last data-entry step, Managers → Continue).
-async function syncInvites(ws: ReturnType<typeof useAurix>) {
+async function syncInvites(ws: ReturnType<typeof useofc360>) {
   const allInvites = [
-    ...ws.hrs.map((h) => {
+    ...ws.hrs.map((h: any) => {
       const parts = h.fullName.split(" ");
       return {
         first_name: parts[0] || "HR",
@@ -87,7 +76,7 @@ async function syncInvites(ws: ReturnType<typeof useAurix>) {
         designation: h.designation || "HR Specialist",
       };
     }),
-    ...ws.employees.map((e) => {
+    ...ws.employees.map((e: any) => {
       const parts = e.fullName.split(" ");
       return {
         first_name: parts[0] || "Employee",
@@ -98,7 +87,7 @@ async function syncInvites(ws: ReturnType<typeof useAurix>) {
         designation: e.designation || "Software Engineer",
       };
     }),
-    ...ws.managers.map((m) => {
+    ...ws.managers.map((m: any) => {
       const parts = m.fullName.split(" ");
       return {
         first_name: parts[0] || "Manager",
@@ -109,7 +98,7 @@ async function syncInvites(ws: ReturnType<typeof useAurix>) {
         designation: m.designation || "Team Manager",
       };
     }),
-  ].filter((x) => x.personal_email && x.first_name);
+  ].filter((x: any) => x.personal_email && x.first_name);
 
   allInvites.forEach((inv) => {
     const cleanPhone = inv.phone.replace(/\D/g, "");
@@ -123,53 +112,17 @@ async function syncInvites(ws: ReturnType<typeof useAurix>) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN ONBOARDING ROUTER PAGE
+// ─────────────────────────────────────────────────────────────────────────────
 function OnboardingPage() {
   const navigate = useNavigate();
-  const ws = useAurix();
-  const [step, setStep] = useState(0);
-
-  const [loading, setLoading] = useState(false);
-
+  const ws = useofc360();
   const { token } = Route.useSearch();
-  const [tokenLoading, setTokenLoading] = useState(token ? true : false);
-  const [tokenError, setTokenError] = useState<string | null>(null);
-  const [empData, setEmpData] = useState<any>(null);
-
-  // Activation form fields
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState("");
-  const [emergencyName, setEmergencyName] = useState("");
-  const [emergencyPhone, setEmergencyPhone] = useState("");
-  const [acceptPolicies, setAcceptPolicies] = useState(false);
-  const [activating, setActivating] = useState(false);
+  const userRole = (ws.user?.role as string)?.toLowerCase();
 
   useEffect(() => {
-    if (!token) return;
-    setTokenLoading(true);
-    setTokenError(null);
-    api.get(`onboarding/validate?token=${token}`)
-      .then((res: any) => {
-        if (res.success) {
-          setEmpData(res.data);
-          setPhone(res.data.phone || "");
-        } else {
-          setTokenError(res.message || "Invitation expired. Request new invitation.");
-        }
-      })
-      .catch((err: any) => {
-        setTokenError(err.message || "Invitation expired. Request new invitation.");
-      })
-      .finally(() => {
-        setTokenLoading(false);
-      });
-  }, [token]);
-
-  const [resuming, setResuming] = useState(true);
-
-  useEffect(() => {
-    if (token) { setResuming(false); return; } // skip for employee onboarding
+    if (token) return; // Allow invitation token setup
     if (ws.isRestoring) return;
     if (!ws.user) {
       navigate({ to: "/register" });
@@ -179,14 +132,1198 @@ function OnboardingPage() {
       navigate({ to: "/verify-email" });
       return;
     }
+    if (userRole === "super_admin") {
+      navigate({ to: "/dashboard/super-admin", replace: true });
+      return;
+    }
     if (ws.user.onboardingComplete) {
-      navigate({ to: "/dashboard" });
+      const dest = userRole === "employee" ? "/dashboard/employee" : userRole === "manager" ? "/dashboard/manager" : "/dashboard";
+      navigate({ to: dest as any, replace: true });
+      return;
+    }
+  }, [ws.user, ws.isRestoring, navigate, token, userRole]);
+
+  if (token) {
+    return <TokenActivationOnboarding token={token} />;
+  }
+
+  if (ws.isRestoring || !ws.user) {
+    return <AuthLoadingScreen />;
+  }
+
+  // Strictly route by role
+  if (userRole === "company_admin" || userRole === "admin" || userRole === "owner") {
+    return <CompanyAdminOnboarding />;
+  }
+
+  // Employee, Manager, HR receive Employee Self-Service Onboarding
+  return <EmployeeOnboarding />;
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. TOKEN ACTIVATION FORM (INVITED EMPLOYEES)
+// ─────────────────────────────────────────────────────────────────────────────
+function TokenActivationOnboarding({ token }: { token: string }) {
+  const navigate = useNavigate();
+  const [tokenLoading, setTokenLoading] = useState(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [empData, setEmpData] = useState<any>(null);
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [acceptPolicies, setAcceptPolicies] = useState(false);
+  const [activating, setActivating] = useState(false);
+
+  useEffect(() => {
+    setTokenLoading(true);
+    setTokenError(null);
+    api.get(`onboarding/validate?token=${token}`)
+      .then((res: any) => {
+        if (res.success) {
+          setEmpData(res.data);
+          setPhone(res.data.phone || "");
+        } else {
+          setTokenError(res.message || "Invitation expired or invalid.");
+        }
+      })
+      .catch((err: any) => {
+        setTokenError(err.message || "Invitation expired or invalid.");
+      })
+      .finally(() => setTokenLoading(false));
+  }, [token]);
+
+  const handleActivate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || password.length < 8) {
+      toast.error("Password must be at least 8 characters long.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (!acceptPolicies) {
+      toast.error("Please accept the company terms and policies.");
       return;
     }
 
-    // Resume where the admin left off, using the backend as the source of
-    // truth (not localStorage) — this is what makes "close tab, log back in"
-    // land on the right step instead of re-asking for Company details.
+    setActivating(true);
+    try {
+      const res: any = await api.post("onboarding/activate", {
+        token,
+        password,
+        phone,
+        profile_photo: "",
+        emergency_contact_name: "",
+        emergency_contact_phone: "",
+        accept_policies: true,
+      });
+
+      if (res.success && res.data?.tokens) {
+        setTokens(res.data.tokens);
+        ofc360.set({
+          user: {
+            id: res.data.user.id,
+            fullName: res.data.user.name,
+            email: res.data.user.email,
+            phone: res.data.user.phone || phone,
+            role: res.data.user.role,
+            companyId: String(res.data.user.company_id),
+            emailVerified: true,
+            onboardingComplete: false,
+            createdAt: new Date().toISOString(),
+          },
+          company: {
+            id: String(res.data.user.company_id),
+            name: res.data.user.company_name || "Company Workspace",
+          },
+        });
+        toast.success("Account activated! Let's complete your onboarding.");
+        navigate({ to: "/onboarding", replace: true });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to activate account");
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  if (tokenLoading) return <AuthLoadingScreen />;
+
+  if (tokenError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl border border-rose-500/20 bg-rose-500/5 p-8 text-center shadow-xl">
+          <AlertCircle className="mx-auto h-10 w-10 text-rose-500 mb-3" />
+          <h2 className="text-lg font-bold text-foreground">Invalid or Expired Invitation</h2>
+          <p className="text-xs text-muted-foreground mt-2">{tokenError}</p>
+          <Link to="/login" className="mt-6 inline-block">
+            <Button variant="outline" className="h-9 text-xs">Back to Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+          <Sparkles className="h-3.5 w-3.5" /> Official Onboarding Invitation
+        </div>
+        <h2 className="text-2xl font-bold font-display text-foreground">Activate Your Account</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Welcome to <strong className="text-foreground">{empData?.company_name || "your organization"}</strong>! Set up your password to begin.
+        </p>
+      </div>
+
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-card border border-border py-8 px-6 shadow-xl rounded-2xl sm:px-8">
+          <form onSubmit={handleActivate} className="space-y-4 text-xs">
+            <div>
+              <Label className="text-muted-foreground text-xs font-semibold">Full Name</Label>
+              <Input value={empData?.employee_name || ""} disabled className="mt-1 bg-muted/20 h-9" />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs font-semibold">Work Email</Label>
+              <Input value={empData?.email || ""} disabled className="mt-1 bg-muted/20 h-9" />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs font-semibold">Create Password</Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                required
+                className="mt-1 h-9"
+              />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs font-semibold">Confirm Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat password"
+                required
+                className="mt-1 h-9"
+              />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs font-semibold">Mobile Phone Number</Label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 98765 43210"
+                required
+                className="mt-1 h-9"
+              />
+            </div>
+
+            <div className="flex items-start gap-2 pt-2">
+              <Checkbox
+                id="policy"
+                checked={acceptPolicies}
+                onCheckedChange={(val) => setAcceptPolicies(Boolean(val))}
+              />
+              <Label htmlFor="policy" className="text-[11px] text-muted-foreground leading-snug cursor-pointer">
+                I agree to the company code of conduct, employment policies, and terms of service.
+              </Label>
+            </div>
+
+            <Button type="submit" disabled={activating} className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold mt-4 gap-2 text-xs">
+              {activating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              Activate Account & Continue
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. DEDICATED EMPLOYEE SELF-SERVICE ONBOARDING WIZARD
+// ─────────────────────────────────────────────────────────────────────────────
+const EMPLOYEE_STEPS = [
+  "Welcome",
+  "Personal Info",
+  "Identity Proof",
+  "Employment",
+  "Education & Exp",
+  "Bank & Tax",
+  "Upload Docs",
+  "Policies",
+  "Final Review"
+];
+
+function EmployeeOnboarding() {
+  const navigate = useNavigate();
+  const ws = useofc360();
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Status & Saved Data
+  const [statusData, setStatusData] = useState<any>(null);
+  const [progressData, setProgressData] = useState<any>(null);
+
+  // Form Fields
+  // Step 1: Personal Info
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("MALE");
+  const [maritalStatus, setMaritalStatus] = useState("SINGLE");
+  const [personalEmail, setPersonalEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [nationality, setNationality] = useState("Indian");
+  const [currentAddress, setCurrentAddress] = useState("");
+  const [permanentAddress, setPermanentAddress] = useState("");
+  const [emergencyName, setEmergencyName] = useState("");
+  const [emergencyRelation, setEmergencyRelation] = useState("");
+  const [emergencyPhone, setEmergencyPhone] = useState("");
+
+  // Step 2: Identity
+  const [aadhaar, setAadhaar] = useState("");
+  const [pan, setPan] = useState("");
+  const [passport, setPassport] = useState("");
+  const [passportExpiry, setPassportExpiry] = useState("");
+
+  // Step 4: Education & Experience
+  const [degree, setDegree] = useState("B.Tech / Bachelor's");
+  const [institution, setInstitution] = useState("");
+  const [gradYear, setGradYear] = useState("2022");
+  const [priorCompany, setPriorCompany] = useState("");
+  const [priorRole, setPriorRole] = useState("");
+  const [expYears, setExpYears] = useState("2");
+
+  // Step 5: Bank & Tax
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifsc, setIfsc] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountHolder, setAccountHolder] = useState("");
+  const [taxRegime, setTaxRegime] = useState("NEW");
+  const [pfNumber, setPfNumber] = useState("");
+  const [uanNumber, setUanNumber] = useState("");
+  const [nomineeName, setNomineeName] = useState("");
+  const [nomineeRelation, setNomineeRelation] = useState("");
+
+  // Step 6: Documents
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
+  const [uploadingType, setUploadingType] = useState<string | null>(null);
+
+  // Step 7: Policies
+  const [ackHandbook, setAckHandbook] = useState(false);
+  const [ackNda, setAckNda] = useState(false);
+  const [ackLeave, setAckLeave] = useState(false);
+
+  const fetchStatusAndProgress = async () => {
+    setIsLoading(true);
+    try {
+      const [statusRes, progressRes]: [any, any] = await Promise.all([
+        api.get("employee-onboarding/status"),
+        api.get("employee-onboarding/progress"),
+      ]);
+
+      if (statusRes.success && statusRes.data) {
+        setStatusData(statusRes.data);
+        const stepNum = statusRes.current_step || 1;
+        setCurrentStepIndex(Math.max(0, Math.min(EMPLOYEE_STEPS.length - 1, stepNum - 1)));
+      }
+
+      if (progressRes.success && progressRes.data) {
+        const p = progressRes.data;
+        setProgressData(p);
+
+        // Prefill forms
+        if (p.personal_info) {
+          setFirstName(p.personal_info.first_name || ws.user?.fullName.split(" ")[0] || "");
+          setLastName(p.personal_info.last_name || ws.user?.fullName.split(" ")[1] || "");
+          setDob(p.personal_info.date_of_birth || "");
+          setGender(p.personal_info.gender || "MALE");
+          setMaritalStatus(p.personal_info.marital_status || "SINGLE");
+          setPersonalEmail(p.personal_info.personal_email || ws.user?.email || "");
+          setPhone(p.personal_info.phone || ws.user?.phone || "");
+          setNationality(p.personal_info.nationality || "Indian");
+          setCurrentAddress(p.personal_info.current_address || "");
+          setPermanentAddress(p.personal_info.permanent_address || "");
+          setEmergencyName(p.personal_info.emergency_contact_name || "");
+          setEmergencyRelation(p.personal_info.emergency_contact_relation || "");
+          setEmergencyPhone(p.personal_info.emergency_contact_phone || "");
+        } else {
+          setFirstName(ws.user?.fullName.split(" ")[0] || "");
+          setLastName(ws.user?.fullName.split(" ")[1] || "");
+          setPersonalEmail(ws.user?.email || "");
+          setPhone(ws.user?.phone || "");
+        }
+
+        if (p.identity) {
+          setAadhaar(p.identity.aadhaar_number || "");
+          setPan(p.identity.pan_number || "");
+          setPassport(p.identity.passport_number || "");
+          setPassportExpiry(p.identity.passport_expiry || "");
+        }
+
+        if (p.education && p.education.length > 0) {
+          setDegree(p.education[0].degree || "B.Tech / Bachelor's");
+          setInstitution(p.education[0].institution || "");
+          setGradYear(String(p.education[0].completion_year || "2022"));
+        }
+
+        if (p.experience && p.experience.length > 0) {
+          setPriorCompany(p.experience[0].company_name || "");
+          setPriorRole(p.experience[0].designation || "");
+          setExpYears(String(p.experience[0].total_years || "2"));
+        }
+
+        if (p.bank_details) {
+          setAccountNumber(p.bank_details.account_number || "");
+          setIfsc(p.bank_details.ifsc_code || "");
+          setBankName(p.bank_details.bank_name || "");
+          setAccountHolder(p.bank_details.account_holder_name || ws.user?.fullName || "");
+        }
+
+        if (p.tax_payroll) {
+          setTaxRegime(p.tax_payroll.tax_regime || "NEW");
+          setPfNumber(p.tax_payroll.pf_number || "");
+          setUanNumber(p.tax_payroll.uan_number || "");
+          setNomineeName(p.tax_payroll.nominee_name || "");
+          setNomineeRelation(p.tax_payroll.nominee_relation || "");
+        }
+
+        if (p.documents) {
+          setUploadedDocs(p.documents);
+        }
+
+        if (p.policies && p.policies.length > 0) {
+          setAckHandbook(true);
+          setAckNda(true);
+          setAckLeave(true);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to load employee onboarding status:", err);
+      toast.error(err.message || "Failed to load onboarding status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatusAndProgress();
+  }, []);
+
+  const handleSaveStep1 = async () => {
+    if (!firstName || !phone || !currentAddress || !nationality) {
+      toast.error("Please fill in all required personal information fields including nationality.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await api.put("employee-onboarding/step/1", {
+        first_name: firstName,
+        last_name: lastName,
+        date_of_birth: dob || "1998-01-01",
+        gender,
+        marital_status: maritalStatus,
+        nationality,
+        personal_email: personalEmail,
+        phone,
+        current_address: currentAddress,
+        permanent_address: permanentAddress || currentAddress,
+        emergency_contact_name: emergencyName,
+        emergency_contact_relation: emergencyRelation,
+        emergency_contact_phone: emergencyPhone,
+      });
+      toast.success("Personal information saved.");
+      setCurrentStepIndex(2);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save personal info");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveStep2 = async () => {
+    if (!pan) {
+      toast.error("PAN Card number is required for statutory verification.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await api.put("employee-onboarding/step/2", {
+        aadhaar_number: aadhaar,
+        pan_number: pan,
+        passport_number: passport || undefined,
+        passport_expiry: passportExpiry || undefined,
+      });
+      toast.success("Identity verification saved.");
+      setCurrentStepIndex(3);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save identity proof");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveStep4 = async () => {
+    setIsSubmitting(true);
+    const endYr = parseInt(gradYear) || 2022;
+    const startYr = endYr - 4;
+    try {
+      await api.put("employee-onboarding/step/4", {
+        education_records: [
+          {
+            degree,
+            institution: institution || "University",
+            start_year: startYr,
+            end_year: endYr,
+            completion_year: endYr,
+          },
+        ],
+      });
+      await api.put("employee-onboarding/step/5", {
+        experience_records: priorCompany
+          ? [
+              {
+                company_name: priorCompany,
+                designation: priorRole || "Engineer",
+                start_date: "2020-01-01",
+                total_years: parseFloat(expYears) || 2,
+              },
+            ]
+          : [],
+      });
+      toast.success("Education & background saved.");
+      setCurrentStepIndex(5);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save education/experience");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveStep5 = async () => {
+    if (!accountNumber || !ifsc) {
+      toast.error("Bank Account Number and IFSC Code are required.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await api.put("employee-onboarding/step/6", {
+        account_number: accountNumber,
+        ifsc_code: ifsc,
+        bank_name: bankName || "HDFC Bank",
+        branch_name: "Main Branch",
+        account_holder_name: accountHolder || ws.user?.fullName || "Employee",
+      });
+      await api.put("employee-onboarding/step/7", {
+        tax_regime: taxRegime,
+        pf_number: pfNumber || undefined,
+        uan_number: uanNumber || undefined,
+        nominee_name: nomineeName || "Family Member",
+        nominee_relation: nomineeRelation || "Spouse/Parent",
+      });
+      toast.success("Bank details & tax regime saved.");
+      setCurrentStepIndex(6);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save bank/tax details");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingType(docType);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_type", docType);
+
+      const res = await apiInstance.post("/employee-onboarding/step/8/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data?.success) {
+        toast.success(`${docType} uploaded successfully!`);
+        fetchStatusAndProgress();
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || err.message || "Document upload failed");
+    } finally {
+      setUploadingType(null);
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string) => {
+    try {
+      await api.delete(`employee-onboarding/step/8/document/${docId}`);
+      toast.success("Document removed.");
+      fetchStatusAndProgress();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete document");
+    }
+  };
+
+  const handleSaveStep6Docs = async () => {
+    setIsSubmitting(true);
+    try {
+      await api.put("employee-onboarding/step/8", {});
+      toast.success("Documents finalized.");
+      setCurrentStepIndex(7);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to finalize documents");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveStep7Policies = async () => {
+    if (!ackHandbook || !ackNda || !ackLeave) {
+      toast.error("Please read and acknowledge all required employment policies.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await api.put("employee-onboarding/step/9", {
+        acceptances: [
+          { policy_name: "EMPLOYEE_HANDBOOK", accepted: true },
+          { policy_name: "DATA_SECURITY_NDA", accepted: true },
+          { policy_name: "LEAVE_ATTENDANCE_POLICY", accepted: true },
+        ],
+      });
+      toast.success("Company policies acknowledged.");
+      setCurrentStepIndex(8);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to accept policies");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    setIsSubmitting(true);
+    try {
+      const res: any = await api.post("employee-onboarding/complete");
+      if (res.success) {
+        toast.success("Congratulations! Your employee onboarding is complete.");
+        if (ws.user) {
+          ofc360.set({ user: { ...ws.user, onboardingComplete: true } });
+        }
+        navigate({ to: "/dashboard/employee", replace: true });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to complete onboarding");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) return <AuthLoadingScreen />;
+
+  const empDetails = progressData?.employment || {};
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col justify-between p-4 md:p-8">
+      <div className="max-w-4xl mx-auto w-full space-y-6">
+        {/* TOP HEADER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] uppercase font-bold">
+                Employee Self-Service Onboarding
+              </Badge>
+            </div>
+            <h1 className="text-xl font-bold font-display text-foreground mt-1">
+              Welcome, {ws.user?.fullName || "Employee"}!
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Organization: <strong className="text-foreground">{ws.company?.name || "Company Workspace"}</strong>
+            </p>
+          </div>
+          <Button onClick={() => navigate({ to: "/dashboard/employee" })} variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground">
+            Skip to Dashboard
+          </Button>
+        </div>
+
+        {/* STEPPER NAV */}
+        <div className="overflow-x-auto scrollbar-none py-2 border-b border-border">
+          <Stepper steps={EMPLOYEE_STEPS} current={currentStepIndex} />
+        </div>
+
+        {/* STEP CONTENT CONTAINER */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-xl space-y-6">
+          {/* STEP 0: WELCOME & POSITION OVERVIEW */}
+          {currentStepIndex === 0 && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-6 text-center space-y-3">
+                <Sparkles className="h-10 w-10 text-indigo-400 mx-auto animate-pulse" />
+                <h2 className="text-lg font-bold text-foreground">Welcome to the Team!</h2>
+                <p className="text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                  We are excited to have you onboard at <strong>{ws.company?.name}</strong>. Please complete the quick verification steps below to finalize your HR records, statutory tax setup, and payroll enrollment.
+                </p>
+              </div>
+
+              {/* Company Provided Read-Only Position Overview */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-indigo-400" /> Confirmed Employment Offer Details
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border">
+                    <span className="text-[10px] text-muted-foreground block font-medium">Designation</span>
+                    <span className="font-bold text-foreground mt-0.5 block">{empDetails.designation || "Software Engineer"}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border">
+                    <span className="text-[10px] text-muted-foreground block font-medium">Department</span>
+                    <span className="font-bold text-foreground mt-0.5 block">{empDetails.department || "Engineering"}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border">
+                    <span className="text-[10px] text-muted-foreground block font-medium">Employee Code</span>
+                    <span className="font-mono font-bold text-indigo-400 mt-0.5 block">{empDetails.employee_id || "EMP-001"}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border">
+                    <span className="text-[10px] text-muted-foreground block font-medium">Joining Date</span>
+                    <span className="font-semibold text-foreground mt-0.5 block">{empDetails.joining_date || new Date().toISOString().split("T")[0]}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => setCurrentStepIndex(1)} className="h-9 px-5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-semibold">
+                  Begin Onboarding <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 1: PERSONAL INFORMATION */}
+          {currentStepIndex === 1 && (
+            <div className="space-y-5 text-xs">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div>
+                  <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <User className="h-4 w-4 text-indigo-400" /> Personal Information
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Provide your contact info and personal contact details.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">First Name *</Label>
+                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1 h-9" required />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Last Name</Label>
+                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1 h-9" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Date of Birth *</Label>
+                  <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="mt-1 h-9" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Gender</Label>
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger className="mt-1 h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MALE">Male</SelectItem>
+                      <SelectItem value="FEMALE">Female</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Personal Email *</Label>
+                  <Input value={personalEmail} onChange={(e) => setPersonalEmail(e.target.value)} className="mt-1 h-9" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Mobile Phone *</Label>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 h-9" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Nationality *</Label>
+                  <Input value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="e.g. Indian" className="mt-1 h-9" required />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Label className="text-xs font-semibold text-muted-foreground">Current Residence Address *</Label>
+                  <Textarea value={currentAddress} onChange={(e) => setCurrentAddress(e.target.value)} rows={2} className="mt-1" />
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3">
+                <h3 className="font-bold text-foreground">Emergency Contact Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Contact Person Name</Label>
+                    <Input value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} placeholder="e.g. Parent / Spouse" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Relationship</Label>
+                    <Input value={emergencyRelation} onChange={(e) => setEmergencyRelation(e.target.value)} placeholder="Father / Spouse" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Emergency Phone</Label>
+                    <Input value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} placeholder="+91 98765 43210" className="mt-1 h-9" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(0)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep1} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Save & Continue"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: IDENTITY PROOF */}
+          {currentStepIndex === 2 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-indigo-400" /> Identity & Statutory Verification
+                </h2>
+                <p className="text-xs text-muted-foreground">Enter government-issued identification numbers for statutory payroll processing.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">PAN Card Number *</Label>
+                  <Input value={pan} onChange={(e) => setPan(e.target.value.toUpperCase())} placeholder="ABCDE1234F" className="mt-1 h-9 font-mono uppercase" required />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Aadhaar Card Number</Label>
+                  <Input value={aadhaar} onChange={(e) => setAadhaar(e.target.value)} placeholder="1234 5678 9012" className="mt-1 h-9 font-mono" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Passport Number (Optional)</Label>
+                  <Input value={passport} onChange={(e) => setPassport(e.target.value.toUpperCase())} placeholder="A1234567" className="mt-1 h-9 font-mono" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Passport Expiry Date</Label>
+                  <Input type="date" value={passportExpiry} onChange={(e) => setPassportExpiry(e.target.value)} className="mt-1 h-9" />
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(1)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep2} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Save & Continue"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: READ-ONLY EMPLOYMENT DETAILS */}
+          {currentStepIndex === 3 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-indigo-400" /> Company Employment Details
+                </h2>
+                <p className="text-xs text-muted-foreground">These company-managed records are pre-assigned by your HR administrator.</p>
+              </div>
+
+              <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Company Name</span>
+                    <span className="font-bold text-foreground mt-1 block">{ws.company?.name || "Workspace"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Employee Code</span>
+                    <span className="font-mono font-bold text-indigo-400 mt-1 block">{empDetails.employee_id || "EMP-001"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Work Location</span>
+                    <span className="font-semibold text-foreground mt-1 block">{empDetails.work_location || "Headquarters"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Designation</span>
+                    <span className="font-semibold text-foreground mt-1 block">{empDetails.designation || "Software Engineer"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Department</span>
+                    <span className="font-semibold text-foreground mt-1 block">{empDetails.department || "Engineering"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Employment Type</span>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 mt-1 text-[10px]">
+                      {empDetails.employment_type || "FULL_TIME"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(2)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={() => setCurrentStepIndex(4)} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Confirm & Continue <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: EDUCATION & EXPERIENCE */}
+          {currentStepIndex === 4 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Award className="h-4 w-4 text-indigo-400" /> Educational & Work Background
+                </h2>
+                <p className="text-xs text-muted-foreground">Provide details regarding your highest qualification and previous employment.</p>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-foreground">Highest Educational Qualification</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Degree / Diploma</Label>
+                    <Input value={degree} onChange={(e) => setDegree(e.target.value)} className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">University / Institution</Label>
+                    <Input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="e.g. State University" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Graduation Year</Label>
+                    <Input value={gradYear} onChange={(e) => setGradYear(e.target.value)} className="mt-1 h-9" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3">
+                <h3 className="font-bold text-foreground">Previous Work Experience (If applicable)</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Previous Company</Label>
+                    <Input value={priorCompany} onChange={(e) => setPriorCompany(e.target.value)} placeholder="Previous employer name" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Designation</Label>
+                    <Input value={priorRole} onChange={(e) => setPriorRole(e.target.value)} placeholder="e.g. Junior Developer" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Total Experience (Years)</Label>
+                    <Input value={expYears} onChange={(e) => setExpYears(e.target.value)} className="mt-1 h-9" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(3)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep4} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Save & Continue"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: BANK DETAILS & TAX SETUP */}
+          {currentStepIndex === 5 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-indigo-400" /> Salary Bank Account & Tax Declaration
+                </h2>
+                <p className="text-xs text-muted-foreground">Configure direct deposit bank details and select your statutory tax regime.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Bank Account Number *</Label>
+                  <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="mt-1 h-9 font-mono" required />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">IFSC Code *</Label>
+                  <Input value={ifsc} onChange={(e) => setIfsc(e.target.value.toUpperCase())} placeholder="HDFC0001234" className="mt-1 h-9 font-mono uppercase" required />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Bank Name</Label>
+                  <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. HDFC Bank" className="mt-1 h-9" />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground">Account Holder Name</Label>
+                  <Input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="mt-1 h-9" />
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-4">
+                <h3 className="font-bold text-foreground">Income Tax Regime Selection</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTaxRegime("NEW")}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${taxRegime === "NEW" ? "border-indigo-500 bg-indigo-500/10 font-bold" : "border-border bg-card/40"}`}
+                  >
+                    <span className="block text-foreground">New Tax Regime</span>
+                    <span className="text-[10px] text-muted-foreground">Lower slab rates, lower deductions</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTaxRegime("OLD")}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${taxRegime === "OLD" ? "border-indigo-500 bg-indigo-500/10 font-bold" : "border-border bg-card/40"}`}
+                  >
+                    <span className="block text-foreground">Old Tax Regime</span>
+                    <span className="text-[10px] text-muted-foreground">Exemptions 80C, 80D, HRA allowed</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3">
+                <h3 className="font-bold text-foreground">PF & Gratuity Nominee Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Nominee Full Name *</Label>
+                    <Input value={nomineeName} onChange={(e) => setNomineeName(e.target.value)} placeholder="e.g. Parent / Spouse Name" className="mt-1 h-9" />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Nominee Relationship *</Label>
+                    <Input value={nomineeRelation} onChange={(e) => setNomineeRelation(e.target.value)} placeholder="Father / Spouse / Mother" className="mt-1 h-9" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(4)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep5} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Save & Continue"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6: UPLOAD DOCUMENTS */}
+          {currentStepIndex === 6 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Upload className="h-4 w-4 text-indigo-400" /> Onboarding Document Uploads
+                </h2>
+                <p className="text-xs text-muted-foreground">Upload required identity, bank, and educational verification documents (PDF or JPG).</p>
+              </div>
+
+              {/* Upload Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { type: "AADHAAR", label: "Aadhaar Card (Front/Back)" },
+                  { type: "PAN", label: "PAN Card" },
+                  { type: "CANCELLED_CHEQUE", label: "Bank Passbook / Cancelled Cheque" },
+                  { type: "DEGREE", label: "Highest Educational Marksheet" },
+                  { type: "PHOTO", label: "Passport Photograph" },
+                  { type: "RESUME", label: "Resume / CV" },
+                ].map((docItem) => {
+                  const existingDoc = uploadedDocs.find((d) => d.document_type === docItem.type && !d.is_deleted);
+                  const isUploading = uploadingType === docItem.type;
+
+                  return (
+                    <div key={docItem.type} className="p-4 rounded-xl border border-border bg-muted/10 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-foreground">{docItem.label}</span>
+                        {existingDoc ? (
+                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] gap-1">
+                            <Check className="h-3 w-3" /> Uploaded
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-400 border-amber-500/20 text-[9px]">
+                            Required
+                          </Badge>
+                        )}
+                      </div>
+
+                      {existingDoc ? (
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[11px] text-muted-foreground font-mono truncate max-w-[200px]">
+                            {existingDoc.file_name || "Document.pdf"}
+                          </span>
+                          <Button onClick={() => handleDeleteDoc(existingDoc.id)} variant="ghost" size="sm" className="h-7 text-rose-400 hover:bg-rose-500/10 px-2 text-[10px] gap-1">
+                            <Trash2 className="h-3 w-3" /> Remove
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-border hover:border-indigo-500 bg-background/50 cursor-pointer text-muted-foreground hover:text-foreground transition-all">
+                          {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-indigo-400" /> : <Upload className="h-4 w-4 text-indigo-400" />}
+                          <span>{isUploading ? "Uploading..." : "Click to Upload File"}</span>
+                          <input type="file" onChange={(e) => handleFileUpload(e, docItem.type)} className="hidden" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(5)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep6Docs} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Finalize Documents"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 7: POLICIES & AGREEMENTS */}
+          {currentStepIndex === 7 && (
+            <div className="space-y-5 text-xs">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-indigo-400" /> Employment Policies & Code of Conduct
+                </h2>
+                <p className="text-xs text-muted-foreground">Please read and acknowledge the mandatory company policies and employment terms.</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl border border-border bg-muted/10 flex items-start gap-3">
+                  <Checkbox id="hbook" checked={ackHandbook} onCheckedChange={(v) => setAckHandbook(Boolean(v))} className="mt-0.5" />
+                  <label htmlFor="hbook" className="cursor-pointer space-y-1">
+                    <span className="font-bold text-foreground block">1. Employee Handbook & Code of Conduct</span>
+                    <span className="text-[11px] text-muted-foreground block leading-relaxed">
+                      I acknowledge receipt of the employee handbook and agree to comply with all work standards, workplace ethics, and operational guidelines.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="p-4 rounded-xl border border-border bg-muted/10 flex items-start gap-3">
+                  <Checkbox id="nda" checked={ackNda} onCheckedChange={(v) => setAckNda(Boolean(v))} className="mt-0.5" />
+                  <label htmlFor="nda" className="cursor-pointer space-y-1">
+                    <span className="font-bold text-foreground block">2. Data Confidentiality & Intellectual Property NDA</span>
+                    <span className="text-[11px] text-muted-foreground block leading-relaxed">
+                      I agree to maintain strict confidentiality regarding all proprietary source code, customer records, and internal business assets.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="p-4 rounded-xl border border-border bg-muted/10 flex items-start gap-3">
+                  <Checkbox id="leave" checked={ackLeave} onCheckedChange={(v) => setAckLeave(Boolean(v))} className="mt-0.5" />
+                  <label htmlFor="leave" className="cursor-pointer space-y-1">
+                    <span className="font-bold text-foreground block">3. Leave Policy & Attendance Standards</span>
+                    <span className="text-[11px] text-muted-foreground block leading-relaxed">
+                      I understand the company leave quota, check-in requirements, and notice period policies.
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button onClick={() => setCurrentStepIndex(6)} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={handleSaveStep7Policies} disabled={isSubmitting} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  {isSubmitting ? "Saving..." : "Accept Policies"} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 8: FINAL REVIEW & COMPLETION */}
+          {currentStepIndex === 8 && (
+            <div className="space-y-6 text-xs text-center py-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold font-display text-foreground">Onboarding Ready for Final Submission</h2>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  All statutory details, bank accounts, identity documents, and policy acknowledgements have been verified. Click below to complete your onboarding.
+                </p>
+              </div>
+
+              <div className="max-w-md mx-auto border border-border rounded-xl p-4 bg-muted/10 text-left space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Personal Profile:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Completed</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Identity & Statutory PAN:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Verified</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Direct Deposit Bank Details:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Configured</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Documents Uploaded:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Finalized</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Employment Policies:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Signed</span>
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-3 pt-2">
+                <Button onClick={() => setCurrentStepIndex(7)} variant="outline" className="h-9 text-xs">Review Steps</Button>
+                <Button onClick={handleCompleteOnboarding} disabled={isSubmitting} className="h-10 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 shadow-lg">
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Complete Onboarding & Enter Dashboard
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. COMPANY ADMIN / ORGANIZATION ONBOARDING WIZARD
+// ─────────────────────────────────────────────────────────────────────────────
+function CompanyAdminOnboarding() {
+  const navigate = useNavigate();
+  const ws = useofc360();
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [resuming, setResuming] = useState(true);
+
+  // Form Fields
+  const [companyName, setCompanyName] = useState(ws.company?.name || "");
+  const [logo, setLogo] = useState<string | undefined>(ws.company?.logoDataUrl);
+  const [industry, setIndustry] = useState(ws.company?.industry || INDUSTRIES[0]);
+  const [companySize, setCompanySize] = useState(ws.company?.size || SIZES[1]);
+  const [country, setCountry] = useState(ws.company?.country || "India");
+  const [state, setState] = useState(ws.company?.state || "Maharashtra");
+  const [city, setCity] = useState(ws.company?.city || "Mumbai");
+  const [timezone, setTimezone] = useState(ws.company?.timezone || "Asia/Kolkata");
+
+  const [fullName, setFullName] = useState(ws.user?.fullName || "");
+  const [adminPhone, setAdminPhone] = useState(ws.user?.phone || "");
+  const [avatar, setAvatar] = useState<string | undefined>();
+  const [termsAccepted, setTermsAccepted] = useState(true);
+
+  const [workDays, setWorkDays] = useState<string[]>(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+  const [standardHours, setStandardHours] = useState(8);
+  const [workModel, setWorkModel] = useState<"hybrid" | "remote" | "office">("hybrid");
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
@@ -196,7 +1333,7 @@ function OnboardingPage() {
 
         if (onboardingCompleted || backendStep >= 7) {
           if (ws.user) {
-            aurix.set({ user: { ...ws.user, onboardingComplete: true } });
+            ofc360.set({ user: { ...ws.user, onboardingComplete: true } });
           }
           navigate({ to: "/dashboard", replace: true });
           return;
@@ -206,26 +1343,22 @@ function OnboardingPage() {
         const progress = progressRes?.data;
         if (progress && !cancelled) {
           if (progress.company_profile) {
-            aurix.set({
-              company: {
-                id: ws.company?.id ?? uid("co"),
-                name: progress.company_profile.company_name ?? "",
-                logoDataUrl: progress.company_profile.company_logo ?? undefined,
-                industry: progress.company_profile.industry ?? "",
-                size: progress.company_profile.company_size ?? "",
-                country: progress.company_profile.country ?? "",
-                state: progress.company_profile.state ?? "",
-                city: progress.company_profile.city ?? "",
-                timezone: progress.company_profile.timezone ?? "UTC",
-              } as any,
-            });
+            setCompanyName(progress.company_profile.company_name || "");
+            setIndustry(progress.company_profile.industry || INDUSTRIES[0]);
+            setCompanySize(progress.company_profile.company_size || SIZES[1]);
+            setCountry(progress.company_profile.country || "India");
+            setState(progress.company_profile.state || "Maharashtra");
+            setCity(progress.company_profile.city || "Mumbai");
+            setTimezone(progress.company_profile.timezone || "Asia/Kolkata");
+          }
+          if (progress.admin_profile) {
+            setFullName(progress.admin_profile.full_name || ws.user?.fullName || "");
+            setAdminPhone(progress.admin_profile.phone || ws.user?.phone || "");
           }
         }
 
         if (!cancelled) setStep(backendStepToUiIndex(backendStep));
       } catch (err) {
-        // If status/progress can't be fetched, fall back to starting at
-        // Company rather than blocking the admin from onboarding at all.
         if (!cancelled) setStep(0);
       } finally {
         if (!cancelled) setResuming(false);
@@ -233,1348 +1366,198 @@ function OnboardingPage() {
     })();
 
     return () => { cancelled = true; };
-  }, [ws.user, navigate, token]);
+  }, [ws.user, navigate]);
 
-  function next() { setStep((s) => Math.min(STEPS.length - 1, s + 1)); }
+  function next() { setStep((s) => Math.min(ADMIN_STEPS.length - 1, s + 1)); }
   function back() { setStep((s) => Math.max(0, s - 1)); }
-  function goto(i: number) { setStep(i); }
 
   async function finish() {
     setLoading(true);
     try {
-      await api.post("onboarding/complete");
-
+      await api.post("onboarding/complete", {});
       if (ws.user) {
-        aurix.set({ user: { ...ws.user, onboardingComplete: true } });
+        ofc360.set({ user: { ...ws.user, onboardingComplete: true } });
       }
-      setStep(6);
+      toast.success("Workspace setup completed!");
+      navigate({ to: "/dashboard", replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Failed to complete onboarding. Please try again.");
+      toast.error(err.message || "Failed to finalize onboarding");
     } finally {
       setLoading(false);
     }
   }
 
-  if (ws.isRestoring) {
-    return <AuthLoadingScreen />;
-  }
+  if (resuming) return <AuthLoadingScreen />;
 
-  if (token) {
-    if (tokenLoading) {
-      return (
-        <div className="relative min-h-screen flex items-center justify-center bg-background">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="text-sm text-muted-foreground">Validating your invitation...</p>
+  return (
+    <div className="min-h-screen bg-background flex flex-col justify-between p-4 md:p-8">
+      <div className="max-w-4xl mx-auto w-full space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] uppercase font-bold">
+              Organization Admin Onboarding
+            </Badge>
+            <h1 className="text-xl font-bold font-display text-foreground mt-1">
+              Set Up Your Company Workspace
+            </h1>
           </div>
         </div>
-      );
-    }
 
-    if (tokenError) {
-      return (
-        <div className="relative min-h-screen flex items-center justify-center bg-background p-6">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-          <div className="max-w-md w-full rounded-2xl border border-border bg-card/70 p-8 text-center shadow-elegant backdrop-blur-xl">
-            <div className="mx-auto mb-6 grid h-12 w-12 place-items-center rounded-xl bg-destructive/10 text-destructive">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">Invitation Expired</h2>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Invitation expired. Request new invitation.
-            </p>
-            <div className="mt-6">
-              <Button onClick={() => navigate({ to: "/login" })} className="w-full">
-                Go to Login
-              </Button>
-            </div>
-          </div>
+        <div className="overflow-x-auto scrollbar-none py-2 border-b border-border">
+          <Stepper steps={ADMIN_STEPS} current={step} />
         </div>
-      );
-    }
 
-    if (empData) {
-      const handleActivate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!password) {
-          return toast.error("Password is required");
-        }
-        if (password.length < 8) {
-          return toast.error("Password must be at least 8 characters long");
-        }
-        if (!/[A-Z]/.test(password)) {
-          return toast.error("Password must contain at least 1 uppercase letter");
-        }
-        if (!/[a-z]/.test(password)) {
-          return toast.error("Password must contain at least 1 lowercase letter");
-        }
-        if (!/[0-9]/.test(password)) {
-          return toast.error("Password must contain at least 1 number");
-        }
-        if (!/[^A-Za-z0-9]/.test(password)) {
-          return toast.error("Password must contain at least 1 special character");
-        }
-        if (password !== confirmPassword) {
-          return toast.error("Passwords do not match");
-        }
-        if (!acceptPolicies) {
-          return toast.error("You must accept the company policies and terms of service");
-        }
-
-        setActivating(true);
-        try {
-          const res: any = await api.post("onboarding/activate", {
-            token,
-            password,
-            phone,
-            emergency_contact_name: emergencyName || null,
-            emergency_contact_phone: emergencyPhone || null,
-            profile_photo_url: profilePhoto || null,
-          });
-
-          if (res.success) {
-            toast.success("Account activated successfully! Logging you in...");
-            // Save user to aurix store
-            if (res.data?.user) {
-              aurix.set({ user: res.data.user });
-            }
-            // Save tokens via API client (correct storage key)
-            if (res.data?.access_token && res.data?.refresh_token) {
-              setTokens({
-                accessToken: res.data.access_token,
-                refreshToken: res.data.refresh_token,
-              });
-            }
-            // Redirect based on role — default to /dashboard/employee for employees
-            const role = res.data?.user?.role;
-            setTimeout(() => {
-              if (role === "admin" || role === "hr") {
-                navigate({ to: "/dashboard" });
-              } else if (role === "manager") {
-                navigate({ to: "/dashboard/manager" });
-              } else {
-                navigate({ to: "/dashboard/employee" });
-              }
-            }, 1000);
-          } else {
-            toast.error(res.message || "Failed to activate account. Please try again.");
-          }
-        } catch (err: any) {
-          toast.error(err.message || "Failed to activate account. Please try again.");
-        } finally {
-          setActivating(false);
-        }
-      };
-
-      return (
-        <div className="relative min-h-screen overflow-hidden bg-background">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-          <header className="flex items-center justify-between px-6 py-5 sm:px-10">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-lg text-brand-foreground shadow-glow" style={{ background: "var(--gradient-brand)" }}>
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <span className="font-display text-lg font-semibold tracking-tight">Aurix</span>
-            </Link>
-            <span className="text-xs text-muted-foreground">Account Setup</span>
-          </header>
-
-          <div className="mx-auto max-w-2xl px-6 pb-16 sm:px-10">
-            <div className="rounded-2xl border bg-card/70 p-6 shadow-elegant backdrop-blur-xl sm:p-8" style={{ borderColor: "var(--glass-border)" }}>
-              <div className="mb-6 flex items-start gap-4">
-                <div className="grid h-11 w-11 place-items-center rounded-xl text-brand-foreground shadow-glow" style={{ background: "var(--gradient-brand)" }}>
-                  <Sparkles className="h-5 w-5" />
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-xl space-y-6">
+          {/* STEP 0: COMPANY DETAILS */}
+          {step === 0 && (
+            <div className="space-y-4 text-xs">
+              <h2 className="text-base font-bold text-foreground">Company Details</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <Label className="text-xs font-semibold">Company Name *</Label>
+                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="mt-1 h-9" required />
                 </div>
                 <div>
-                  <h2 className="font-display text-xl font-semibold tracking-tight">Complete Your Account Setup</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Welcome! Please fill in the details below to activate your employee profile.</p>
+                  <Label className="text-xs font-semibold">Industry</Label>
+                  <Select value={industry} onValueChange={setIndustry}>
+                    <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>{INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
-              </div>
-
-              <form onSubmit={handleActivate} className="space-y-5">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Employee ID</Label>
-                    <Input value={empData.employee_id} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Full Name</Label>
-                    <Input value={`${empData.first_name} ${empData.last_name}`} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label className="text-xs">Email</Label>
-                    <Input value={empData.personal_email} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Department</Label>
-                    <Input value={empData.department} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Designation</Label>
-                    <Input value={empData.designation} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Joining Date</Label>
-                    <Input value={empData.joining_date} readOnly disabled className="bg-muted/50 cursor-not-allowed opacity-80" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Phone Number</Label>
-                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone number" required />
-                  </div>
-
-                  <div className="border-t border-border sm:col-span-2 my-2" />
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Password</Label>
-                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a strong password" required />
-                    <p className="text-[11px] text-muted-foreground">
-                      Min 8 chars · 1 uppercase · 1 lowercase · 1 number · 1 special character
-                    </p>
-                    {password && (
-                      <div className="flex gap-1 mt-1">
-                        {[
-                          password.length >= 8,
-                          /[A-Z]/.test(password),
-                          /[a-z]/.test(password),
-                          /[0-9]/.test(password),
-                          /[^A-Za-z0-9]/.test(password),
-                        ].map((ok, i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full transition-colors ${ok ? "bg-emerald-500" : "bg-muted"}`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Confirm Password</Label>
-                    <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Verify your password" required />
-                    {confirmPassword && (
-                      <p className={`text-[11px] ${password === confirmPassword ? "text-emerald-500" : "text-destructive"}`}>
-                        {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="border-t border-border sm:col-span-2 my-2" />
-                  <h3 className="text-sm font-medium sm:col-span-2">Additional Information (Optional)</h3>
-
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label className="text-xs">Profile Photo URL</Label>
-                    <Input value={profilePhoto} onChange={(e) => setProfilePhoto(e.target.value)} placeholder="https://example.com/photo.jpg" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Emergency Contact Name</Label>
-                    <Input value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} placeholder="Contact Name" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Emergency Contact Phone</Label>
-                    <Input value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} placeholder="Contact Phone" />
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 mt-4">
-                  <Checkbox id="terms" checked={acceptPolicies} onCheckedChange={(checked) => setAcceptPolicies(checked === true)} />
-                  <Label htmlFor="terms" className="text-xs text-muted-foreground leading-normal cursor-pointer select-none">
-                    I accept the company policies, code of conduct, and employee terms of service.
-                  </Label>
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <Button type="submit" disabled={activating} className="w-full sm:w-auto">
-                    {activating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Activate Account & Login
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      );
-    }
-  }
-
-  if (resuming) {
-    return (
-      <div className="relative min-h-screen flex items-center justify-center bg-background">
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-sm text-muted-foreground">Restoring your progress...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-      <header className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <Link to="/" className="inline-flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg text-brand-foreground shadow-glow" style={{ background: "var(--gradient-brand)" }}>
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">Aurix</span>
-        </Link>
-        <span className="text-xs text-muted-foreground">Step {Math.min(step + 1, 6)} of 6</span>
-      </header>
-
-      <div className="mx-auto max-w-5xl px-6 pb-16 sm:px-10">
-        <div className="mb-8 flex justify-center">
-          <Stepper steps={STEPS} current={Math.min(step, 5)} />
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-          >
-            {step === 0 ? <CompanyStep onNext={next} /> : null}
-            {step === 1 ? <AdminProfileStep onNext={next} onBack={back} /> : null}
-            {step === 2 ? <HRSettingsStep onNext={next} onBack={back} /> : null}
-            {step === 3 ? <DepartmentsDesignationsStep onNext={next} onBack={back} /> : null}
-            {step === 4 ? <InviteEmployeesStep onNext={next} onBack={back} /> : null}
-            {step === 5 ? <ReviewStep onBack={back} onFinish={finish} onEdit={goto} loading={loading} /> : null}
-            {step === 6 ? <SuccessStep /> : null}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-function StepCard({ title, description, icon: Icon, children, footer }: {
-  title: string; description?: string; icon: any; children: React.ReactNode; footer?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border bg-card/70 p-6 shadow-elegant backdrop-blur-xl sm:p-8" style={{ borderColor: "var(--glass-border)" }}>
-      <div className="mb-6 flex items-start gap-4">
-        <div className="grid h-11 w-11 place-items-center rounded-xl text-brand-foreground shadow-glow" style={{ background: "var(--gradient-brand)" }}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
-        </div>
-      </div>
-      {children}
-      {footer ? <div className="mt-8 flex items-center justify-between border-t border-border pt-6">{footer}</div> : null}
-    </div>
-  );
-}
-
-/* ---------------- Step 1: Company ---------------- */
-
-function CompanyStep({ onNext }: { onNext: () => void }) {
-  const ws = useAurix();
-  const [c, setC] = useState(ws.company ?? { id: uid("co"), name: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [loading, setLoading] = useState(false);
-
-  function set<K extends keyof typeof c>(k: K, v: any) { setC((p) => ({ ...p, [k]: v })); }
-
-  function onLogo(file: File | null) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => set("logoDataUrl", reader.result as string);
-    reader.readAsDataURL(file);
-  }
-
-  async function submit() {
-    const fe: Record<string, string> = {};
-    if (!c.name) fe.name = "Required";
-    if (!c.industry) fe.industry = "Required";
-    if (!c.size) fe.size = "Required";
-    if (!c.email) fe.email = "Required";
-    if (!c.country) fe.country = "Required";
-    if (Object.keys(fe).length) { setErrors(fe); return; }
-    
-    setLoading(true);
-    try {
-      // 1. Submit company profile
-      const companyPayload = {
-        company_name: c.name,
-        company_logo: c.logoDataUrl || null,
-        industry: c.industry || "Software",
-        company_size: c.size || "11–50",
-        country: c.country || "USA",
-        state: c.state || null,
-        city: c.city || null,
-        timezone: c.timezone || "UTC",
-        currency: "USD"
-      };
-      await api.post("onboarding/company", companyPayload);
-      aurix.set({ company: c });
-      onNext();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save company details. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <StepCard
-      title="Tell us about your company"
-      description="This sets up your workspace identity. You can edit any of it later."
-      icon={Building2}
-      footer={
-        <>
-          <span />
-          <Button onClick={submit} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Continue
-            {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-          </Button>
-        </>
-      }
-    >
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <Label>Company logo</Label>
-          <div className="mt-2 flex items-center gap-4">
-            <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl border border-border bg-muted text-muted-foreground">
-              {c.logoDataUrl ? <img src={c.logoDataUrl} alt="Logo" className="h-full w-full object-cover" /> : <Building2 className="h-6 w-6" />}
-            </div>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent">
-              <Upload className="h-4 w-4" />
-              Upload logo
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => onLogo(e.target.files?.[0] ?? null)} />
-            </label>
-          </div>
-        </div>
-
-        <Field label="Company name" error={errors.name}>
-          <Input value={c.name} onChange={(e) => set("name", e.target.value)} placeholder="Aurix, Inc." />
-        </Field>
-        <Field label="Industry" error={errors.industry}>
-          <Select value={c.industry} onValueChange={(v) => set("industry", v)}>
-            <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
-            <SelectContent>{INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-        <Field label="Company size" error={errors.size}>
-          <Select value={c.size} onValueChange={(v) => set("size", v)}>
-            <SelectTrigger><SelectValue placeholder="Number of employees" /></SelectTrigger>
-            <SelectContent>{SIZES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-        <Field label="Website"><Input value={c.website ?? ""} onChange={(e) => set("website", e.target.value)} placeholder="https://aurix.com" /></Field>
-        <Field label="Company email" error={errors.email}>
-          <Input type="email" value={c.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="hello@aurix.com" />
-        </Field>
-        <Field label="Company phone"><Input value={c.phone ?? ""} onChange={(e) => set("phone", e.target.value)} placeholder="+1 555 0100" /></Field>
-        <div className="sm:col-span-2">
-          <Field label="Address"><Textarea rows={2} value={c.address ?? ""} onChange={(e) => set("address", e.target.value)} placeholder="Street, building, suite" /></Field>
-        </div>
-        <Field label="City"><Input value={c.city ?? ""} onChange={(e) => set("city", e.target.value)} /></Field>
-        <Field label="State / Region"><Input value={c.state ?? ""} onChange={(e) => set("state", e.target.value)} /></Field>
-        <Field label="Country" error={errors.country}><Input value={c.country ?? ""} onChange={(e) => set("country", e.target.value)} /></Field>
-        <Field label="Timezone">
-          <Select value={c.timezone} onValueChange={(v) => set("timezone", v)}>
-            <SelectTrigger><SelectValue placeholder="Select timezone" /></SelectTrigger>
-            <SelectContent>{TIMEZONES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-      </div>
-    </StepCard>
-  );
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      {children}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
-    </div>
-  );
-}
-
-/* ---------------- Step 2: Admin Profile ---------------- */
-
-function AdminProfileStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const ws = useAurix();
-  const nameParts = ws.user?.fullName?.split(" ") || [];
-  const [firstName, setFirstName] = useState(nameParts[0] || "");
-  const [lastName, setLastName] = useState(nameParts.slice(1).join(" ") || "");
-  const [phone, setPhone] = useState((ws.user?.phone || "").replace(/\D/g, ""));
-  const [designation, setDesignation] = useState("Company Owner");
-  const [language, setLanguage] = useState("English");
-  const [loading, setLoading] = useState(false);
-
-  async function submit() {
-    if (!firstName || !lastName || !phone) {
-      toast.error("First name, last name, and phone number are required.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const adminPayload = {
-        first_name: firstName,
-        last_name: lastName,
-        profile_photo: null,
-        mobile_number: phone.length >= 10 ? phone.substring(0, 10) : "9876543210",
-        designation: designation,
-        preferred_language: language,
-      };
-      await api.post("onboarding/admin-profile", adminPayload);
-      onNext();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save admin profile. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <StepCard
-      title="Create your Admin Profile"
-      description="Tell us about yourself. You will be the primary administrator for this workspace."
-      icon={UserCog}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onBack} disabled={loading}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <Button onClick={submit} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Continue
-            {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-          </Button>
-        </>
-      }
-    >
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="First name">
-          <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" />
-        </Field>
-        <Field label="Last name">
-          <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
-        </Field>
-        <Field label="Mobile number">
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" />
-        </Field>
-        <Field label="Designation">
-          <Input value={designation} onChange={(e) => setDesignation(e.target.value)} placeholder="Company Owner" />
-        </Field>
-        <div className="sm:col-span-2">
-          <Field label="Preferred language">
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger><SelectValue placeholder="Select language" /></SelectTrigger>
-              <SelectContent>
-                {["English", "Spanish", "French", "German", "Hindi", "Mandarin"].map((l) => (
-                  <SelectItem key={l} value={l}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
-      </div>
-    </StepCard>
-  );
-}
-
-/* ---------------- Step 3: HR Settings ---------------- */
-
-function HRSettingsStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const [workingDays, setWorkingDays] = useState<string[]>(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
-  const [weekStart, setWeekStart] = useState("Monday");
-  const [officeTimingStart, setOfficeTimingStart] = useState("09:00");
-  const [officeTimingEnd, setOfficeTimingEnd] = useState("18:00");
-  const [defaultShift, setDefaultShift] = useState("General Shift");
-  const [timeFormat, setTimeFormat] = useState("12h");
-  const [dateFormat, setDateFormat] = useState("YYYY-MM-DD");
-  const [financialYear, setFinancialYear] = useState("2026-2027");
-  const [leaveTemplate, setLeaveTemplate] = useState("Standard Template");
-  const [loading, setLoading] = useState(false);
-
-  const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-  function toggleDay(d: string) {
-    setWorkingDays((p) => (p.includes(d) ? p.filter((x) => x !== d) : [...p, d]));
-  }
-
-  async function submit() {
-    setLoading(true);
-    try {
-      const hrSettings = {
-        working_days: workingDays,
-        week_start_day: weekStart,
-        office_timing: `${officeTimingStart} - ${officeTimingEnd}`,
-        default_shift: defaultShift,
-        time_format: timeFormat,
-        date_format: dateFormat,
-        financial_year: financialYear,
-        leave_policy_template: leaveTemplate,
-      };
-      await api.post("onboarding/hr-settings", hrSettings);
-      onNext();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save HR settings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <StepCard
-      title="Configure HR Settings"
-      description="Define the default work week, shifts, and policy configurations for your workspace."
-      icon={UserCog}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onBack} disabled={loading}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <Button onClick={submit} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Continue
-            {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-          </Button>
-        </>
-      }
-    >
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <Label className="mb-2 block">Working Days</Label>
-          <div className="flex flex-wrap gap-2">
-            {WEEKDAYS.map((d) => {
-              const on = workingDays.includes(d);
-              return (
-                <button
-                  type="button"
-                  key={d}
-                  onClick={() => toggleDay(d)}
-                  className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    on
-                      ? "border-transparent bg-foreground text-background"
-                      : "border-border bg-background text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {d}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <Field label="Week Start Day">
-          <Select value={weekStart} onValueChange={setWeekStart}>
-            <SelectTrigger><SelectValue placeholder="Select day" /></SelectTrigger>
-            <SelectContent>
-              {WEEKDAYS.map((d) => (
-                <SelectItem key={d} value={d}>{d}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Default Shift Name">
-          <Input value={defaultShift} onChange={(e) => setDefaultShift(e.target.value)} placeholder="General Shift" />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Office Start Time">
-            <Input type="time" value={officeTimingStart} onChange={(e) => setOfficeTimingStart(e.target.value)} />
-          </Field>
-          <Field label="Office End Time">
-            <Input type="time" value={officeTimingEnd} onChange={(e) => setOfficeTimingEnd(e.target.value)} />
-          </Field>
-        </div>
-
-        <Field label="Time Format">
-          <Select value={timeFormat} onValueChange={setTimeFormat}>
-            <SelectTrigger><SelectValue placeholder="Select format" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="12h">12-Hour (AM/PM)</SelectItem>
-              <SelectItem value="24h">24-Hour</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Date Format">
-          <Select value={dateFormat} onValueChange={setDateFormat}>
-            <SelectTrigger><SelectValue placeholder="Select format" /></SelectTrigger>
-            <SelectContent>
-              {["YYYY-MM-DD", "DD-MM-YYYY", "MM-DD-YYYY"].map((f) => (
-                <SelectItem key={f} value={f}>{f}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label="Financial Year">
-          <Input value={financialYear} onChange={(e) => setFinancialYear(e.target.value)} placeholder="2026-2027" />
-        </Field>
-
-        <Field label="Leave Policy Template">
-          <Select value={leaveTemplate} onValueChange={setLeaveTemplate}>
-            <SelectTrigger><SelectValue placeholder="Select template" /></SelectTrigger>
-            <SelectContent>
-              {["Standard Template", "Startup Policy", "Flexible Leave"].map((t) => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-    </StepCard>
-  );
-}
-
-/* ---------------- Step 4: Departments & Designations ---------------- */
-
-interface DeptItem {
-  department_code: string;
-  department_name: string;
-  description: string;
-}
-
-function DepartmentsDesignationsStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const [depts, setDepts] = useState<DeptItem[]>([
-    { department_code: "MGMT_10", department_name: "Management", description: "Leadership & Admin" },
-    { department_code: "ENG_11", department_name: "Engineering", description: "Product Development" },
-    { department_code: "HR_12", department_name: "Human Resources", description: "People Ops & Recruiting" },
-    { department_code: "SLS_13", department_name: "Sales & Marketing", description: "Sales & Marketing Team" }
-  ]);
-  const [designations, setDesignations] = useState<string[]>([
-    "Company Owner", "HR Manager", "Engineering Manager", "Software Engineer", "Sales Executive"
-  ]);
-
-  const [deptName, setDeptName] = useState("");
-  const [deptCode, setDeptCode] = useState("");
-  const [deptDesc, setDeptDesc] = useState("");
-
-  const [desigName, setDesigName] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  function addDept() {
-    if (!deptName) { toast.error("Department name is required."); return; }
-    const code = deptCode || deptName.substring(0, 3).toUpperCase() + "_" + (10 + depts.length);
-    if (depts.some(d => d.department_code === code)) {
-      toast.error("Department code must be unique.");
-      return;
-    }
-    setDepts([...depts, { department_code: code, department_name: deptName, description: deptDesc || `Department for ${deptName}` }]);
-    setDeptName(""); setDeptCode(""); setDeptDesc("");
-  }
-
-  function removeDept(code: string) {
-    if (code === "MGMT_10") {
-      toast.error("Management department cannot be removed.");
-      return;
-    }
-    setDepts(depts.filter(d => d.department_code !== code));
-  }
-
-  function addDesignation() {
-    if (!desigName) { toast.error("Designation name is required."); return; }
-    if (designations.includes(desigName)) {
-      toast.error("Designation already exists.");
-      return;
-    }
-    setDesignations([...designations, desigName]);
-    setDesigName("");
-  }
-
-  function removeDesignation(name: string) {
-    if (name === "Company Owner") {
-      toast.error("Company Owner designation cannot be removed.");
-      return;
-    }
-    setDesignations(designations.filter(d => d !== name));
-  }
-
-  async function submit() {
-    setLoading(true);
-    try {
-      await api.post("onboarding/departments", { departments: depts });
-      await api.post("onboarding/designations", { designations });
-      onNext();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save departments and designations.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <StepCard
-      title="Define Departments & Designations"
-      description="Create structures and job titles for your workspace."
-      icon={Building2}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onBack} disabled={loading}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <Button onClick={submit} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Continue
-            {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-          </Button>
-        </>
-      }
-    >
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {/* Departments Panel */}
-        <div className="space-y-4">
-          <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" />
-            Departments
-          </h3>
-          <div className="space-y-3 rounded-xl border p-4 bg-muted/10">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Dept Name">
-                <Input value={deptName} onChange={(e) => setDeptName(e.target.value)} placeholder="Engineering" />
-              </Field>
-              <Field label="Code (Optional)">
-                <Input value={deptCode} onChange={(e) => setDeptCode(e.target.value)} placeholder="ENG" />
-              </Field>
-            </div>
-            <Field label="Description">
-              <Input value={deptDesc} onChange={(e) => setDeptDesc(e.target.value)} placeholder="Software and Product development" />
-            </Field>
-            <Button onClick={addDept} variant="outline" className="w-full">
-              <Plus className="mr-2 h-4 w-4" /> Add Department
-            </Button>
-          </div>
-
-          <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
-            {depts.map((d) => (
-              <div key={d.department_code} className="flex items-center justify-between p-3 rounded-lg border bg-card/40">
                 <div>
-                  <div className="font-medium text-sm">{d.department_name} <span className="text-xs text-muted-foreground font-normal">({d.department_code})</span></div>
-                  <div className="text-xs text-muted-foreground">{d.description}</div>
+                  <Label className="text-xs font-semibold">Company Size</Label>
+                  <Select value={companySize} onValueChange={setCompanySize}>
+                    <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>{SIZES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
-                <button onClick={() => removeDept(d.department_code)} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Designations Panel */}
-        <div className="space-y-4">
-          <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            Designations
-          </h3>
-          <div className="space-y-3 rounded-xl border p-4 bg-muted/10">
-            <Field label="Designation Title">
-              <Input value={desigName} onChange={(e) => setDesigName(e.target.value)} placeholder="Senior Software Engineer" />
-            </Field>
-            <Button onClick={addDesignation} variant="outline" className="w-full">
-              <Plus className="mr-2 h-4 w-4" /> Add Designation
-            </Button>
-          </div>
-
-          <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
-            {designations.map((des) => (
-              <div key={des} className="flex items-center justify-between p-3 rounded-lg border bg-card/40">
-                <span className="font-medium text-sm">{des}</span>
-                <button onClick={() => removeDesignation(des)} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </StepCard>
-  );
-}
-
-/* ---------------- Step 5: Invite Employees ---------------- */
-
-function InviteEmployeesStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const ws = useAurix();
-  const [activeTab, setActiveTab] = useState<"employees" | "managers" | "hr">("employees");
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    setSaving(true);
-    try {
-      await syncDeptsAndDesignations(ws);
-      await syncInvites(ws);
-      onNext();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save invites. Please try again.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <StepCard
-      title="Invite your Team"
-      description="Add employees, managers, and HR team members to your workspace."
-      icon={UserPlus}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onBack} disabled={saving}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={save} disabled={saving}>Skip for now</Button>
-            <Button onClick={save} disabled={saving}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Continue
-              {!saving ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-            </Button>
-          </div>
-        </>
-      }
-    >
-      <div className="mb-6 inline-flex rounded-lg border border-border bg-muted/40 p-1 w-full sm:w-auto">
-        {(["employees", "managers", "hr"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            className={`flex-1 sm:flex-initial rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-              activeTab === t
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t === "employees" ? "Employees" : t === "managers" ? "Managers" : "HR Team"}
-          </button>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.15 }}
-        >
-          {activeTab === "employees" ? <EmployeesSection /> : null}
-          {activeTab === "managers" ? <ManagersSection /> : null}
-          {activeTab === "hr" ? <HRSection /> : null}
-        </motion.div>
-      </AnimatePresence>
-    </StepCard>
-  );
-}
-
-function HRSection() {
-  const ws = useAurix();
-  const hrs = ws.hrs;
-  const [draft, setDraft] = useState<HR>(blankHr());
-  const [editing, setEditing] = useState<string | null>(null);
-
-  function blankHr(): HR { return { id: uid("hr"), fullName: "", email: "", phone: "", department: "", designation: "" }; }
-
-  function add() {
-    if (!draft.fullName || !draft.email) { toast.error("HR name and email required"); return; }
-    let updated: HR[];
-    if (editing) updated = hrs.map((h) => (h.id === editing ? draft : h));
-    else updated = [...hrs, draft];
-    aurix.set({ hrs: updated });
-    setDraft(blankHr()); setEditing(null);
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Full name"><Input value={draft.fullName} onChange={(e) => setDraft({ ...draft, fullName: e.target.value })} /></Field>
-        <Field label="Work email"><Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} /></Field>
-        <Field label="Phone"><Input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} /></Field>
-        <Field label="Department"><Input value={draft.department} onChange={(e) => setDraft({ ...draft, department: e.target.value })} placeholder="People Ops" /></Field>
-        <div className="sm:col-span-2">
-          <Field label="Designation"><Input value={draft.designation} onChange={(e) => setDraft({ ...draft, designation: e.target.value })} placeholder="HR Business Partner" /></Field>
-        </div>
-        <div className="sm:col-span-2 flex justify-end">
-          <Button onClick={add} variant="outline"><Plus className="mr-2 h-4 w-4" />{editing ? "Save changes" : "Add HR"}</Button>
-        </div>
-      </div>
-
-      {hrs.length ? (
-        <div className="overflow-hidden rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-2.5">Name</th><th className="px-4 py-2.5">Email</th><th className="px-4 py-2.5">Department</th><th className="px-4 py-2.5">Designation</th><th className="px-4 py-2.5"></th></tr>
-            </thead>
-            <tbody>
-              {hrs.map((h) => (
-                <tr key={h.id} className="border-t border-border">
-                  <td className="px-4 py-2.5 font-medium">{h.fullName}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{h.email}</td>
-                  <td className="px-4 py-2.5">{h.department || "—"}</td>
-                  <td className="px-4 py-2.5">{h.designation || "—"}</td>
-                  <td className="px-4 py-2.5 text-right">
-                    <button onClick={() => { setDraft(h); setEditing(h.id); }} className="mr-1 rounded p-1.5 text-muted-foreground hover:bg-accent"><Pencil className="h-4 w-4" /></button>
-                    <button onClick={() => aurix.set({ hrs: hrs.filter((x) => x.id !== h.id) })} className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <EmptyHint text="No HRs yet. Add at least one to manage employees." />
-      )}
-    </div>
-  );
-}
-
-function EmployeesSection() {
-  const ws = useAurix();
-  const employees = ws.employees;
-  const [tab, setTab] = useState<"manual" | "import">("manual");
-  const [draft, setDraft] = useState<Employee>(blankEmp());
-  const [editing, setEditing] = useState<string | null>(null);
-  const [preview, setPreview] = useState<Employee[] | null>(null);
-  const [errors, setErrors] = useState<string[]>([]);
-
-  function blankEmp(): Employee {
-    return { id: uid("emp"), employeeId: "", fullName: "", email: "", phone: "", department: "", designation: "", joiningDate: "", managerName: "", shift: "General" };
-  }
-
-  function add() {
-    if (!draft.fullName || !draft.email) { toast.error("Name and email required"); return; }
-    let updated: Employee[];
-    if (editing) updated = employees.map((e) => (e.id === editing ? draft : e));
-    else updated = [...employees, draft];
-    aurix.set({ employees: updated });
-    setDraft(blankEmp()); setEditing(null);
-  }
-
-  function onFile(file: File) {
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (res) => {
-        const errs: string[] = [];
-        const rows: Employee[] = res.data.map((r, idx) => {
-          const fullName = r["Full Name"] || r["full_name"] || r["name"] || "";
-          const email = r["Email"] || r["email"] || "";
-          if (!fullName || !email) errs.push(`Row ${idx + 2}: missing name or email`);
-          return {
-            id: uid("emp"),
-            employeeId: r["Employee ID"] || r["employee_id"] || "",
-            fullName, email,
-            phone: r["Phone Number"] || r["phone"] || "",
-            department: r["Department"] || "",
-            designation: r["Designation"] || "",
-            joiningDate: r["Joining Date"] || "",
-            managerName: r["Manager Name"] || "",
-            shift: r["Shift"] || "General",
-          };
-        });
-        setPreview(rows); setErrors(errs);
-      },
-    });
-  }
-
-  function confirmImport() {
-    if (!preview) return;
-    aurix.set({ employees: [...employees, ...preview] });
-    toast.success(`${preview.length} employees imported`, { description: errors.length ? `${errors.length} rows had warnings` : undefined });
-    setPreview(null); setErrors([]);
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="inline-flex rounded-lg border border-border bg-muted/40 p-1">
-        {(["manual", "import"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-            {t === "manual" ? "Manual entry" : "CSV / Excel import"}
-          </button>
-        ))}
-      </div>
-
-      {tab === "manual" ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <Field label="Employee ID"><Input value={draft.employeeId} onChange={(e) => setDraft({ ...draft, employeeId: e.target.value })} placeholder="EMP-001" /></Field>
-          <Field label="Full name"><Input value={draft.fullName} onChange={(e) => setDraft({ ...draft, fullName: e.target.value })} /></Field>
-          <Field label="Email"><Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} /></Field>
-          <Field label="Phone"><Input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} /></Field>
-          <Field label="Department"><Input value={draft.department} onChange={(e) => setDraft({ ...draft, department: e.target.value })} /></Field>
-          <Field label="Designation"><Input value={draft.designation} onChange={(e) => setDraft({ ...draft, designation: e.target.value })} /></Field>
-          <Field label="Joining date"><Input type="date" value={draft.joiningDate} onChange={(e) => setDraft({ ...draft, joiningDate: e.target.value })} /></Field>
-          <Field label="Shift">
-            <Select value={draft.shift} onValueChange={(v) => setDraft({ ...draft, shift: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{["General", "Morning", "Evening", "Night"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
-          <div className="flex items-end"><Button onClick={add} variant="outline" className="w-full"><Plus className="mr-2 h-4 w-4" />{editing ? "Save" : "Add employee"}</Button></div>
-        </div>
-      ) : (
-        <div>
-          <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-6 py-10 text-center transition-colors hover:bg-muted/40">
-            <Upload className="mb-3 h-6 w-6 text-muted-foreground" />
-            <p className="text-sm font-medium">Drop a CSV file here or click to browse</p>
-            <p className="mt-1 text-xs text-muted-foreground">Columns: Employee ID, Full Name, Email, Phone Number, Department, Designation, Joining Date, Manager Name, Shift</p>
-            <input type="file" accept=".csv,.xlsx" className="hidden" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-          </label>
-
-          {preview ? (
-            <div className="mt-5 rounded-xl border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <div className="text-sm">
-                  <span className="font-medium">{preview.length} rows ready</span>{" "}
-                  {errors.length ? <span className="text-destructive">· {errors.length} warnings</span> : null}
+                <div>
+                  <Label className="text-xs font-semibold">City</Label>
+                  <Input value={city} onChange={(e) => setCity(e.target.value)} className="mt-1 h-9" />
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => { setPreview(null); setErrors([]); }}>Cancel</Button>
-                  <Button size="sm" onClick={confirmImport}>Import all</Button>
+                <div>
+                  <Label className="text-xs font-semibold">Timezone</Label>
+                  <Select value={timezone} onValueChange={setTimezone}>
+                    <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>{TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div className="max-h-64 overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <tr><th className="px-3 py-2">ID</th><th className="px-3 py-2">Name</th><th className="px-3 py-2">Email</th><th className="px-3 py-2">Dept</th></tr>
-                  </thead>
-                  <tbody>
-                    {preview.slice(0, 50).map((e) => (
-                      <tr key={e.id} className="border-t border-border">
-                        <td className="px-3 py-1.5">{e.employeeId || "—"}</td>
-                        <td className="px-3 py-1.5">{e.fullName}</td>
-                        <td className="px-3 py-1.5 text-muted-foreground">{e.email}</td>
-                        <td className="px-3 py-1.5">{e.department}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex justify-end pt-4">
+                <Button onClick={async () => {
+                  if (!companyName) { toast.error("Company name is required."); return; }
+                  await api.post("onboarding/company", {
+                    company_name: companyName,
+                    industry,
+                    company_size: companySize,
+                    city,
+                    timezone,
+                  });
+                  next();
+                }} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Save & Continue <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
-              {errors.length ? (
-                <div className="border-t border-border bg-destructive/5 px-4 py-2 text-xs text-destructive">
-                  {errors.slice(0, 5).join(" · ")}{errors.length > 5 ? ` · +${errors.length - 5} more` : ""}
-                </div>
-              ) : null}
             </div>
-          ) : null}
-        </div>
-      )}
+          )}
 
-      {employees.length ? (
-        <div className="overflow-hidden rounded-xl border border-border">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <h3 className="text-sm font-medium">{employees.length} employees added</h3>
-          </div>
-          <div className="max-h-72 overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr><th className="px-4 py-2">ID</th><th className="px-4 py-2">Name</th><th className="px-4 py-2">Email</th><th className="px-4 py-2">Dept</th><th className="px-4 py-2">Shift</th><th></th></tr>
-              </thead>
-              <tbody>
-                {employees.map((e) => (
-                  <tr key={e.id} className="border-t border-border">
-                    <td className="px-4 py-2">{e.employeeId || "—"}</td>
-                    <td className="px-4 py-2 font-medium">{e.fullName}</td>
-                    <td className="px-4 py-2 text-muted-foreground">{e.email}</td>
-                    <td className="px-4 py-2">{e.department || "—"}</td>
-                    <td className="px-4 py-2">{e.shift}</td>
-                    <td className="px-4 py-2 text-right">
-                      <button onClick={() => { setDraft(e); setEditing(e.id); setTab("manual"); }} className="mr-1 rounded p-1.5 text-muted-foreground hover:bg-accent"><Pencil className="h-4 w-4" /></button>
-                      <button onClick={() => aurix.set({ employees: employees.filter((x) => x.id !== e.id) })} className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+          {/* STEP 1: ADMIN PROFILE */}
+          {step === 1 && (
+            <div className="space-y-4 text-xs">
+              <h2 className="text-base font-bold text-foreground">Admin Profile</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs font-semibold">Full Name *</Label>
+                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Phone Number</Label>
+                  <Input value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} className="mt-1 h-9" />
+                </div>
+              </div>
+              <div className="flex justify-between pt-4">
+                <Button onClick={back} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={async () => {
+                  await api.post("onboarding/admin-profile", { full_name: fullName, phone: adminPhone });
+                  next();
+                }} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Save & Continue <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
-function ManagersSection() {
-  const ws = useAurix();
-  const managers = ws.managers;
-  const [draft, setDraft] = useState<Manager>(blank());
-  const [editing, setEditing] = useState<string | null>(null);
+          {/* STEP 2: HR SETTINGS */}
+          {step === 2 && (
+            <div className="space-y-4 text-xs">
+              <h2 className="text-base font-bold text-foreground">HR & Work Settings</h2>
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold">Standard Working Hours Per Day</Label>
+                <Input type="number" value={standardHours} onChange={(e) => setStandardHours(parseInt(e.target.value) || 8)} className="h-9 w-32" />
+              </div>
+              <div className="flex justify-between pt-4">
+                <Button onClick={back} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={async () => {
+                  await api.post("onboarding/hr-settings", { standard_hours: standardHours });
+                  next();
+                }} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Save & Continue <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
-  function blank(): Manager {
-    return { id: uid("mgr"), fullName: "", email: "", phone: "", department: "", designation: "", team: [], shiftStart: "09:00", shiftEnd: "18:00", workingDays: ["Mon", "Tue", "Wed", "Thu", "Fri"] };
-  }
+          {/* STEP 3: DEPARTMENTS & DESIGNATIONS */}
+          {step === 3 && (
+            <div className="space-y-4 text-xs">
+              <h2 className="text-base font-bold text-foreground">Departments & Designations</h2>
+              <p className="text-xs text-muted-foreground">Standard departments (Engineering, HR, Management, Sales) will be created automatically.</p>
+              <div className="flex justify-between pt-4">
+                <Button onClick={back} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={async () => {
+                  await syncDeptsAndDesignations(ws);
+                  next();
+                }} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Confirm & Continue <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
-  function add() {
-    if (!draft.fullName || !draft.email) { toast.error("Manager name and email required"); return; }
-    let updated: Manager[];
-    if (editing) updated = managers.map((m) => (m.id === editing ? draft : m));
-    else updated = [...managers, draft];
-    aurix.set({ managers: updated });
-    setDraft(blank()); setEditing(null);
-  }
+          {/* STEP 4: INVITE EMPLOYEES */}
+          {step === 4 && (
+            <div className="space-y-4 text-xs">
+              <h2 className="text-base font-bold text-foreground">Invite Initial Team Members</h2>
+              <p className="text-xs text-muted-foreground">You can invite employees now or skip to add them later from the dashboard.</p>
+              <div className="flex justify-between pt-4">
+                <Button onClick={back} variant="outline" className="h-9 text-xs">Back</Button>
+                <Button onClick={async () => {
+                  await syncInvites(ws);
+                  next();
+                }} className="h-9 px-5 bg-indigo-600 text-white font-semibold text-xs gap-1.5">
+                  Continue to Complete <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
-  function toggleDay(d: string) {
-    setDraft((p) => ({ ...p, workingDays: p.workingDays.includes(d) ? p.workingDays.filter((x) => x !== d) : [...p.workingDays, d] }));
-  }
-  function toggleEmp(id: string) {
-    setDraft((p) => ({ ...p, team: p.team.includes(id) ? p.team.filter((x) => x !== id) : [...p.team, id] }));
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Manager name"><Input value={draft.fullName} onChange={(e) => setDraft({ ...draft, fullName: e.target.value })} /></Field>
-        <Field label="Email"><Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} /></Field>
-        <Field label="Phone"><Input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} /></Field>
-        <Field label="Department"><Input value={draft.department} onChange={(e) => setDraft({ ...draft, department: e.target.value })} /></Field>
-        <Field label="Designation"><Input value={draft.designation} onChange={(e) => setDraft({ ...draft, designation: e.target.value })} placeholder="Engineering Manager" /></Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Shift start"><Input type="time" value={draft.shiftStart} onChange={(e) => setDraft({ ...draft, shiftStart: e.target.value })} /></Field>
-          <Field label="Shift end"><Input type="time" value={draft.shiftEnd} onChange={(e) => setDraft({ ...draft, shiftEnd: e.target.value })} /></Field>
-        </div>
-
-        <div className="sm:col-span-2">
-          <Label className="mb-2 block">Working days</Label>
-          <div className="flex flex-wrap gap-2">
-            {DAYS.map((d) => {
-              const on = draft.workingDays.includes(d);
-              return (
-                <button type="button" key={d} onClick={() => toggleDay(d)}
-                  className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${on ? "border-transparent bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
-                  {d}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="sm:col-span-2">
-          <Label className="mb-2 block">Assign team members</Label>
-          {ws.employees.length === 0 ? (
-            <EmptyHint text="No employees yet. You can assign managers later from the dashboard." />
-          ) : (
-            <div className="max-h-44 overflow-auto rounded-xl border border-border p-2">
-              {ws.employees.map((e) => (
-                <label key={e.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
-                  <Checkbox checked={draft.team.includes(e.id)} onCheckedChange={() => toggleEmp(e.id)} />
-                  <span className="text-sm font-medium">{e.fullName}</span>
-                  <span className="text-xs text-muted-foreground">{e.department || "—"}</span>
-                </label>
-              ))}
+          {/* STEP 5: COMPLETE */}
+          {step === 5 && (
+            <div className="space-y-6 text-xs text-center py-4">
+              <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
+              <h2 className="text-xl font-bold font-display text-foreground">Company Setup Ready</h2>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Your workspace configuration is complete. Click below to launch your HR dashboard.
+              </p>
+              <div className="flex justify-center gap-3">
+                <Button onClick={finish} disabled={loading} className="h-10 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs gap-2">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Launch Dashboard
+                </Button>
+              </div>
             </div>
           )}
         </div>
-
-        <div className="sm:col-span-2 flex justify-end">
-          <Button onClick={add} variant="outline"><Plus className="mr-2 h-4 w-4" />{editing ? "Save changes" : "Add manager"}</Button>
-        </div>
-      </div>
-
-      {managers.length ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {managers.map((m) => (
-            <div key={m.id} className="rounded-xl border border-border bg-card/40 p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-medium">{m.fullName}</div>
-                  <div className="text-xs text-muted-foreground">{m.designation || m.department}</div>
-                </div>
-                <div className="flex gap-1">
-                  <button onClick={() => { setDraft(m); setEditing(m.id); }} className="rounded p-1.5 text-muted-foreground hover:bg-accent"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => aurix.set({ managers: managers.filter((x) => x.id !== m.id) })} className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <Badge variant="secondary">{m.team.length} reports</Badge>
-                <Badge variant="outline">{m.shiftStart}–{m.shiftEnd}</Badge>
-                <Badge variant="outline">{m.workingDays.length} days/wk</Badge>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-/* ---------------- Step 6: Review & Launch ---------------- */
-
-function ReviewStep({ onBack, onFinish, onEdit, loading }: { onBack: () => void; onFinish: () => void; onEdit: (i: number) => void; loading?: boolean }) {
-  const ws = useAurix();
-  const c = ws.company;
-  return (
-    <StepCard title="Review your workspace" description="Verify everything looks right before launching." icon={CheckCircle2}
-      footer={<><Button variant="ghost" onClick={onBack} disabled={loading}><ChevronLeft className="mr-2 h-4 w-4" />Back</Button><Button onClick={onFinish} disabled={loading}>{loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Confirm & launch{!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}</Button></>}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <ReviewCard title="Company" onEdit={() => onEdit(0)}>
-          <ReviewLine label="Name" value={c?.name} />
-          <ReviewLine label="Industry" value={c?.industry} />
-          <ReviewLine label="Size" value={c?.size} />
-          <ReviewLine label="Email" value={c?.email} />
-          <ReviewLine label="Location" value={[c?.city, c?.country].filter(Boolean).join(", ")} />
-        </ReviewCard>
-        <ReviewCard title="Admin Profile" onEdit={() => onEdit(1)}>
-          <ReviewLine label="Name" value={ws.user?.fullName} />
-          <ReviewLine label="Phone" value={ws.user?.phone} />
-          <ReviewLine label="Role" value={ws.user?.role} />
-        </ReviewCard>
-        <ReviewCard title="HR Settings" onEdit={() => onEdit(2)}>
-          <ReviewLine label="Week Start" value="Monday" />
-          <ReviewLine label="Shift" value="General Shift" />
-          <ReviewLine label="Time Format" value="12h" />
-        </ReviewCard>
-        <ReviewCard title="Departments & Designations" onEdit={() => onEdit(3)}>
-          <ReviewLine label="Setup Done" value="Yes" />
-        </ReviewCard>
-        <ReviewCard title="Invite Team" onEdit={() => onEdit(4)}>
-          <ReviewLine label="Employees" value={String(ws.employees.length)} />
-          <ReviewLine label="Managers" value={String(ws.managers.length)} />
-          <ReviewLine label="HR Members" value={String(ws.hrs.length)} />
-        </ReviewCard>
-      </div>
-    </StepCard>
-  );
-}
-
-function ReviewCard({ title, children, onEdit }: { title: string; children: React.ReactNode; onEdit: () => void }) {
-  return (
-    <div className="rounded-xl border border-border bg-card/40 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-medium">{title}</h3>
-        <button onClick={onEdit} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <Pencil className="h-3 w-3" />Edit
-        </button>
-      </div>
-      <dl className="space-y-1.5 text-sm">{children}</dl>
-    </div>
-  );
-}
-function ReviewLine({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="truncate text-right font-medium">{value || "—"}</dd>
-    </div>
-  );
-}
-function EmptyHint({ text }: { text: string }) {
-  return <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/20 px-4 py-3 text-center text-xs text-muted-foreground">{text}</p>;
-}
-
-/* ---------------- Step 6: Success ---------------- */
-
-function SuccessStep() {
-  const navigate = useNavigate();
-  return (
-    <div className="mx-auto max-w-xl rounded-2xl border bg-card/70 p-10 text-center shadow-elegant backdrop-blur-xl" style={{ borderColor: "var(--glass-border)" }}>
-      <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 14 }}
-        className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl text-brand-foreground shadow-glow" style={{ background: "var(--gradient-brand)" }}>
-        <CheckCircle2 className="h-8 w-8" />
-      </motion.div>
-      <h2 className="font-display text-2xl font-semibold tracking-tight">Your Aurix workspace is ready</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Everything is set up. Jump into the dashboard or invite the rest of your team.</p>
-      <div className="mt-6 flex flex-wrap justify-center gap-2">
-        <Button onClick={() => navigate({ to: "/dashboard" })}>Go to dashboard</Button>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/hr" as any })}>Invite team members</Button>
       </div>
     </div>
   );

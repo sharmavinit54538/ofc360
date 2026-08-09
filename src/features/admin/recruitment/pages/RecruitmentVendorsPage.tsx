@@ -1,7 +1,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Building2, Mail, Phone, Plus, Star, Edit, Trash2 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
@@ -59,7 +59,7 @@ export function RecruitmentVendorsPage() {
     return vendorsList.map((v) => {
       // Find candidate associations
       const vendorCandidates = candidates.filter((c) => c.vendorId === v.id);
-      
+
       const activeReqs = vendorCandidates.filter(
         (c) => c.stage !== "hired" && c.stage !== "rejected"
       ).length;

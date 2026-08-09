@@ -19,13 +19,14 @@ import {
   Settings,
   ArrowRight,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
+import { EmployeePayslipsPage } from "./dashboard.payroll.payslips";
 
 export const Route = createFileRoute("/dashboard/payroll/")({
-  head: () => ({ meta: [{ title: "Payroll Hub — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Payroll Hub — ofc360" }] }),
   component: PayrollDashboardPage,
 });
 
@@ -34,8 +35,14 @@ function fmt(n: number) {
 }
 
 function PayrollDashboardPage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const navigate = useNavigate();
+
+  const userRole = (ws.user?.role as string)?.toLowerCase();
+  if (userRole === "employee") {
+    return <EmployeePayslipsPage />;
+  }
+
   const total = ws.employees.reduce((s, e) => s + 4500 + ((e.id.length * 137) % 6000), 0);
 
   const quickNavCards = [

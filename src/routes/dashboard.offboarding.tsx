@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LogOut, Archive, FileText, Download } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, Progress, StatCard } from "@/components/hrms/Shared";
 import { hrms, useHrms } from "@/lib/hrms/store";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/offboarding")({
-  head: () => ({ meta: [{ title: "Offboarding Automation — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Offboarding Automation — ofc360" }] }),
   component: OffboardingPage,
 });
 

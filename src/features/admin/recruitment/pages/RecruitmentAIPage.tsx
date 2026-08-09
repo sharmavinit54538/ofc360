@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowRight, Brain, FileSearch, Lightbulb, ListOrdered, MessageSquare, Sparkles, Target, Wand2,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
@@ -20,7 +20,7 @@ export function RecruitmentAIPage() {
     const job = jobs.find((j) => j.id === jobId);
     if (!job) return [];
     const skillSet = new Set(job.skills.map((s) => s.toLowerCase()));
-    
+
     return candidates
       .map((c) => {
         const overlap = c.skills.filter((s) => skillSet.has(s.toLowerCase())).length;
@@ -45,7 +45,7 @@ export function RecruitmentAIPage() {
   const aiQuestions = useMemo(() => {
     const job = jobs.find((j) => j.id === jobId);
     if (!job) return [];
-    
+
     return [
       `Design a system or workflow that addresses key challenges in ${job.title}.`,
       `How do you keep your skills up to date with technologies like ${job.skills.slice(0, 3).join(", ") || "modern industry frameworks"}?`,

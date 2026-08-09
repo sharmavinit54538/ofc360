@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Gauge, Target, Award, GraduationCap, TrendingUp, Lightbulb,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/performance-coach")({
-  head: () => ({ meta: [{ title: "AI Performance Coach — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Performance Coach — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "line", title: "Performance Trend", xKey: "q",
           series: [{ key: "team", label: "Team avg" }, { key: "top", label: "Top quartile" }],
-          data: ["Q1","Q2","Q3","Q4","Q1","Q2"].map((q,i)=>({q, team: 78+i, top: 88+(i%3)})),
+          data: ["Q1", "Q2", "Q3", "Q4", "Q1", "Q2"].map((q, i) => ({ q, team: 78 + i, top: 88 + (i % 3) })),
         },
         {
           type: "bar", title: "KPI Attainment by Function", xKey: "f",
           series: [{ key: "att", label: "Attainment %" }],
-          data: [{f:"Eng",att:92},{f:"Sales",att:81},{f:"Design",att:88},{f:"Ops",att:84},{f:"Support",att:79}],
+          data: [{ f: "Eng", att: 92 }, { f: "Sales", att: 81 }, { f: "Design", att: 88 }, { f: "Ops", att: 84 }, { f: "Support", att: 79 }],
         },
       ]}
       features={[

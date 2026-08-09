@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Manager Dashboard Component
+// ofc360 HR — Manager Dashboard Component
 // Production-ready manager view for team leads and managers.
 // ============================================================
 import { Link } from "@tanstack/react-router";
@@ -44,7 +44,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,9 +97,8 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-sm ${
-        noPad ? "" : "p-5"
-      } ${className}`}
+      className={`rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-sm ${noPad ? "" : "p-5"
+        } ${className}`}
     >
       {children}
     </div>
@@ -245,13 +244,12 @@ function KpiCards() {
             <div className="font-display text-xl font-bold tracking-tight">{kpi.value}</div>
             <div className="mt-0.5 text-[11px] text-muted-foreground">{kpi.label}</div>
             <div
-              className={`mt-1.5 flex items-center gap-1 text-[11px] font-medium ${
-                kpi.changeType === "up"
+              className={`mt-1.5 flex items-center gap-1 text-[11px] font-medium ${kpi.changeType === "up"
                   ? "text-emerald-500"
                   : kpi.changeType === "down"
-                  ? "text-rose-500"
-                  : "text-muted-foreground"
-              }`}
+                    ? "text-rose-500"
+                    : "text-muted-foreground"
+                }`}
             >
               {kpi.changeType === "up" ? (
                 <TrendingUp className="h-3 w-3" />
@@ -270,18 +268,18 @@ function KpiCards() {
                       kpi.accent.includes("emerald")
                         ? "#10b981"
                         : kpi.accent.includes("indigo")
-                        ? "#6366f1"
-                        : kpi.accent.includes("amber")
-                        ? "#f59e0b"
-                        : kpi.accent.includes("teal")
-                        ? "#14b8a6"
-                        : kpi.accent.includes("rose")
-                        ? "#f43f5e"
-                        : kpi.accent.includes("violet")
-                        ? "#8b5cf6"
-                        : kpi.accent.includes("orange")
-                        ? "#f97316"
-                        : "#06b6d4"
+                          ? "#6366f1"
+                          : kpi.accent.includes("amber")
+                            ? "#f59e0b"
+                            : kpi.accent.includes("teal")
+                              ? "#14b8a6"
+                              : kpi.accent.includes("rose")
+                                ? "#f43f5e"
+                                : kpi.accent.includes("violet")
+                                  ? "#8b5cf6"
+                                  : kpi.accent.includes("orange")
+                                    ? "#f97316"
+                                    : "#06b6d4"
                     }
                     strokeWidth={2}
                     dot={false}
@@ -459,13 +457,12 @@ function AttendanceCenter() {
               className="flex items-center gap-3 rounded-xl border border-border bg-background/50 px-3 py-2.5"
             >
               <div
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-semibold ${
-                  r.status === "absent"
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-semibold ${r.status === "absent"
                     ? "bg-rose-500/10 text-rose-500"
                     : r.status === "late"
-                    ? "bg-amber-500/10 text-amber-500"
-                    : "bg-blue-500/10 text-blue-500"
-                }`}
+                      ? "bg-amber-500/10 text-amber-500"
+                      : "bg-blue-500/10 text-blue-500"
+                  }`}
               >
                 {r.name.split(" ").map((n) => n[0]).join("")}
               </div>
@@ -474,13 +471,12 @@ function AttendanceCenter() {
                   <span className="text-sm font-medium">{r.name}</span>
                   <Badge
                     variant="outline"
-                    className={`text-[10px] capitalize ${
-                      r.status === "absent"
+                    className={`text-[10px] capitalize ${r.status === "absent"
                         ? "border-rose-200 text-rose-600"
                         : r.status === "late"
-                        ? "border-amber-200 text-amber-600"
-                        : "border-blue-200 text-blue-600"
-                    }`}
+                          ? "border-amber-200 text-amber-600"
+                          : "border-blue-200 text-blue-600"
+                      }`}
                   >
                     {r.status}
                   </Badge>
@@ -529,17 +525,15 @@ function LeaveCenter() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                tab === t
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${tab === t
                   ? "bg-foreground text-background"
                   : "border border-border text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {t}
               <span
-                className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  tab === t ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
-                }`}
+                className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${tab === t ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
+                  }`}
               >
                 {filtered[t].length}
               </span>
@@ -668,9 +662,8 @@ function PerformanceCenter() {
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        g.progress >= 80 ? "bg-emerald-500" : g.progress >= 50 ? "bg-amber-500" : "bg-rose-500"
-                      }`}
+                      className={`h-full rounded-full transition-all duration-700 ${g.progress >= 80 ? "bg-emerald-500" : g.progress >= 50 ? "bg-amber-500" : "bg-rose-500"
+                        }`}
                       style={{ width: `${g.progress}%` }}
                     />
                   </div>
@@ -870,9 +863,8 @@ function AssetsSection() {
                 </div>
               </div>
               <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium capitalize ${
-                  STATUS_COLORS[a.status] ?? "bg-muted text-muted-foreground"
-                }`}
+                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium capitalize ${STATUS_COLORS[a.status] ?? "bg-muted text-muted-foreground"
+                  }`}
               >
                 {a.status.replace("-", " ")}
               </span>
@@ -960,9 +952,8 @@ function NotificationsSection() {
             return (
               <div
                 key={n.id}
-                className={`flex items-start gap-3 rounded-xl border border-border px-3 py-2.5 ${
-                  n.urgent ? "bg-rose-500/5 border-rose-200" : "bg-background/50"
-                }`}
+                className={`flex items-start gap-3 rounded-xl border border-border px-3 py-2.5 ${n.urgent ? "bg-rose-500/5 border-rose-200" : "bg-background/50"
+                  }`}
               >
                 <div className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${TYPE_COLOR[n.type]}`}>
                   <Icon className="h-3.5 w-3.5" />
@@ -1024,9 +1015,9 @@ function ReportsSection() {
 
 // ── Main Manager Dashboard ────────────────────────────────────
 export function ManagerDashboard() {
-  const ws = useAurix();
+  const ws = useofc360();
   const firstName = ws.user?.fullName?.split(" ")[0] ?? "Manager";
-  const companyName = ws.company?.name ?? "Aurix HR";
+  const companyName = ws.company?.name ?? "ofc360 HR";
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";

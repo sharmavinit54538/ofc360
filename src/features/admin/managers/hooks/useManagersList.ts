@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useAppSelector } from "@/redux/hooks";
-import { useAurix, type Manager as AurixManager } from "@/lib/aurix-store";
+import { useofc360, type Manager as ofc360Manager } from "@/lib/ofc360-store";
 import type { Manager } from "../types";
 
-function mergeManagers(reduxManagers: Manager[], aurixManagers: AurixManager[]): Manager[] {
+function mergeManagers(reduxManagers: Manager[], ofc360Managers: ofc360Manager[]): Manager[] {
   const merged = [...reduxManagers];
-  aurixManagers.forEach((sm) => {
+  ofc360Managers.forEach((sm) => {
     if (!merged.some((m) => m.email.toLowerCase() === sm.email.toLowerCase())) {
       merged.push({
         id: sm.id,
@@ -57,7 +57,7 @@ function mergeManagers(reduxManagers: Manager[], aurixManagers: AurixManager[]):
 
 export function useManagersList(): Manager[] {
   const reduxManagers = useAppSelector((state) => state.managers.managers);
-  const ws = useAurix();
+  const ws = useofc360();
   return useMemo(
     () => mergeManagers(reduxManagers, ws.managers ?? []),
     [reduxManagers, ws.managers],

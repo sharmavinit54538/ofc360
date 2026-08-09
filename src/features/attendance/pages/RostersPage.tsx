@@ -25,7 +25,7 @@ import {
   Trash2,
   Edit,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -500,9 +500,8 @@ export default function RostersPage() {
               </div>
               <div className="mt-3 h-1 w-full bg-border rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    c.color.includes("text-destructive") ? "bg-destructive" : c.color.includes("text-emerald") ? "bg-emerald-500" : "bg-primary"
-                  }`}
+                  className={`h-full rounded-full transition-all duration-500 ${c.color.includes("text-destructive") ? "bg-destructive" : c.color.includes("text-emerald") ? "bg-emerald-500" : "bg-primary"
+                    }`}
                   style={{ width: `${c.prog}%` }}
                 />
               </div>
@@ -616,11 +615,10 @@ export default function RostersPage() {
           <div className="flex border border-border rounded-lg bg-card/80 p-0.5 overflow-hidden">
             <button
               onClick={() => setViewMode("calendar")}
-              className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                viewMode === "calendar"
+              className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${viewMode === "calendar"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
               aria-label="Scheduler calendar view"
             >
               <Calendar className="h-3.5 w-3.5" />
@@ -628,11 +626,10 @@ export default function RostersPage() {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                viewMode === "list"
+              className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${viewMode === "list"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
               aria-label="List view table"
             >
               <List className="h-3.5 w-3.5" />
@@ -669,9 +666,8 @@ export default function RostersPage() {
                           setCalendarView(v as any);
                           toast.info(`Switched view to ${v} (Demo Mode)`);
                         }}
-                        className={`px-2.5 py-1 rounded ${
-                          calendarView === v ? "bg-muted font-bold text-foreground" : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        className={`px-2.5 py-1 rounded ${calendarView === v ? "bg-muted font-bold text-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
                       >
                         {v}
                       </button>
@@ -706,9 +702,8 @@ export default function RostersPage() {
                       return (
                         <div
                           key={d.dateStr}
-                          className={`text-center flex flex-col items-center justify-center ${
-                            isToday ? "text-blue-400 font-bold" : ""
-                          }`}
+                          className={`text-center flex flex-col items-center justify-center ${isToday ? "text-blue-400 font-bold" : ""
+                            }`}
                         >
                           <span className="text-[10px] uppercase tracking-wider">{d.dayName}</span>
                           <span className={`text-xs mt-0.5 rounded-full px-1.5 py-0.5 ${isToday ? "bg-blue-500/10 border border-blue-500/20" : ""}`}>{d.label}</span>
@@ -745,9 +740,8 @@ export default function RostersPage() {
                               key={day.dateStr}
                               onDragOver={(e) => e.preventDefault()}
                               onDrop={() => handleDropCell(emp.code, day.dateStr)}
-                              className={`p-1.5 min-h-[74px] h-auto flex flex-col justify-stretch gap-1 border-l border-border/60 relative group/cell ${
-                                isToday ? "bg-blue-500/5" : ""
-                              }`}
+                              className={`p-1.5 min-h-[74px] h-auto flex flex-col justify-stretch gap-1 border-l border-border/60 relative group/cell ${isToday ? "bg-blue-500/5" : ""
+                                }`}
                             >
                               {cellEntries.length > 0 ? (
                                 cellEntries.map((entry) => {
@@ -865,13 +859,12 @@ export default function RostersPage() {
                           <td className="px-5 py-3">
                             <Badge
                               variant={isPending ? "outline" : isRejected ? "destructive" : "secondary"}
-                              className={`text-[9px] py-0.5 px-1.5 font-medium ${
-                                isPending
+                              className={`text-[9px] py-0.5 px-1.5 font-medium ${isPending
                                   ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
                                   : isRejected
                                     ? "text-rose-400 bg-rose-500/10 border-rose-500/20"
                                     : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                              }`}
+                                }`}
                             >
                               {entry.status}
                             </Badge>

@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/aurix-store";
 import type { Asset, AssetCategory, AssetStatus, AssetAssignmentHistory, AssetMaintenanceRecord, AssetTimelineEvent } from "@/lib/hrms/types";
 import { QrTile } from "@/components/hrms/Shared";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ import { api } from "@/api";
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/assets")({
-  head: () => ({ meta: [{ title: "Asset Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Asset Management — ofc360" }] }),
   component: AssetsPage,
 });
 
@@ -67,7 +67,7 @@ const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#3b82f6"
 // MAIN COMPONENT
 // ----------------------------------------------------
 function AssetsPage() {
-  const authWs = useAurix(); // For employees list
+  const authWs = useofc360(); // For employees list
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -405,7 +405,7 @@ function AssetsPage() {
     e.preventDefault();
     if (!targetAsset || !assignEmpId) return;
 
-    const emp = authWs.employees.find(x => x.fullName === assignEmpId) || { fullName: assignEmpId, department: "General Operations" };
+    const emp = authWs.employees.find((x: any) => x.fullName === assignEmpId) || { fullName: assignEmpId, department: "General Operations" };
 
     assignMutation.mutate({
       id: targetAsset.id,
@@ -435,7 +435,7 @@ function AssetsPage() {
     e.preventDefault();
     if (!targetAsset || !transferEmpId) return;
 
-    const emp = authWs.employees.find(x => x.fullName === transferEmpId) || { fullName: transferEmpId, department: "Operations" };
+    const emp = authWs.employees.find((x: any) => x.fullName === transferEmpId) || { fullName: transferEmpId, department: "Operations" };
 
     transferMutation.mutate({
       id: targetAsset.id,
@@ -602,7 +602,7 @@ function AssetsPage() {
                 const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
                 const link = document.createElement("a");
                 link.href = url;
-                link.download = `Aurix_Assets_Inventory_${new Date().toISOString().split("T")[0]}.csv`;
+                link.download = `ofc360_Assets_Inventory_${new Date().toISOString().split("T")[0]}.csv`;
                 link.click();
                 URL.revokeObjectURL(url);
                 toast.success("Inventory exported as CSV");
@@ -661,10 +661,8 @@ function AssetsPage() {
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-4">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-            {/* INVENTORY TABLE PANEL */}
-            <div className="space-y-4 lg:col-span-3">
-              <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-xl">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-xl">
                 {/* Search / Filter pill row */}
                 <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="relative max-w-sm flex-1">
@@ -689,11 +687,10 @@ function AssetsPage() {
                       <button
                         key={tab.id}
                         onClick={() => { setStatusFilter(tab.id); setCurrentPage(1); }}
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer ${
-                          statusFilter === tab.id
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer ${statusFilter === tab.id
                             ? "bg-foreground text-background border-foreground"
                             : "bg-background/40 border-border hover:bg-accent/60 text-muted-foreground"
-                        }`}
+                          }`}
                       >
                         {tab.label}
                       </button>
@@ -766,7 +763,7 @@ function AssetsPage() {
                                 {asset.assignedTo || <span className="text-muted-foreground/40 font-normal italic">Unassigned</span>}
                               </TableCell>
                               <TableCell className="px-4 py-3 text-xs text-muted-foreground">
-                                {asset.assignedTo ? (authWs.employees.find(x => x.fullName === asset.assignedTo)?.department || "Operations") : "—"}
+                                {asset.assignedTo ? (authWs.employees.find((x: any) => x.fullName === asset.assignedTo)?.department || "Operations") : "—"}
                               </TableCell>
                               <TableCell className="px-4 py-3 text-xs">
                                 <span className={isWSoon ? "text-purple-500 font-semibold" : "text-muted-foreground"}>
@@ -877,89 +874,6 @@ function AssetsPage() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* RIGHT COLUMN: NOTIFICATION ALERTS & SIMULATED SCANNER */}
-            <div className="space-y-6 lg:col-span-1">
-              {/* Scan simulation Widget */}
-              <Card className="border-border bg-card/40 backdrop-blur-xl">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <QrCode className="h-4 w-4 text-indigo-500" />
-                    Mobile QR Scanner
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">Simulate scanning asset labels</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Type or select an asset ID/Tag, then simulate scanning using a mobile device layout.
-                  </p>
-                  <div className="flex gap-2">
-                    <Select value={scannedAssetTag} onValueChange={setScannedAssetTag}>
-                      <SelectTrigger className="h-8 text-xs bg-background/50 border-border">
-                        <SelectValue placeholder="Select Asset" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {assets.map(a => (
-                          <SelectItem key={a.id} value={a.tag}>{a.tag} ({a.brand})</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleScanSimulation}
-                      disabled={!scannedAssetTag}
-                      className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
-                    >
-                      Scan
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Alerts Box */}
-              <Card className="border-border bg-card/40 backdrop-blur-xl">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-rose-500 animate-pulse" />
-                    Alerts & Notifications
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">Asset events needing attention</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {notifications.length === 0 ? (
-                    <div className="text-xs text-muted-foreground text-center py-4 italic">
-                      All assets compliant with warranty and returns!
-                    </div>
-                  ) : (
-                    notifications.slice(0, 4).map(alert => (
-                      <div
-                        key={alert.id}
-                        className={`flex gap-2.5 rounded-lg border p-2.5 text-xs transition-colors ${
-                          alert.type === "error"
-                            ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
-                            : alert.type === "warning"
-                            ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                            : "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
-                        }`}
-                      >
-                        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-semibold leading-relaxed">{alert.message}</p>
-                          {alert.asset && (
-                            <button
-                              onClick={() => setDetailAsset(alert.asset!)}
-                              className="mt-1 text-[10px] underline font-bold uppercase cursor-pointer"
-                            >
-                              View Asset Details
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </TabsContent>
 
@@ -1255,7 +1169,7 @@ function AssetsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {authWs.employees.map(emp => (
+                  {authWs.employees.map((emp: any) => (
                     <SelectItem key={emp.id} value={emp.fullName}>{emp.fullName} ({emp.employeeId})</SelectItem>
                   ))}
                 </SelectContent>
@@ -1304,7 +1218,7 @@ function AssetsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {authWs.employees.filter(emp => emp.fullName !== targetAsset?.assignedTo).map(emp => (
+                  {authWs.employees.filter((emp: any) => emp.fullName !== targetAsset?.assignedTo).map((emp: any) => (
                     <SelectItem key={emp.id} value={emp.fullName}>{emp.fullName}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1398,11 +1312,11 @@ function AssetsPage() {
             <div className="space-y-4 pt-3 flex flex-col items-center">
               {/* Sticker frame */}
               <div className="rounded-xl border border-slate-300 bg-white p-4 shadow-md w-[220px] flex flex-col items-center select-none text-slate-800">
-                <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">AURIX HRMS ASSET</div>
+                <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">ofc360 HRMS ASSET</div>
                 <div className="font-mono text-sm font-extrabold text-slate-900 border-b border-slate-200 pb-1.5 w-full text-center">
                   {targetAsset.tag}
                 </div>
-                
+
                 {/* QR Canvas */}
                 <div className="my-3 p-1.5 border border-slate-100 bg-white rounded shadow-inner flex flex-col items-center justify-center">
                   {targetAsset.qrCodeData ? (
@@ -1414,7 +1328,7 @@ function AssetsPage() {
                 </div>
 
                 <div className="text-[10px] font-semibold text-slate-700 truncate max-w-full">{targetAsset.name}</div>
-                <div className="text-[8px] text-slate-400 italic">Company: Aurix Talent Labs</div>
+                <div className="text-[8px] text-slate-400 italic">Company: ofc360 Talent Labs</div>
               </div>
 
               {/* Actions */}
@@ -1625,7 +1539,7 @@ function AssetsPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed pt-1">
                         <p><strong>Employee:</strong> {detailAsset.assignedTo}</p>
-                        <p><strong>Dept:</strong> {authWs.employees.find(x => x.fullName === detailAsset.assignedTo)?.department || "Operations"}</p>
+                        <p><strong>Dept:</strong> {authWs.employees.find((x: any) => x.fullName === detailAsset.assignedTo)?.department || "Operations"}</p>
                         <p className="col-span-2"><strong>Assigned At:</strong> {detailAsset.assignedAt ? new Date(detailAsset.assignedAt).toLocaleDateString() : "—"}</p>
                       </div>
                     </div>
@@ -1640,17 +1554,16 @@ function AssetsPage() {
                       ) : (
                         (detailAsset.timeline || []).map((tl, idx) => (
                           <div key={tl.id} className={`flex gap-3 text-xs relative ${idx < (detailAsset.timeline || []).length - 1 ? 'before:absolute before:left-2 before:top-4 before:bottom-0 before:w-[1px] before:bg-border pb-3' : ''}`}>
-                            <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${
-                              tl.event === 'Created'
+                            <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${tl.event === 'Created'
                                 ? 'bg-blue-500 text-white'
                                 : tl.event === 'Assigned'
-                                ? 'bg-indigo-500 text-white'
-                                : tl.event === 'Returned'
-                                ? 'bg-emerald-500 text-white'
-                                : tl.event === 'Repaired'
-                                ? 'bg-amber-500 text-white'
-                                : 'bg-rose-500 text-white'
-                            }`}>
+                                  ? 'bg-indigo-500 text-white'
+                                  : tl.event === 'Returned'
+                                    ? 'bg-emerald-500 text-white'
+                                    : tl.event === 'Repaired'
+                                      ? 'bg-amber-500 text-white'
+                                      : 'bg-rose-500 text-white'
+                              }`}>
                               <Package className="h-2 w-2" />
                             </span>
                             <div>

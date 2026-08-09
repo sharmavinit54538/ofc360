@@ -1,0 +1,7 @@
+# pack-refs with: peeled fully-peeled sorted 
+72cdafe14597813e4f918fa607adab847cf84047 refs/remotes/origin/Manager_module
+051b3b6cdc2958cf9251aab672ee7035f817b1d5 refs/remotes/origin/PayRoll_Module
+8dd7de3be695b1bc6021ea3afca1f58562b20abb refs/remotes/origin/WORK_ONBOARDING_MODULE
+d99eb19653709cde5818f8b09869fe7574498579 refs/remotes/origin/feature/requirements-flow
+58640974e6a97efa7d86bf2b3701059457774d8c refs/remotes/origin/main
+e217b126f1d7d84d235130a698e54789c6f6a796 refs/remotes/origin/ui-enhance-module

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plane, Plus, MapPin, Building2, Wallet, CheckCircle2 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, SearchBox, StatCard, StatusBadge } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { TravelRequest, TravelStatus } from "@/lib/hrms/types";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/travel")({
-  head: () => ({ meta: [{ title: "Travel Requests — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Travel Requests — ofc360" }] }),
   component: TravelPage,
 });
 
@@ -63,7 +63,7 @@ function TravelPage() {
   const filtered = useMemo(() => travel
     .filter((t) => (filter === "all" ? true : t.status === filter))
     .filter((t) => query.trim() === "" ? true : `${t.employee} ${t.destination} ${t.purpose}`.toLowerCase().includes(query.toLowerCase())),
-  [travel, filter, query]);
+    [travel, filter, query]);
 
   function submit() {
     if (!draft.employee || !draft.destination) return;

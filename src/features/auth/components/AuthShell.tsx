@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { Sparkles, KeyRound, Copy } from "lucide-react";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 interface AuthShellProps {
@@ -13,7 +13,7 @@ interface AuthShellProps {
 }
 
 export function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
-  const ws = useAurix();
+  const ws = useofc360();
   const showOtpPreview = false;
 
   return (
@@ -37,7 +37,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
           >
             <Sparkles className="h-4 w-4" />
           </span>
-          <span className="font-display text-lg font-semibold tracking-tight">Aurix</span>
+          <span className="font-display text-lg font-semibold tracking-tight">ofc360</span>
         </Link>
       </header>
 

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ScrollText } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/audit-logs")({
-  head: () => ({ meta: [{ title: "Audit Logs — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Audit Logs — ofc360" }] }),
   component: AuditLogsPage,
 });
 

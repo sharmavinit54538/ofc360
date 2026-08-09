@@ -13,7 +13,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitmen
 import { CandidateAvatar, fmtDate, fmtMoney } from "@/features/admin/recruitment/components/Bits";
 import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { api } from "@/api/client";
 import { toast } from "sonner";
 import {
@@ -63,7 +63,7 @@ const INITIAL_DISTRIBUTION = [
 export function JobDetailPage() {
   const { jobId } = useParams({ from: "/dashboard/recruitment/jobs/$jobId" });
   const navigate = useNavigate();
-  
+
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export function JobDetailPage() {
   // Distribution settings list local state
   const [channels, setChannels] = useState(INITIAL_DISTRIBUTION);
 
-  const userRole = (useAurix().user?.role || "employee") as string;
+  const userRole = (useofc360().user?.role || "employee") as string;
 
   // Modal show/hide states
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -237,7 +237,7 @@ export function JobDetailPage() {
 
   function startEdit() { setDraft({ ...job! }); setEditing(true); }
   function cancelEdit() { setDraft(null); setEditing(false); }
-  
+
   async function save() {
     if (draft) {
       try {
@@ -326,28 +326,28 @@ export function JobDetailPage() {
     try {
       const token = localStorage.getItem("access_token") || "";
       const url = `http://localhost:8001/api/v1/jobs/${jobId}/applicants/export?format=${exportFormat}&filter=${exportFilter}`;
-      
+
       const response = await fetch(url, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) throw new Error("Export failed.");
-      
+
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-      
+
       const ext = exportFormat === "excel" ? "xlsx" : exportFormat;
       link.setAttribute("download", `job_${jobId}_applicants_${exportFilter}.${ext}`);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       toast.success("Applicants exported successfully!");
       setShowExportModal(false);
     } catch (err: any) {
@@ -492,11 +492,10 @@ export function JobDetailPage() {
               <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
                 {editing ? "Editing Details" : job.title}
               </h1>
-              <Badge variant="outline" className={`capitalize font-semibold border ${
-                job.status === "active" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" :
-                job.status === "draft" ? "border-sky-500/30 bg-sky-500/10 text-sky-500" :
-                "border-muted bg-muted/40 text-muted-foreground"
-              }`}>
+              <Badge variant="outline" className={`capitalize font-semibold border ${job.status === "active" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" :
+                  job.status === "draft" ? "border-sky-500/30 bg-sky-500/10 text-sky-500" :
+                    "border-muted bg-muted/40 text-muted-foreground"
+                }`}>
                 {job.status}
               </Badge>
             </div>
@@ -569,11 +568,10 @@ export function JobDetailPage() {
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
-              activeTab === t.key
+            className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all ${activeTab === t.key
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+              }`}
           >
             {t.label}
           </button>
@@ -604,7 +602,7 @@ export function JobDetailPage() {
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Section title="Company Info" icon={Building}>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Aurix Inc. is a high-growth HR Technology platforms enterprise. This job role resides in our main operations product division.
+                        ofc360 Inc. is a high-growth HR Technology platforms enterprise. This job role resides in our main operations product division.
                       </p>
                     </Section>
 
@@ -802,18 +800,17 @@ export function JobDetailPage() {
                   <div key={chan.key} className="flex flex-col justify-between rounded-xl border border-border bg-card/50 p-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <a 
-                          href={chan.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href={chan.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="font-semibold text-sm hover:text-primary transition-colors inline-flex items-center gap-1"
                         >
                           {chan.label}
                           <ExternalLink className="h-3 w-3 opacity-60 hover:opacity-100 transition-opacity" />
                         </a>
-                        <Badge variant="outline" className={`text-[10px] ${
-                          chan.active ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-border text-muted-foreground"
-                        }`}>
+                        <Badge variant="outline" className={`text-[10px] ${chan.active ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-border text-muted-foreground"
+                          }`}>
                           {chan.status}
                         </Badge>
                       </div>
@@ -864,9 +861,9 @@ export function JobDetailPage() {
 
               <div className="space-y-4">
                 {[
-                  { label: "Public Career Site URL", url: `https://careers.aurix.com/jobs/${jobId}` },
-                  { label: "Internal Employee Referral Link", url: `https://aurix.com/portal/referrals?job=${jobId}` },
-                  { label: "Campus Sourcing URL", url: `https://careers.aurix.com/campus/sourcing?tag=uni-${jobId}` },
+                  { label: "Public Career Site URL", url: `https://careers.ofc360.com/jobs/${jobId}` },
+                  { label: "Internal Employee Referral Link", url: `https://ofc360.com/portal/referrals?job=${jobId}` },
+                  { label: "Campus Sourcing URL", url: `https://careers.ofc360.com/campus/sourcing?tag=uni-${jobId}` },
                 ].map((linkItem) => (
                   <div key={linkItem.label} className="rounded-xl border border-border bg-card/40 p-4">
                     <span className="text-xs font-semibold block mb-2">{linkItem.label}</span>
@@ -949,8 +946,8 @@ export function JobDetailPage() {
                       ]}>
                         <defs>
                           <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-primary, oklch(0.65 0.22 285))" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="var(--color-primary, oklch(0.65 0.22 285))" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="var(--color-primary, oklch(0.65 0.22 285))" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="var(--color-primary, oklch(0.65 0.22 285))" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.2 0.05 240 / 0.3)" />
@@ -1043,7 +1040,7 @@ export function JobDetailPage() {
         <aside className="space-y-4 lg:sticky lg:top-4">
           <div className="rounded-2xl border border-border bg-card/60 p-4 backdrop-blur-xl space-y-4">
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold block">Quick Actions</span>
-            
+
             <div className="flex flex-col gap-2">
               <Button size="sm" variant="outline" className="w-full text-xs justify-start" onClick={() => setShowPublishModal(true)}>
                 <Globe className="mr-2 h-4 w-4" />Publish Channels
@@ -1109,14 +1106,14 @@ export function JobDetailPage() {
                   last_updated: null,
                   url: ""
                 };
-                
+
                 const label = chanName === "career_site" ? "Company Career Site" :
-                             chanName === "public_link" ? "Public Apply Link" :
-                             "Internal Hiring Portal";
-                             
+                  chanName === "public_link" ? "Public Apply Link" :
+                    "Internal Hiring Portal";
+
                 const desc = chanName === "career_site" ? "Publish to public careers directory." :
-                             chanName === "public_link" ? "Create a shareable url for job boards." :
-                             "Internal portal for employee referrals.";
+                  chanName === "public_link" ? "Create a shareable url for job boards." :
+                    "Internal portal for employee referrals.";
 
                 return (
                   <div key={chanName} className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
@@ -1125,8 +1122,8 @@ export function JobDetailPage() {
                         <span className="text-sm font-semibold text-foreground block">{label}</span>
                         <span className="text-[11px] text-muted-foreground block">{desc}</span>
                       </div>
-                      <Switch 
-                        checked={chanObj.is_active} 
+                      <Switch
+                        checked={chanObj.is_active}
                         onCheckedChange={() => handleToggleChannel(chanName, chanObj.is_active)}
                       />
                     </div>
@@ -1151,10 +1148,10 @@ export function JobDetailPage() {
                               {chanObj.url}
                             </span>
                             <div className="flex items-center gap-1">
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-6 w-6 text-muted-foreground" 
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-muted-foreground"
                                 onClick={() => {
                                   navigator.clipboard.writeText(chanObj.url);
                                   toast.success("Link copied!");
@@ -1162,9 +1159,9 @@ export function JobDetailPage() {
                               >
                                 <Copy className="h-3 w-3" />
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 className="h-6 text-[10px] px-2"
                                 asChild
                               >
@@ -1207,37 +1204,37 @@ export function JobDetailPage() {
           ) : qrData ? (
             <div className="flex flex-col items-center justify-center py-4 space-y-4">
               <div className="rounded-2xl border border-border bg-white p-3 shadow-inner">
-                <img 
-                  src={`http://localhost:8001${qrData.qr_png_url}`} 
-                  alt="Job Apply QR Code" 
+                <img
+                  src={`http://localhost:8001${qrData.qr_png_url}`}
+                  alt="Job Apply QR Code"
                   className="w-48 h-48 rounded-lg"
                 />
               </div>
 
               <div className="w-full flex flex-col gap-2">
                 <div className="flex gap-2 w-full">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1 text-xs" 
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs"
                     onClick={() => window.open(`http://localhost:8001${qrData.qr_png_url}`, "_blank")}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />PNG
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1 text-xs" 
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs"
                     onClick={() => window.open(`http://localhost:8001${qrData.qr_svg_url}`, "_blank")}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />SVG
                   </Button>
                 </div>
 
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="w-full text-xs" 
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-xs"
                   onClick={() => {
                     navigator.clipboard.writeText(qrData.apply_url);
                     toast.success("Apply URL copied!");
@@ -1246,10 +1243,10 @@ export function JobDetailPage() {
                   <Copy className="mr-1.5 h-3.5 w-3.5" />Copy Apply Link
                 </Button>
 
-                <Button 
-                  size="sm" 
-                  variant="default" 
-                  className="w-full text-xs" 
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full text-xs"
                   onClick={handlePrintQr}
                 >
                   <Printer className="mr-1.5 h-3.5 w-3.5" />Print QR Code

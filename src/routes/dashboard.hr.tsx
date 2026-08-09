@@ -1,21 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Mail, Phone, Pencil, Plus, Trash2, UserCog } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { aurix, uid, useAurix, type HR } from "@/lib/aurix-store";
+import { ofc360, uid, useofc360, type HR } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/hr")({
-  head: () => ({ meta: [{ title: "HR Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "HR Management — ofc360" }] }),
   component: HRPage,
 });
 
 function HRPage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const [open, setOpen] = useState(false);
   const [d, setD] = useState<HR | null>(null);
 
@@ -24,10 +24,10 @@ function HRPage() {
     if (!d) return;
     if (!d.fullName || !d.email) return toast.error("Name and email required");
     const exists = ws.hrs.some((h) => h.id === d.id);
-    aurix.set({ hrs: exists ? ws.hrs.map((h) => h.id === d.id ? d : h) : [...ws.hrs, d] });
+    ofc360.set({ hrs: exists ? ws.hrs.map((h) => h.id === d.id ? d : h) : [...ws.hrs, d] });
     toast.success(exists ? "HR updated" : "HR added"); setOpen(false);
   }
-  function remove(id: string) { aurix.set({ hrs: ws.hrs.filter((h) => h.id !== id) }); }
+  function remove(id: string) { ofc360.set({ hrs: ws.hrs.filter((h) => h.id !== id) }); }
 
   return (
     <>

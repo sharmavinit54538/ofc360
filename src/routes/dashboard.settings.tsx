@@ -12,39 +12,39 @@ import {
   ArrowRight,
   Settings as SettingsIcon,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { aurix, useAurix } from "@/lib/aurix-store";
+import { ofc360, useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings & Administration — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Settings & Administration — ofc360" }] }),
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const navigate = useNavigate();
   const [tab, setTab] = useState<"company" | "profile" | "security">("company");
   const [company, setCompany] = useState(ws.company ?? { id: "", name: "" });
   const [user, setUser] = useState(ws.user);
 
   function saveCompany() {
-    aurix.set({ company });
+    ofc360.set({ company });
     toast.success("Company settings updated successfully");
   }
 
   function saveProfile() {
     if (user) {
-      aurix.set({ user });
+      ofc360.set({ user });
       toast.success("Profile updated successfully");
     }
   }
 
   function reset() {
-    aurix.reset();
+    ofc360.reset();
     navigate({ to: "/login" });
   }
 
@@ -154,11 +154,10 @@ function SettingsPage() {
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    active
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {t.label}

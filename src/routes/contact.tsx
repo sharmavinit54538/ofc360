@@ -6,15 +6,14 @@ import { Section, SectionHeader } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
 import { CTA } from "@/components/site/CTA";
 import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Aurix" },
-      { name: "description", content: "Get in touch with the Aurix team. We respond within one business day." },
-      { property: "og:title", content: "Contact — Aurix" },
-      { property: "og:description", content: "Talk to the Aurix team." },
+      { title: "Contact — OFC360" },
+      { name: "description", content: "Get in touch with the OFC360 team. We respond within one business day." },
+      { property: "og:title", content: "Contact — OFC360" },
+      { property: "og:description", content: "Talk to the OFC360 team." },
       { property: "og:url", content: "/contact" },
     ],
     links: [{ rel: "canonical", href: "/contact" }],
@@ -23,15 +22,13 @@ export const Route = createFileRoute("/contact")({
 });
 
 const offices = [
-  { city: "Lisbon", region: "HQ · Europe", address: "Rua Augusta 100, Lisbon, Portugal" },
-  { city: "San Francisco", region: "Americas", address: "535 Mission St, San Francisco, CA" },
-  { city: "Singapore", region: "APAC", address: "1 Raffles Place, Singapore" },
+  { city: "India", region: "HQ", address: "EquinoxSphere Technologies" },
 ];
 
 const faqs = [
   { q: "How quickly will you respond?", a: "Within one business day, usually faster." },
   { q: "Do you offer demos?", a: "Yes — pick a time on the form and we'll set up a live walkthrough tailored to your team." },
-  { q: "Is there a phone number?", a: "Yes, our sales team is reachable at +1 (415) 555-0142 during business hours PT." },
+  { q: "Is there a phone number?", a: "Yes, reach out to Vinit Sharma at 9351608590 during business hours." },
 ];
 
 function ContactPage() {
@@ -49,7 +46,6 @@ function ContactPage() {
 
   return (
     <SiteLayout>
-      <Toaster />
       <Section>
         <SectionHeader eyebrow="Contact" title="Let's talk" subtitle="Tell us what you're building and we'll get back to you within a business day." />
 
@@ -68,7 +64,7 @@ function ContactPage() {
                 name="message"
                 rows={5}
                 required
-                placeholder="Tell us what you're hoping to do with Aurix…"
+                placeholder="Tell us what you're hoping to do with OFC360…"
                 className="mt-2 w-full rounded-xl bg-background border border-border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
               />
             </div>
@@ -84,10 +80,10 @@ function ContactPage() {
           {/* Info */}
           <div className="lg:col-span-2 space-y-4">
             {[
-              { icon: Mail, label: "Email", value: "hello@aurix.com" },
-              { icon: Phone, label: "Phone", value: "+1 (415) 555-0142" },
-              { icon: MessageSquare, label: "Sales", value: "sales@aurix.com" },
-              { icon: MapPin, label: "Headquarters", value: "Lisbon, Portugal" },
+              { icon: Mail, label: "Email", value: "info@ofc360.com" },
+              { icon: Phone, label: "Phone", value: "9351608590" },
+              { icon: MessageSquare, label: "Contact Person", value: "Vinit Sharma" },
+              { icon: MapPin, label: "Company", value: "EquinoxSphere Technologies" },
             ].map((b) => (
               <div key={b.label} className="glass rounded-2xl p-5 flex items-start gap-4">
                 <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-brand grid place-items-center">

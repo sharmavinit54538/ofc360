@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  CheckCircle, 
-  AlertCircle, 
-  UploadCloud, 
-  FileText, 
-  User, 
-  Mail, 
-  Phone, 
-  Globe, 
+import {
+  Briefcase,
+  MapPin,
+  Clock,
+  DollarSign,
+  CheckCircle,
+  AlertCircle,
+  UploadCloud,
+  FileText,
+  User,
+  Mail,
+  Phone,
+  Globe,
   Building,
   GraduationCap,
   Linkedin,
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/jobs/apply/$ukey")({
 
 function JobApplyPage() {
   const { ukey } = Route.useParams();
-  
+
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,7 @@ function JobApplyPage() {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
   const [experienceYears, setExperienceYears] = useState("");
-  
+
   // Optional Fields
   const [currentCompany, setCurrentCompany] = useState("");
   const [currentDesignation, setCurrentDesignation] = useState("");
@@ -67,7 +67,7 @@ function JobApplyPage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
-  
+
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -173,7 +173,7 @@ function JobApplyPage() {
         {/* Ambient background decoration */}
         <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-indigo-500/10 blur-[100px]" />
         <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-purple-500/10 blur-[100px]" />
-        
+
         <div className="flex flex-col items-center gap-3">
           <div className="relative h-12 w-12">
             <div className="absolute inset-0 rounded-full border-4 border-slate-800" />
@@ -189,7 +189,7 @@ function JobApplyPage() {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center bg-slate-950 py-12 px-4 text-center sm:px-6 lg:px-8">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-rose-500/5 blur-[120px]" />
-        
+
         <div className="relative z-10 max-w-md bg-slate-900/60 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl">
           <div className="mx-auto rounded-2xl bg-rose-500/10 p-4 text-rose-400 w-fit">
             <AlertCircle className="h-10 w-10" />
@@ -199,8 +199,8 @@ function JobApplyPage() {
             {error || "The job posting you are looking for is closed, inactive, or does not exist."}
           </p>
           <div className="mt-6">
-            <a 
-              href="https://google.com" 
+            <a
+              href="https://google.com"
               className="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-750 transition-all active:scale-[0.98]"
             >
               Back to Careers
@@ -216,20 +216,20 @@ function JobApplyPage() {
       <div className="relative flex min-h-screen flex-col items-center justify-center bg-slate-950 py-12 px-4 text-center">
         {/* Glow decoration */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-emerald-500/10 blur-[130px]" />
-        
+
         <div className="relative z-10 max-w-lg bg-slate-900/80 border border-slate-800/80 rounded-3xl p-8 md:p-10 backdrop-blur-xl shadow-2xl shadow-emerald-500/5">
           <div className="mx-auto rounded-full bg-emerald-500/15 p-4 text-emerald-400 w-fit animate-pulse">
             <CheckCircle className="h-16 w-16" />
           </div>
-          
+
           <h1 className="mt-6 text-2xl md:text-3xl font-extrabold tracking-tight text-white font-display">
             Application Submitted!
           </h1>
-          
+
           <p className="mt-3 text-sm text-slate-300 leading-relaxed">
             Thank you for applying to the <span className="font-bold text-indigo-400">{job.title}</span> position. We have successfully received your credentials.
           </p>
-          
+
           <div className="mt-6 p-4 rounded-2xl bg-slate-950/40 border border-slate-800/60 inline-block text-left w-full">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Next Steps</div>
             <ul className="text-xs text-slate-400 space-y-2">
@@ -247,11 +247,11 @@ function JobApplyPage() {
               </li>
             </ul>
           </div>
-          
+
           <div className="mt-8 flex justify-center">
-            <Button 
+            <Button
               onClick={() => window.location.reload()}
-              variant="outline" 
+              variant="outline"
               className="border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white"
             >
               Submit Another Application
@@ -275,7 +275,7 @@ function JobApplyPage() {
             A
           </div>
           <span className="font-display font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Aurix <span className="font-normal text-indigo-400/90 text-sm tracking-normal ml-1">Careers Portal</span>
+            ofc360 <span className="font-normal text-indigo-400/90 text-sm tracking-normal ml-1">Careers Portal</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ function JobApplyPage() {
 
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 mt-8 md:mt-12 relative z-10">
-        
+
         {/* Back Link */}
         <div className="mb-6">
           <a href="https://google.com" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-indigo-400 transition-colors group">
@@ -319,7 +319,7 @@ function JobApplyPage() {
             </div>
           </div>
           <div className="shrink-0">
-            <Button 
+            <Button
               onClick={() => document.getElementById("apply-form")?.scrollIntoView({ behavior: "smooth" })}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/15"
             >
@@ -330,10 +330,10 @@ function JobApplyPage() {
 
         {/* Details and Apply Form Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left panel: Specifications */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             {/* Description Card */}
             {job.jobDescription && (
               <div className="bg-slate-900/20 border border-slate-800/50 rounded-2xl p-6 backdrop-blur-xl">
@@ -409,17 +409,17 @@ function JobApplyPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              
+
               {/* Resume dropzone */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                   Resume / CV <span className="text-rose-500">*</span>
                 </label>
-                
+
                 <div className="relative border border-dashed border-slate-700 hover:border-indigo-500/60 rounded-2xl p-4 transition-all bg-slate-950/60 text-center flex flex-col items-center justify-center min-h-[110px] group">
-                  <input 
-                    type="file" 
-                    id="resume" 
+                  <input
+                    type="file"
+                    id="resume"
                     onChange={handleFileChange}
                     accept=".pdf,.doc,.docx"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -455,28 +455,28 @@ function JobApplyPage() {
                   <label htmlFor="firstName" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     First Name <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="firstName"
-                    type="text" 
-                    required 
+                    type="text"
+                    required
                     value={firstName}
                     placeholder="Jane"
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
                 <div>
                   <label htmlFor="lastName" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Last Name <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="lastName"
-                    type="text" 
-                    required 
+                    type="text"
+                    required
                     value={lastName}
                     placeholder="Doe"
                     onChange={(e) => setLastName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
               </div>
@@ -487,28 +487,28 @@ function JobApplyPage() {
                   <label htmlFor="email" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Email <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="email"
-                    type="email" 
-                    required 
+                    type="email"
+                    required
                     value={email}
                     placeholder="jane.doe@example.com"
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Phone <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="phone"
-                    type="tel" 
-                    required 
+                    type="tel"
+                    required
                     value={phone}
                     placeholder="+1 555 0199"
                     onChange={(e) => setPhone(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
               </div>
@@ -519,42 +519,42 @@ function JobApplyPage() {
                   <label htmlFor="city" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     City <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="city"
-                    type="text" 
-                    required 
+                    type="text"
+                    required
                     value={city}
                     placeholder="New York"
                     onChange={(e) => setCity(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9"
                   />
                 </div>
                 <div>
                   <label htmlFor="state" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     State <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="state"
-                    type="text" 
-                    required 
+                    type="text"
+                    required
                     value={state}
                     placeholder="NY"
                     onChange={(e) => setState(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9"
                   />
                 </div>
                 <div>
                   <label htmlFor="country" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Country <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="country"
-                    type="text" 
-                    required 
+                    type="text"
+                    required
                     value={country}
                     placeholder="USA"
                     onChange={(e) => setCountry(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs h-9"
                   />
                 </div>
               </div>
@@ -565,29 +565,29 @@ function JobApplyPage() {
                   <label htmlFor="exp" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Experience (Years) <span className="text-rose-500">*</span>
                   </label>
-                  <Input 
+                  <Input
                     id="exp"
-                    type="number" 
+                    type="number"
                     min="0"
                     step="0.1"
-                    required 
+                    required
                     value={experienceYears}
                     placeholder="3.5"
                     onChange={(e) => setExperienceYears(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
                 <div>
                   <label htmlFor="highestQual" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                     Qualification
                   </label>
-                  <Input 
+                  <Input
                     id="highestQual"
-                    type="text" 
+                    type="text"
                     placeholder="B.S. Computer Science"
                     value={highestQualification}
                     onChange={(e) => setHighestQualification(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl"
                   />
                 </div>
               </div>
@@ -597,59 +597,59 @@ function JobApplyPage() {
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block border-b border-slate-800/50 pb-1">
                   Additional Details (Optional)
                 </span>
-                
+
                 <div className="grid grid-cols-2 gap-2">
-                  <Input 
+                  <Input
                     placeholder="Current Company"
                     value={currentCompany}
                     onChange={(e) => setCurrentCompany(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
-                  <Input 
+                  <Input
                     placeholder="Current Designation"
                     value={currentDesignation}
                     onChange={(e) => setCurrentDesignation(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <Input 
+                  <Input
                     type="number"
                     placeholder="Current CTC"
                     value={currentCtc}
                     onChange={(e) => setCurrentCtc(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
-                  <Input 
+                  <Input
                     type="number"
                     placeholder="Expected CTC"
                     value={expectedCtc}
                     onChange={(e) => setExpectedCtc(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
-                  <Input 
+                  <Input
                     placeholder="Notice Period"
                     value={noticePeriod}
                     onChange={(e) => setNoticePeriod(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Input 
+                  <Input
                     placeholder="LinkedIn Profile URL"
                     type="url"
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
-                  <Input 
+                  <Input
                     placeholder="Portfolio URL"
                     type="url"
                     value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl" 
+                    className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 text-xs h-8.5 rounded-xl"
                   />
                 </div>
               </div>
@@ -659,20 +659,20 @@ function JobApplyPage() {
                 <label htmlFor="coverLetter" className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">
                   Cover Letter (Optional)
                 </label>
-                <Textarea 
+                <Textarea
                   id="coverLetter"
-                  rows={3} 
+                  rows={3}
                   placeholder="Tell us why this role appeals to you..."
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs" 
+                  className="bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-indigo-600 rounded-xl text-xs"
                 />
               </div>
 
               {/* Candidate declaration */}
               <div className="flex items-start gap-2 pt-2">
-                <Checkbox 
-                  id="declaration" 
+                <Checkbox
+                  id="declaration"
                   checked={declarationChecked}
                   onCheckedChange={(checked) => setDeclarationChecked(!!checked)}
                   className="bg-slate-955 border-slate-700 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 mt-0.5"
@@ -683,8 +683,8 @@ function JobApplyPage() {
               </div>
 
               {/* Submit button */}
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={submitting}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-650 hover:from-indigo-550 hover:to-purple-600 text-white font-bold py-2.5 rounded-xl shadow-lg shadow-indigo-600/15 active:scale-[0.98] hover:scale-[1.01] transition-all duration-200 flex items-center justify-center gap-2 mt-4"
               >

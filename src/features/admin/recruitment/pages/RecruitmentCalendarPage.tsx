@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { useMemo, useState } from "react";
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Plus, Video } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRecruitment, newId } from "@/features/admin/recruitment/hooks/useRecruitment";
@@ -45,9 +45,9 @@ export function RecruitmentCalendarPage() {
     const id = e.dataTransfer.getData("text/iv");
     const iv = interviews.find((x) => x.id === id); if (!iv) return;
     const next = new Date(iv.date); next.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
-    
+
     const updatedIv = { ...iv, date: next.toISOString() };
-    
+
     try {
       await upsertInterview(updatedIv);
       toast.success(`Rescheduled ${iv.candidateName}'s interview to ${day.toLocaleDateString([], { month: "short", day: "numeric" })}`);
@@ -101,7 +101,7 @@ export function RecruitmentCalendarPage() {
       <PageHeader title="Interview Calendar" description="Drag-and-drop scheduling. Connect Google Calendar, Outlook, Zoom, Google Meet."
         actions={<>
           <Button variant="outline" onClick={() => toast.success("Redirecting to Zoom Integration authorization...")}><Video className="mr-2 h-4 w-4" />Connect Zoom</Button>
-          <Button variant="outline" onClick={() => toast.success("Syncing Google Calendar with Aurix AI...")}><CalIcon className="mr-2 h-4 w-4" />Sync Google</Button>
+          <Button variant="outline" onClick={() => toast.success("Syncing Google Calendar with ofc360 AI...")}><CalIcon className="mr-2 h-4 w-4" />Sync Google</Button>
           <Button onClick={() => setShowScheduleModal(true)}><Plus className="mr-2 h-4 w-4" />Schedule</Button>
         </>} />
 

@@ -1,12 +1,12 @@
 import { useNavigate, Link } from "@tanstack/react-router";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  ArrowLeft, Copy, Check, Sparkles, Wand2, Maximize2, Minimize2, 
+import {
+  ArrowLeft, Copy, Check, Sparkles, Wand2, Maximize2, Minimize2,
   Briefcase, MapPin, Tag, Plus, X, AlertCircle, RefreshCw, Send, Loader2,
   FileCheck2, ShieldCheck, Smile, MessageSquare
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,20 +17,20 @@ import { toast } from "sonner";
 import type { ID, Job, EmploymentType, WorkMode, JobStatus } from "@/features/admin/recruitment/types";
 
 const SUGGESTED_SKILLS = [
-  "React", "TypeScript", "FastAPI", "PostgreSQL", 
-  "Docker", "Leadership", "Excel", "Python", 
+  "React", "TypeScript", "FastAPI", "PostgreSQL",
+  "Docker", "Leadership", "Excel", "Python",
   "Product Design", "Figma", "AWS", "Machine Learning"
 ];
 
 const SUGGESTED_LOCATIONS = [
-  "Remote", "Bangalore", "Jaipur", "Hyderabad", 
+  "Remote", "Bangalore", "Jaipur", "Hyderabad",
   "Noida", "Pune", "Mumbai", "San Francisco", "London"
 ];
 
 // Helper to render markdown beautifully
 function MarkdownRenderer({ content }: { content: string }) {
   if (!content) return null;
-  
+
   const html = content
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -51,11 +51,11 @@ function MarkdownRenderer({ content }: { content: string }) {
       return `<p class="text-sm text-muted-foreground leading-relaxed my-3">${trimmed.replace(/\n/g, '<br/>')}</p>`;
     })
     .join('\n');
-    
+
   return (
-    <div 
-      className="space-y-1 text-muted-foreground prose dark:prose-invert max-w-none" 
-      dangerouslySetInnerHTML={{ __html: html }} 
+    <div
+      className="space-y-1 text-muted-foreground prose dark:prose-invert max-w-none"
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }
@@ -74,10 +74,10 @@ function getDepartmentFromTitle(title: string): string {
 export function NewJobPage() {
   const navigate = useNavigate();
   const { upsertJob } = useRecruitment();
-  
+
   // UI Steps: 0 = Setup Inputs, 1 = Generating Animation, 2 = Editor & Refine
   const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(0);
-  
+
   // Input fields
   const [role, setRole] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -85,11 +85,11 @@ export function NewJobPage() {
   const [location, setLocation] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  
+
   // AI Generated / Refinement states
   const [description, setDescription] = useState("");
   const [editorTab, setEditorTab] = useState<"write" | "preview">("preview");
-  
+
   // Loading & Error states
   const [loadingMessage, setLoadingMessage] = useState("Analyzing role requirements...");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,7 +97,7 @@ export function NewJobPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [customInstruction, setCustomInstruction] = useState("");
-  
+
   const locationRef = useRef<HTMLDivElement>(null);
 
   // Close location suggestion dropdown when clicking outside
@@ -112,7 +112,7 @@ export function NewJobPage() {
   }, []);
 
   // Filter locations suggestions based on input
-  const filteredLocations = SUGGESTED_LOCATIONS.filter(loc => 
+  const filteredLocations = SUGGESTED_LOCATIONS.filter(loc =>
     loc.toLowerCase().includes(locationSearch.toLowerCase())
   );
 
@@ -241,7 +241,7 @@ export function NewJobPage() {
 
     // Standard draft payload
     const jobPayload: Job = {
-      id: "", 
+      id: "",
       title: role,
       department: getDepartmentFromTitle(role),
       employmentType: "Full-time",
@@ -284,9 +284,9 @@ export function NewJobPage() {
 
   return (
     <div className="pb-24">
-      <PageHeader 
-        title="Create Job with AI" 
-        description="Fill minimal parameters and let Aurix AI craft a professional recruitment page." 
+      <PageHeader
+        title="Create Job with AI"
+        description="Fill minimal parameters and let ofc360 AI craft a professional recruitment page."
       />
 
       {/* STEP 0: SETUP FORM */}
@@ -309,11 +309,11 @@ export function NewJobPage() {
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                   Role Title <span className="text-destructive">*</span>
                 </Label>
-                <Input 
+                <Input
                   id="role"
-                  value={role} 
-                  onChange={(e) => setRole(e.target.value)} 
-                  placeholder="e.g., Senior Frontend Developer, HR Specialist, Python Developer" 
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  placeholder="e.g., Senior Frontend Developer, HR Specialist, Python Developer"
                   className="h-11 rounded-xl bg-background/50 border-border/80 focus-visible:ring-primary text-base"
                 />
                 <p className="text-xs text-muted-foreground">What position are you hiring for?</p>
@@ -326,21 +326,21 @@ export function NewJobPage() {
                   Required Skills <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex gap-2">
-                  <Input 
+                  <Input
                     id="skills"
-                    value={skillInput} 
-                    onChange={(e) => setSkillInput(e.target.value)} 
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         handleAddSkill(skillInput);
                       }
                     }}
-                    placeholder="Type a skill and press Enter" 
+                    placeholder="Type a skill and press Enter"
                     className="h-11 rounded-xl bg-background/50 border-border/80 text-base"
                   />
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     variant="secondary"
                     onClick={() => handleAddSkill(skillInput)}
                     className="h-11 rounded-xl px-4 border border-border"
@@ -353,14 +353,14 @@ export function NewJobPage() {
                 {skills.length > 0 && (
                   <div className="flex flex-wrap gap-2 py-2 px-3 bg-background/30 rounded-2xl border border-border/50">
                     {skills.map((s) => (
-                      <Badge 
-                        key={s} 
-                        variant="secondary" 
+                      <Badge
+                        key={s}
+                        variant="secondary"
                         className="py-1 px-3 text-sm rounded-lg flex items-center gap-1 bg-primary/10 text-primary border border-primary/20"
                       >
                         {s}
-                        <button 
-                          onClick={() => handleRemoveSkill(s)} 
+                        <button
+                          onClick={() => handleRemoveSkill(s)}
                           className="hover:text-destructive focus:outline-none transition-colors"
                         >
                           <X className="h-3 w-3" />
@@ -381,11 +381,10 @@ export function NewJobPage() {
                           key={s}
                           type="button"
                           onClick={() => exists ? handleRemoveSkill(s) : handleAddSkill(s)}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                            exists 
-                              ? "bg-primary text-primary-foreground border-primary" 
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${exists
+                              ? "bg-primary text-primary-foreground border-primary"
                               : "bg-background/40 hover:bg-accent/40 text-muted-foreground border-border/60"
-                          }`}
+                            }`}
                         >
                           {exists ? `✓ ${s}` : `+ ${s}`}
                         </button>
@@ -402,19 +401,19 @@ export function NewJobPage() {
                   Office Location <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
-                  <Input 
+                  <Input
                     id="location"
-                    value={locationSearch} 
+                    value={locationSearch}
                     onChange={(e) => {
                       setLocationSearch(e.target.value);
                       setLocation(e.target.value);
                       setShowLocationSuggestions(true);
-                    }} 
+                    }}
                     onFocus={() => setShowLocationSuggestions(true)}
-                    placeholder="e.g. Remote, Bangalore, Hyderabad" 
+                    placeholder="e.g. Remote, Bangalore, Hyderabad"
                     className="h-11 rounded-xl bg-background/50 border-border/80 text-base"
                   />
-                  
+
                   {/* Location Autocomplete Dropdown list */}
                   {showLocationSuggestions && filteredLocations.length > 0 && (
                     <div className="absolute left-0 right-0 mt-1.5 bg-popover border border-border shadow-xl rounded-xl z-50 overflow-hidden max-h-48 overflow-y-auto backdrop-blur-xl">
@@ -448,12 +447,12 @@ export function NewJobPage() {
             )}
 
             <div className="mt-8 flex justify-end">
-              <Button 
-                onClick={handleGenerateJd} 
+              <Button
+                onClick={handleGenerateJd}
                 className="w-full sm:w-auto h-11 px-8 rounded-xl font-medium bg-primary text-primary-foreground hover:bg-primary/95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 <Sparkles className="h-4 w-4" />
-                Generate with Aurix AI
+                Generate with ofc360 AI
               </Button>
             </div>
           </div>
@@ -466,7 +465,7 @@ export function NewJobPage() {
           <div className="rounded-3xl border border-border bg-card/50 p-10 shadow-2xl backdrop-blur-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[320px]">
             {/* Glowing active animation background */}
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-violet-500/5 to-fuchsia-500/5 animate-pulse" />
-            
+
             <div className="relative mb-6">
               <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-ping" />
               <div className="relative h-16 w-16 rounded-full border border-primary/30 bg-primary/5 flex items-center justify-center">
@@ -475,7 +474,7 @@ export function NewJobPage() {
             </div>
 
             <h3 className="text-xl font-bold font-display text-foreground tracking-tight mb-2">
-              Aurix AI is working
+              ofc360 AI is working
             </h3>
             <p className="text-muted-foreground text-sm max-w-sm animate-pulse">
               {loadingMessage}
@@ -495,21 +494,19 @@ export function NewJobPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setEditorTab("preview")}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      editorTab === "preview" 
-                        ? "bg-background text-foreground shadow-sm border border-border" 
+                    className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${editorTab === "preview"
+                        ? "bg-background text-foreground shadow-sm border border-border"
                         : "text-muted-foreground hover:text-foreground"
-                    }`}
+                      }`}
                   >
                     Preview Mode
                   </button>
                   <button
                     onClick={() => setEditorTab("write")}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      editorTab === "write" 
-                        ? "bg-background text-foreground shadow-sm border border-border" 
+                    className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${editorTab === "write"
+                        ? "bg-background text-foreground shadow-sm border border-border"
                         : "text-muted-foreground hover:text-foreground"
-                    }`}
+                      }`}
                   >
                     Edit Markdown
                   </button>
@@ -545,7 +542,7 @@ export function NewJobPage() {
                 <div className="p-1 rounded-lg bg-primary/10 text-primary">
                   <Sparkles className="h-4 w-4 animate-pulse" />
                 </div>
-                Refine with Aurix AI
+                Refine with ofc360 AI
               </h3>
 
               {/* Custom Prompt Textarea Section */}
@@ -585,7 +582,7 @@ export function NewJobPage() {
                     <Send className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                
+
                 {/* Suggestions / Chips */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {[
@@ -625,7 +622,7 @@ export function NewJobPage() {
                       <Wand2 className="h-3.5 w-3.5 text-indigo-500" />
                       Improve Formatting
                     </Button>
-                    
+
                     <Button
                       onClick={() => handleModifyJd("expand")}
                       disabled={isRefining}
@@ -635,7 +632,7 @@ export function NewJobPage() {
                       <Maximize2 className="h-3.5 w-3.5 text-emerald-500" />
                       Expand Content
                     </Button>
-                    
+
                     <Button
                       onClick={() => handleModifyJd("shorten")}
                       disabled={isRefining}
@@ -679,7 +676,7 @@ export function NewJobPage() {
               {isRefining && (
                 <div className="mt-4 flex items-center justify-center gap-2 py-2.5 px-3 bg-muted/40 rounded-xl text-xs text-muted-foreground animate-pulse border border-border/50">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />
-                  Aurix AI is working...
+                  ofc360 AI is working...
                 </div>
               )}
             </div>
@@ -742,7 +739,7 @@ export function NewJobPage() {
                 {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copied" : "Copy JD"}
               </Button>
-              
+
               <Button
                 variant="secondary"
                 onClick={() => handleSubmitJob("draft")}
@@ -751,7 +748,7 @@ export function NewJobPage() {
               >
                 {isSubmitting ? "Saving..." : "Save Job"}
               </Button>
-              
+
               <Button
                 onClick={() => handleSubmitJob("active")}
                 disabled={isSubmitting}

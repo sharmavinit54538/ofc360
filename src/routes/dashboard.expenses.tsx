@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plus, Receipt, CheckCircle2, XCircle, Wallet, Clock, Upload } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CsvButton, GlassCard, SearchBox, StatCard, StatusBadge } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { Expense, ExpenseCategory, ExpenseStatus } from "@/lib/hrms/types";
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/dashboard/expenses")({
-  head: () => ({ meta: [{ title: "Expense Claims — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Expense Claims — ofc360" }] }),
   component: ExpensesPage,
 });
 
@@ -64,7 +64,7 @@ function ExpensesPage() {
   const filtered = useMemo(() => expenses
     .filter((e) => (filter === "all" ? true : e.status === filter))
     .filter((e) => query.trim() === "" ? true : `${e.employee} ${e.description} ${e.category}`.toLowerCase().includes(query.toLowerCase())),
-  [expenses, filter, query]);
+    [expenses, filter, query]);
 
   function submit() {
     if (!draft.employee || draft.amount <= 0) return;

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Timer } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/overtime")({
-  head: () => ({ meta: [{ title: "Overtime Payments — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Overtime Payments — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Overtime Payments" description="Calculate and pay overtime based on attendance." />

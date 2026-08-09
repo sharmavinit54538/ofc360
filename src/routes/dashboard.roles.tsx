@@ -15,7 +15,7 @@ import {
   ChevronDown,
   Info,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -29,7 +29,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/roles")({
-  head: () => ({ meta: [{ title: "Roles & Permissions — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Roles & Permissions — ofc360" }] }),
   component: RolesPage,
 });
 

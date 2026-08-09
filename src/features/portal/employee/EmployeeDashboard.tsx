@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Employee Dashboard Component
+// ofc360 HR — Employee Dashboard Component
 // Self-service portal for individual employees.
 // ============================================================
 import { Link } from "@tanstack/react-router";
@@ -37,7 +37,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -223,9 +223,8 @@ function EmployeeKpiCards() {
             <div className="font-display text-xl font-bold tracking-tight">{kpi.value}</div>
             <div className="mt-0.5 text-[11px] text-muted-foreground">{kpi.label}</div>
             <div
-              className={`mt-1.5 flex items-center gap-1 text-[11px] font-medium ${
-                kpi.changeType === "up" ? "text-emerald-500" : kpi.changeType === "down" ? "text-rose-500" : "text-muted-foreground"
-              }`}
+              className={`mt-1.5 flex items-center gap-1 text-[11px] font-medium ${kpi.changeType === "up" ? "text-emerald-500" : kpi.changeType === "down" ? "text-rose-500" : "text-muted-foreground"
+                }`}
             >
               {kpi.changeType === "up" ? <TrendingUp className="h-3 w-3" /> : kpi.changeType === "down" ? <TrendingDown className="h-3 w-3" /> : null}
               {kpi.change}
@@ -239,10 +238,10 @@ function EmployeeKpiCards() {
                     stroke={
                       kpi.accent.includes("emerald") ? "#10b981"
                         : kpi.accent.includes("blue") ? "#3b82f6"
-                        : kpi.accent.includes("violet") ? "#8b5cf6"
-                        : kpi.accent.includes("amber") ? "#f59e0b"
-                        : kpi.accent.includes("green") ? "#22c55e"
-                        : "#f43f5e"
+                          : kpi.accent.includes("violet") ? "#8b5cf6"
+                            : kpi.accent.includes("amber") ? "#f59e0b"
+                              : kpi.accent.includes("green") ? "#22c55e"
+                                : "#f43f5e"
                     }
                     strokeWidth={2}
                     dot={false}
@@ -315,9 +314,8 @@ function MyLeaves() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                tab === t ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${tab === t ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"
+                }`}
             >
               {t}
             </button>
@@ -578,9 +576,9 @@ function EmployeeNotifications() {
 
 // ── Main Employee Dashboard ───────────────────────────────────
 export function EmployeeDashboard() {
-  const ws = useAurix();
+  const ws = useofc360();
   const firstName = ws.user?.fullName?.split(" ")[0] ?? "there";
-  const companyName = ws.company?.name ?? "Aurix HR";
+  const companyName = ws.company?.name ?? "ofc360 HR";
 
   return (
     <div className="space-y-6">

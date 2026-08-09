@@ -1,5 +1,5 @@
 import { FolderOpen, Users } from "lucide-react";
-import { Loader } from "@/components/aurix/Loader";
+import { Loader } from "@/components/ofc360/Loader";
 import { Button } from "@/components/ui/button";
 import type { Manager, SortDir, SortField } from "../types";
 import { ManagersTable } from "./ManagersTable";

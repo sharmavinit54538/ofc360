@@ -14,7 +14,7 @@ import {
   FileText,
   PieChart as PieIcon,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/reports")({
-  head: () => ({ meta: [{ title: "Reports Dashboard — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Reports Dashboard — ofc360" }] }),
   component: ReportsPage,
 });
 

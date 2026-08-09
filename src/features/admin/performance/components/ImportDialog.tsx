@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import type { PerformanceReview } from "../types";
 import { toast } from "sonner";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 
 interface ImportDialogProps {
   open: boolean;
@@ -36,7 +36,7 @@ export function ImportDialog({
   existingReviews,
   onImport,
 }: ImportDialogProps) {
-  const ws = useAurix();
+  const ws = useofc360();
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [hasErrors, setHasErrors] = useState(false);
@@ -107,7 +107,7 @@ export function ImportDialog({
       }
 
       const headers = parseCSVLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").toLowerCase().trim());
-      
+
       const fieldMap: Record<string, keyof PerformanceReview | string> = {
         "employee id": "employeeIdCode",
         "employeeid": "employeeIdCode",
@@ -234,7 +234,7 @@ export function ImportDialog({
       const matchedEmp = ws.employees.find(
         (e) => (e.employeeId || e.id).toLowerCase() === d.employeeIdCode?.toLowerCase()
       );
-      
+
       const employeeId = matchedEmp ? matchedEmp.id : `emp_imported_${idx}`;
       const department = d.department || matchedEmp?.department || "Engineering";
       const designation = d.designation || matchedEmp?.designation || "Engineer";
@@ -288,7 +288,7 @@ export function ImportDialog({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aurix_performance_import_template.csv");
+    link.setAttribute("download", "ofc360_performance_import_template.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -296,7 +296,7 @@ export function ImportDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(val) => { onOpenChange(val); if(!val) resetState(); }}>
+    <Dialog open={open} onOpenChange={(val) => { onOpenChange(val); if (!val) resetState(); }}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto rounded-2xl border-border bg-card p-6 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">

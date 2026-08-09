@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Receipt } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/reimbursements")({
-  head: () => ({ meta: [{ title: "Reimbursements — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Reimbursements — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Reimbursements" description="Manage employee expense claims and reimbursements." />

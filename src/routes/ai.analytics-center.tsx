@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   LineChart as LineChartIcon, BarChart3, Brain, Briefcase, Banknote, Gauge, Sparkles,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/analytics-center")({
-  head: () => ({ meta: [{ title: "AI Analytics Center — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Analytics Center — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Workforce Intelligence Index", xKey: "m",
           series: [{ key: "idx", label: "Index" }],
-          data: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"].map((m,i)=>({m, idx: 70+i*2+((i*3)%5)})),
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"].map((m, i) => ({ m, idx: 70 + i * 2 + ((i * 3) % 5) })),
         },
         {
           type: "bar", title: "Module Usage", xKey: "mod",
           series: [{ key: "u", label: "Usage" }],
-          data: [{mod:"Workforce",u:88},{mod:"Recruiter",u:74},{mod:"Payroll",u:69},{mod:"Performance",u:62},{mod:"Compliance",u:54}],
+          data: [{ mod: "Workforce", u: 88 }, { mod: "Recruiter", u: 74 }, { mod: "Payroll", u: 69 }, { mod: "Performance", u: 62 }, { mod: "Compliance", u: 54 }],
         },
       ]}
       features={[

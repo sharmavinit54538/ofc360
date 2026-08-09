@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCircle2, Clock, FileSignature, Plus, XCircle } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 

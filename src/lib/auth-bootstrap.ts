@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { api, getTokens, hasValidAccessToken, isAccessTokenExpired, setTokens } from "@/api";
 import type { AuthMeResponse, AuthUserPayload } from "@/api";
-import { aurix } from "./aurix-store";
+import { ofc360 } from "./ofc360-store";
 
 type AuthStatus = "loading" | "ready";
 
@@ -19,7 +19,7 @@ function setStatus(next: AuthStatus) {
 }
 
 function mapAuthUser(data: AuthUserPayload) {
-  const ws = aurix.get();
+  const ws = ofc360.get();
   const companyId = data.company_id ? String(data.company_id) : ws.user?.companyId || "workspace";
 
   return {
@@ -46,11 +46,13 @@ export function persistAuthSession(
   tokens: { accessToken: string; refreshToken: string },
 ) {
   setTokens(tokens);
-  aurix.set(mapAuthUser(user));
+  ofc360.set(mapAuthUser(user));
 }
 
 export function getPostLoginRoute(user: AuthUserPayload): string {
   if (!user.is_verified) return "/verify-email";
+  const r = (user.role as string)?.toLowerCase();
+  if (r === "super_admin") return "/dashboard/super-admin";
   if (!user.onboarding_completed) return "/onboarding";
   if (user.role === "manager") return "/dashboard/manager";
   if (user.role === "employee") return "/dashboard/employee";
@@ -62,12 +64,12 @@ export async function bootstrapAuth(): Promise<void> {
   if (bootstrapPromise) return bootstrapPromise;
 
   // Unblock UI immediately so pages render in 0ms without hanging
-  aurix.set({ isRestoring: false });
+  ofc360.set({ isRestoring: false });
   setStatus("ready");
 
   bootstrapPromise = (async () => {
     const tokens = getTokens();
-    const ws = aurix.get();
+    const ws = ofc360.get();
 
     // If no tokens or already cached valid user session, finish immediately
     if (!tokens?.accessToken) {
@@ -82,15 +84,15 @@ export async function bootstrapAuth(): Promise<void> {
     try {
       const res = await api.get<AuthMeResponse>("auth/me");
       if (res.success && res.data) {
-        aurix.set(mapAuthUser(res.data));
+        ofc360.set(mapAuthUser(res.data));
       } else if (!hasValidAccessToken()) {
         setTokens(null);
-        aurix.set({ user: null, company: null });
+        ofc360.set({ user: null, company: null });
       }
     } catch {
       if (!hasValidAccessToken()) {
         setTokens(null);
-        aurix.set({ user: null, company: null });
+        ofc360.set({ user: null, company: null });
       }
     }
   })();

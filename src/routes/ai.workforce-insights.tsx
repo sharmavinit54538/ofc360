@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Brain, HeartPulse, Users, UserMinus, Zap, TrendingUp, Building2, Activity, Sparkles,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/workforce-insights")({
-  head: () => ({ meta: [{ title: "AI Workforce Insights — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Workforce Insights — ofc360" }] }),
   component: Page,
 });
 
@@ -27,7 +27,7 @@ function Page() {
         {
           type: "area", title: "Headcount Trends", description: "Monthly active employees",
           xKey: "m", series: [{ key: "hc", label: "Headcount" }],
-          data: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m,i)=>({m, hc: 410+i*7+((i*13)%9)})),
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => ({ m, hc: 410 + i * 7 + ((i * 13) % 9) })),
         },
         {
           type: "bar", title: "Department Comparison", description: "Productivity vs. attrition risk by team",

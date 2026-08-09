@@ -21,7 +21,7 @@ import {
 import type { PerformanceReview, ReviewStatus, PromotionStatus } from "../types";
 import { REVIEW_STATUS_OPTIONS, PROMOTION_STATUS_OPTIONS } from "../constants";
 import { validatePerformanceReviewForm } from "../utils";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 interface PerformanceFormDialogProps {
@@ -39,7 +39,7 @@ export function PerformanceFormDialog({
   existingReviews,
   onSave,
 }: PerformanceFormDialogProps) {
-  const ws = useAurix();
+  const ws = useofc360();
   const isEdit = !!review;
 
   // Form State

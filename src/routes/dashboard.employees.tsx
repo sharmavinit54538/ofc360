@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazyFeaturePage } from "./_lib/lazyFeaturePage";
+import { lazyFeaturePage } from "./_lib/-lazyFeaturePage";
 
 const EmployeesPage = lazyFeaturePage(
   () => import("@/features/admin/employees/pages/EmployeesPage"),
@@ -32,6 +32,6 @@ export const Route = createFileRoute("/dashboard/employees")({
       order: (search.order === "asc" || search.order === "desc") ? search.order : undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Employees — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Employees — ofc360" }] }),
   component: EmployeesPage,
 });

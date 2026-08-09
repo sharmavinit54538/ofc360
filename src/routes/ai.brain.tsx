@@ -9,7 +9,7 @@ import {
   ShieldCheck, BookOpen, Mail, FileText, BarChart3, Workflow, Library, Crown,
   CheckCircle2, Square, RotateCcw,
 } from "lucide-react";
-import { AIHero } from "@/components/aurix/AIModule";
+import { AIHero } from "@/components/ofc360/AIModule";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ import { AGENT_LIST, AGENTS, type AgentId, type AgentDef } from "@/lib/ai/agents
 export const Route = createFileRoute("/ai/brain")({
   head: () => ({
     meta: [
-      { title: "AI Insight 2.0 — Autonomous HR Brain | Aurix" },
+      { title: "AI Insight 2.0 — Autonomous HR Brain | ofc360" },
       { name: "description", content: "An autonomous AI HR brain: 15+ specialist agents that recruit, evaluate, predict attrition, run payroll, draft letters and more." },
     ],
   }),
@@ -105,11 +105,10 @@ function BrainPage() {
                     key={a.id}
                     type="button"
                     onClick={() => setAgentId(a.id)}
-                    className={`group flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all ${
-                      active
+                    className={`group flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all ${active
                         ? "border-foreground/30 bg-accent shadow-glow"
                         : "border-transparent hover:border-border hover:bg-accent/50"
-                    }`}
+                      }`}
                   >
                     <div
                       className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${a.accent} text-foreground`}
@@ -293,11 +292,10 @@ function MessageBubble({ message, agent }: { message: UIMessage; agent: AgentDef
             return (
               <div
                 key={idx}
-                className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                  isUser
+                className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isUser
                     ? "bg-foreground text-background"
                     : "bg-accent text-foreground"
-                }`}
+                  }`}
               >
                 {part.text}
               </div>

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Briefcase, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { Loader } from "@/components/aurix/Loader";
+import { Loader } from "@/components/ofc360/Loader";
 import { Button } from "@/components/ui/button";
 import {
   RecruitmentDashboardCharts,

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Download, Filter, Plus, Search, Users } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

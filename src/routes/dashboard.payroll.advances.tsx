@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HandCoins } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/advances")({
-  head: () => ({ meta: [{ title: "Advances & Loans — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Advances & Loans — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Advances & Loans" description="Issue salary advances and manage repayment schedules." />

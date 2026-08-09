@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Video, ListChecks, Users, Sparkles, MessageSquare, ClipboardList,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/meeting-intelligence")({
-  head: () => ({ meta: [{ title: "AI Meeting Intelligence — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Meeting Intelligence — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "bar", title: "Action Items by Week", xKey: "w",
           series: [{ key: "items", label: "Items" }],
-          data: Array.from({length:6},(_,i)=>({ w:`W${i+1}`, items: 32+((i*9)%18) })),
+          data: Array.from({ length: 6 }, (_, i) => ({ w: `W${i + 1}`, items: 32 + ((i * 9) % 18) })),
         },
         {
           type: "line", title: "Meeting Volume", xKey: "d",
           series: [{ key: "n", label: "Meetings" }],
-          data: ["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>({d, n: 18+((i*5)%12)})),
+          data: ["Mon", "Tue", "Wed", "Thu", "Fri"].map((d, i) => ({ d, n: 18 + ((i * 5) % 12) })),
         },
       ]}
       features={[

@@ -17,7 +17,7 @@ import {
 import type { PerformanceReview, Goal } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, PieChartIcon, LineChartIcon, Activity, Trophy } from "lucide-react";
-import { useMounted } from "@/lib/aurix-store";
+import { useMounted } from "@/lib/ofc360-store";
 
 interface PerformanceChartsProps {
   reviews: PerformanceReview[];

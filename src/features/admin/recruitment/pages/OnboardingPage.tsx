@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, FileText, Laptop, Plus, UserCheck, UserPlus } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CandidateAvatar } from "@/features/admin/recruitment/components/Bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,12 +50,14 @@ export function OnboardingPage() {
           { k: "Completed (30d)", v: 12, icon: CheckCircle2 },
           { k: "Avg Time to Productive", v: "14d", icon: UserCheck },
           { k: "Pending Tasks", v: Object.values(tasks).flat().filter((t) => !t.done).length, icon: FileText },
-        ].map((s) => { const I = s.icon; return (
-          <div key={s.k} className="rounded-2xl border border-border bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{s.k}</span><I className="h-4 w-4" /></div>
-            <div className="mt-2 font-display text-2xl font-semibold">{s.v}</div>
-          </div>
-        );})}
+        ].map((s) => {
+          const I = s.icon; return (
+            <div key={s.k} className="rounded-2xl border border-border bg-card/60 p-4 backdrop-blur-xl">
+              <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{s.k}</span><I className="h-4 w-4" /></div>
+              <div className="mt-2 font-display text-2xl font-semibold">{s.v}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">

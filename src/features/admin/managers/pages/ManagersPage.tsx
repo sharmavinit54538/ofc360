@@ -1,5 +1,5 @@
 import { Upload, UserPlus } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { ManagerStatsCards } from "../components/ManagerStatsCards";
 import { ManagersListContent } from "../components/ManagersListContent";

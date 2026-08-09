@@ -19,7 +19,7 @@ import {
   RefreshCw,
   AlertTriangle,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,7 +44,7 @@ import { api } from "@/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/communication")({
-  head: () => ({ meta: [{ title: "Communication & Help Desk — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Communication & Help Desk — ofc360" }] }),
   component: CommunicationPage,
 });
 
@@ -425,11 +425,10 @@ function CommunicationPage() {
                 {filteredAnnouncements.map((ann) => (
                   <div
                     key={ann.id}
-                    className={`group relative flex flex-col justify-between rounded-2xl border p-5 backdrop-blur-xl transition-all ${
-                      ann.pinned
+                    className={`group relative flex flex-col justify-between rounded-2xl border p-5 backdrop-blur-xl transition-all ${ann.pinned
                         ? "border-indigo-500/40 bg-indigo-500/5 shadow-md"
                         : "border-border bg-card/60 hover:border-border/80"
-                    }`}
+                      }`}
                   >
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-2">
@@ -511,13 +510,12 @@ function CommunicationPage() {
                           </Badge>
                           <Badge
                             variant="outline"
-                            className={`text-[10px] font-bold ${
-                              ticket.priority === "High"
+                            className={`text-[10px] font-bold ${ticket.priority === "High"
                                 ? "border-rose-500/30 text-rose-400"
                                 : ticket.priority === "Medium"
-                                ? "border-amber-500/30 text-amber-400"
-                                : "border-slate-500/30 text-slate-400"
-                            }`}
+                                  ? "border-amber-500/30 text-amber-400"
+                                  : "border-slate-500/30 text-slate-400"
+                              }`}
                           >
                             {ticket.priority} Priority
                           </Badge>
@@ -529,13 +527,12 @@ function CommunicationPage() {
                       <div className="flex items-center justify-between gap-4 shrink-0 sm:flex-col sm:items-end">
                         <Badge
                           variant="outline"
-                          className={`text-xs font-semibold ${
-                            isResolved
+                          className={`text-xs font-semibold ${isResolved
                               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                               : isInProgress
-                              ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                              : "bg-blue-500/10 border-blue-500/30 text-blue-400"
-                          }`}
+                                ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                                : "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                            }`}
                         >
                           {ticket.status}
                         </Badge>

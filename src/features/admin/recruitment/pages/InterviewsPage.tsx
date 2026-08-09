@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { useMemo, useState } from "react";
 import { Calendar, CheckCircle2, Clock, Star, Video, User } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruitment, newId } from "@/features/admin/recruitment/hooks/useRecruitment";
@@ -90,7 +90,7 @@ export function InterviewsPage() {
         // Move candidate stage to interview
         moveStage(cand.applicationId, "interview");
       }
-      
+
       // Save locally in store as fallback/local record
       await upsertInterview(newIv);
       toast.success("Interview scheduled successfully!");
@@ -186,7 +186,7 @@ export function InterviewsPage() {
                   <div className="flex">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`h-3.5 w-3.5 ${j < (iv.rating ?? 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"}`} />)}</div>
                 ) : null}
                 <Badge variant="outline" className="capitalize">{iv.status}</Badge>
-                
+
                 <div className="flex items-center gap-2">
                   {iv.status === "scheduled" && (
                     <Button size="sm" variant="outline" onClick={() => {

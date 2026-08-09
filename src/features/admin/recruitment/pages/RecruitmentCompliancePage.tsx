@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CheckCircle2, FileLock2, ShieldCheck, UserX } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,7 +17,7 @@ export function RecruitmentCompliancePage() {
   // Persistent privacy controls state
   const [controls, setControls] = useState(() => {
     if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("aurix.compliance.controls");
+      const raw = window.localStorage.getItem("ofc360.compliance.controls");
       if (raw) {
         try {
           return JSON.parse(raw);
@@ -39,7 +39,7 @@ export function RecruitmentCompliancePage() {
   // Persistent compliance checklist state
   const [checklist, setChecklist] = useState(() => {
     if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("aurix.compliance.checklist");
+      const raw = window.localStorage.getItem("ofc360.compliance.checklist");
       if (raw) {
         try {
           return JSON.parse(raw);
@@ -62,7 +62,7 @@ export function RecruitmentCompliancePage() {
     const next = { ...controls, [key]: val };
     setControls(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("aurix.compliance.controls", JSON.stringify(next));
+      window.localStorage.setItem("ofc360.compliance.controls", JSON.stringify(next));
     }
     toast.success("Privacy control updated successfully!");
   };
@@ -71,7 +71,7 @@ export function RecruitmentCompliancePage() {
     const next = { ...checklist, [key]: !checklist[key] };
     setChecklist(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("aurix.compliance.checklist", JSON.stringify(next));
+      window.localStorage.setItem("ofc360.compliance.checklist", JSON.stringify(next));
     }
     toast.success("Compliance checklist item updated!");
   };
@@ -136,12 +136,14 @@ export function RecruitmentCompliancePage() {
           { k: "EEO Self-ID Rate", v: `${diversityStats.selfIdRate}%`, icon: FileLock2, color: "text-sky-500" },
           { k: "Data Retention", v: "365d", icon: FileLock2, color: "text-violet-500" },
           { k: "Right-to-erasure", v: candidates.length > 5 ? 2 : 0, icon: UserX, color: "text-amber-500" },
-        ].map((s) => { const I = s.icon; return (
-          <div key={s.k} className="rounded-2xl border border-border bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{s.k}</span><I className={`h-4 w-4 ${s.color}`} /></div>
-            <div className="mt-2 font-display text-2xl font-semibold text-foreground">{s.v}</div>
-          </div>
-        );})}
+        ].map((s) => {
+          const I = s.icon; return (
+            <div key={s.k} className="rounded-2xl border border-border bg-card/60 p-4 backdrop-blur-xl">
+              <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{s.k}</span><I className={`h-4 w-4 ${s.color}`} /></div>
+              <div className="mt-2 font-display text-2xl font-semibold text-foreground">{s.v}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

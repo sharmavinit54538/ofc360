@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ShieldCheck, Scale, FileWarning, AlertTriangle, ClipboardCheck,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/compliance-monitor")({
-  head: () => ({ meta: [{ title: "AI Compliance Monitor — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Compliance Monitor — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Compliance Trend", xKey: "m",
           series: [{ key: "score", label: "Score" }],
-          data: ["Jan","Feb","Mar","Apr","May","Jun"].map((m,i)=>({m, score: 88+i+((i*3)%4)})),
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m, i) => ({ m, score: 88 + i + ((i * 3) % 4) })),
         },
         {
           type: "bar", title: "Risks by Category", xKey: "c",
           series: [{ key: "n", label: "Open risks" }],
-          data: [{c:"Labor",n:2},{c:"Tax",n:1},{c:"Safety",n:1},{c:"Data",n:0},{c:"Hiring",n:0}],
+          data: [{ c: "Labor", n: 2 }, { c: "Tax", n: 1 }, { c: "Safety", n: 1 }, { c: "Data", n: 0 }, { c: "Hiring", n: 0 }],
         },
       ]}
       features={[

@@ -12,7 +12,7 @@ import {
   ThumbsDown,
   RotateCcw,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/api";
@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/payroll/copilot")({
-  head: () => ({ meta: [{ title: "AI Payroll Copilot — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Payroll Copilot — ofc360" }] }),
   component: PayrollCopilotPage,
 });
 
@@ -216,22 +216,20 @@ function PayrollCopilotPage() {
               return (
                 <div key={m.id} className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
                   <div
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                      isUser
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${isUser
                         ? "bg-foreground text-background"
                         : "text-brand-foreground shadow-sm"
-                    }`}
+                      }`}
                     style={isUser ? undefined : { background: "var(--gradient-brand)" }}
                   >
                     {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                   </div>
 
                   <div
-                    className={`relative group max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      isUser
+                    className={`relative group max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser
                         ? "bg-foreground text-background"
                         : "bg-accent/70 border border-border/60 text-foreground"
-                    }`}
+                      }`}
                   >
                     <div className="whitespace-pre-wrap">{m.content}</div>
 
@@ -264,9 +262,8 @@ function PayrollCopilotPage() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleFeedback(m.id, "like")}
-                            className={`p-1 rounded hover:text-foreground cursor-pointer transition-colors ${
-                              m.feedback === "like" ? "text-emerald-500" : ""
-                            }`}
+                            className={`p-1 rounded hover:text-foreground cursor-pointer transition-colors ${m.feedback === "like" ? "text-emerald-500" : ""
+                              }`}
                             title="Helpful"
                           >
                             <ThumbsUp className="h-3 w-3" />
@@ -274,9 +271,8 @@ function PayrollCopilotPage() {
 
                           <button
                             onClick={() => handleFeedback(m.id, "dislike")}
-                            className={`p-1 rounded hover:text-foreground cursor-pointer transition-colors ${
-                              m.feedback === "dislike" ? "text-rose-500" : ""
-                            }`}
+                            className={`p-1 rounded hover:text-foreground cursor-pointer transition-colors ${m.feedback === "dislike" ? "text-rose-500" : ""
+                              }`}
                             title="Not helpful"
                           >
                             <ThumbsDown className="h-3 w-3" />

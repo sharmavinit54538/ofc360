@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazyFeaturePage } from "./_lib/lazyFeaturePage";
+import { lazyFeaturePage } from "./_lib/-lazyFeaturePage";
 
 const ManagersPage = lazyFeaturePage(
   () => import("@/features/admin/managers/pages/ManagersPage"),
@@ -7,6 +7,6 @@ const ManagersPage = lazyFeaturePage(
 );
 
 export const Route = createFileRoute("/dashboard/managers")({
-  head: () => ({ meta: [{ title: "Managers — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Managers — ofc360" }] }),
   component: ManagersPage,
 });

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Folder, Search, Upload, Wand2, Download, CheckCircle, Clock, XCircle, AlertTriangle,
   FileText, Shield, Trash2, Eye, FileSpreadsheet, RefreshCw, Info, Calendar,
-  ShieldCheck, User, AlertCircle
+  ShieldCheck, User, AlertCircle, Loader2
 } from "lucide-react";
 import { PageHeader } from "@/components/aurix/DashboardShell";
 import { Input } from "@/components/ui/input";
@@ -17,14 +17,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { aurix, uid, useAurix, type HRDocument, type HRDocumentActivity } from "@/lib/aurix-store";
+import { ofc360, uid, useofc360, type HRDocument, type HRDocumentActivity, type Employee } from "@/lib/aurix-store";
 import { toast } from "sonner";
+import { api } from "@/api/client";
+import apiInstance, { BASE_URL } from "@/api/apiInstance";
 
 // ----------------------------------------------------
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/documents")({
-  head: () => ({ meta: [{ title: "Documents — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Documents — ofc360" }] }),
   component: DocumentsPage,
 });
 
@@ -59,104 +61,737 @@ const DOCUMENT_TEMPLATES = [
   { id: "handbook", title: "Company Handbook Acknowledgment", category: "Company Documents", fields: ["Version Date", "Signee Designation"] },
 ];
 
-const INITIAL_DOCUMENTS: HRDocument[] = [
-  {
-    id: "doc_1",
-    name: "Offer_Letter_Aarav_Gupta.pdf",
-    employeeId: "emp_1",
-    employeeName: "Aarav Gupta",
-    category: "Employment",
-    type: "Offer Letter",
-    uploadedBy: "HR Admin",
-    uploadDate: "2026-07-15",
-    status: "Verified",
-    fileSize: "1.4 MB",
-    fileType: "pdf",
-    description: "Signed Employment Offer Letter",
-  },
-  {
-    id: "doc_2",
-    name: "Aadhaar_Card_Kavya_Iyer.pdf",
-    employeeId: "emp_2",
-    employeeName: "Kavya Iyer",
-    category: "Employee Documents",
-    type: "Aadhaar Card",
-    uploadedBy: "Kavya Iyer",
-    uploadDate: "2026-07-20",
-    status: "Verified",
-    fileSize: "850 KB",
-    fileType: "pdf",
-    description: "National ID Identity Card",
-  },
-  {
-    id: "doc_3",
-    name: "PAN_Card_Rohan_Mehta.pdf",
-    employeeId: "emp_3",
-    employeeName: "Rohan Mehta",
-    category: "Employee Documents",
-    type: "PAN Card",
-    uploadedBy: "Rohan Mehta",
-    uploadDate: "2026-08-01",
-    status: "Pending",
-    fileSize: "620 KB",
-    fileType: "pdf",
-    description: "Tax Permanent Account Number Card",
-  },
-  {
-    id: "doc_4",
-    name: "Graduation_Degree_Vikram_Sharma.pdf",
-    employeeId: "emp_4",
-    employeeName: "Vikram Sharma",
-    category: "Education",
-    type: "Graduation",
-    uploadedBy: "Vikram Sharma",
-    uploadDate: "2026-07-10",
-    status: "Verified",
-    fileSize: "2.1 MB",
-    fileType: "pdf",
-    description: "B.Tech Computer Science Degree Certificate",
-  },
-  {
-    id: "doc_5",
-    name: "Company_NDA_Signed_Priya_Patel.pdf",
-    employeeId: "emp_5",
-    employeeName: "Priya Patel",
-    category: "Company Documents",
-    type: "NDA",
-    uploadedBy: "Priya Patel",
-    uploadDate: "2026-07-01",
-    status: "Verified",
-    fileSize: "1.1 MB",
-    fileType: "pdf",
-    description: "Non-Disclosure Security Agreement",
-  },
-  {
-    id: "doc_6",
-    name: "HR_Policy_Handbook_2026.pdf",
-    employeeName: "Company-wide",
-    category: "Company Documents",
-    type: "HR Policy",
-    uploadedBy: "HR Admin",
-    uploadDate: "2026-06-01",
-    status: "Verified",
-    fileSize: "3.5 MB",
-    fileType: "pdf",
-    description: "Global Company Code of Conduct & HR Guidelines",
-  },
-];
+// Helper for file size formatting
+const formatFileSize = (bytes?: number | null) => {
+  if (!bytes || bytes === 0) return "1.2 MB";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 // ----------------------------------------------------
-// MAIN PAGE COMPONENT
+// MAIN ROUTE COMPONENT (ROLE DISPATCHER)
 // ----------------------------------------------------
 function DocumentsPage() {
-  const ws = useAurix();
-  const docs = (ws.documents && ws.documents.length > 0) ? ws.documents : INITIAL_DOCUMENTS;
-  const activities = ws.documentActivities || [];
+  const ws = useofc360();
+  const userRole = (ws.user?.role as string)?.toLowerCase() || "employee";
+
+  if (userRole === "employee") {
+    return <EmployeeDocumentsPage />;
+  }
+
+  return <AdminDocumentsPage />;
+}
+
+// ----------------------------------------------------
+// DEDICATED EMPLOYEE DOCUMENTS COMPONENT
+// ----------------------------------------------------
+function EmployeeDocumentsPage() {
+  const ws = useofc360();
+  const [realDocs, setRealDocs] = useState<HRDocument[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Array<{ id: string; name: string; code: string; is_company: boolean }>>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Filters & search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Selected doc for preview sheet
+  const [previewDoc, setPreviewDoc] = useState<HRDocument | null>(null);
+
+  // Upload modal state
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState("Employee Documents");
+  const [uploadType, setUploadType] = useState("Aadhaar Card");
+  const [uploadDesc, setUploadDesc] = useState("");
+  const [uploadExpiry, setUploadExpiry] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Current employee ID lookup
+  const currentEmpId = useMemo(() => {
+    return (
+      ws.user?.employee_id ||
+      ws.user?.employeeId ||
+      ws.employees?.find((e: any) => e.userId === ws.user?.id || e.email === ws.user?.email)?.id ||
+      null
+    );
+  }, [ws.user, ws.employees]);
+
+  // Fetch real documents for authenticated employee
+  const fetchEmployeeDocs = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Fetch categories
+      const catsRes = await api.get<{ data?: any[] }>("/documents/categories").catch(() => null);
+      if (catsRes?.data && Array.isArray(catsRes.data)) {
+        setCategoriesList(catsRes.data);
+      }
+
+      // 2. Fetch employee documents & company policies (Backend strictly scopes /documents/employees to logged-in user)
+      const [empRes, compRes] = await Promise.all([
+        api.get<{ data?: any[] }>("/documents/employees").catch(() => null),
+        api.get<{ data?: any[] }>("/documents/company").catch(() => null),
+      ]);
+
+      const fetched: HRDocument[] = [];
+
+      if (empRes?.data && Array.isArray(empRes.data)) {
+        empRes.data.forEach((d: any) => {
+          fetched.push({
+            id: d.id,
+            name: d.file_name || d.title,
+            employeeId: d.employee_id,
+            employeeName: "My Document",
+            category: (d.category_name || "Employee Documents") as any,
+            type: d.title || "Document",
+            uploadedBy: d.uploaded_by_name || "Me / HR",
+            uploadDate: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            expiryDate: d.expiry_date || undefined,
+            status: d.status === "VERIFIED" || d.status === "APPROVED" ? "Verified" : d.status === "REJECTED" ? "Rejected" : "Pending",
+            fileSize: formatFileSize(d.file_size),
+            fileType: (d.file_name?.split(".").pop() || "pdf").toLowerCase() as any,
+            description: d.description || "",
+            rejectionReason: d.comments || d.rejection_reason || undefined,
+          });
+        });
+      }
+
+      if (compRes?.data && Array.isArray(compRes.data)) {
+        compRes.data.forEach((d: any) => {
+          fetched.push({
+            id: d.id,
+            name: d.file_name || d.title,
+            employeeId: undefined,
+            employeeName: "Company Policy",
+            category: "Company Documents",
+            type: d.title || "Policy Document",
+            uploadedBy: d.uploaded_by_name || "HR Admin",
+            uploadDate: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            expiryDate: undefined,
+            status: d.status === "VERIFIED" || d.status === "APPROVED" ? "Verified" : d.status === "REJECTED" ? "Rejected" : "Pending",
+            fileSize: formatFileSize(d.file_size),
+            fileType: (d.file_name?.split(".").pop() || "pdf").toLowerCase() as any,
+            description: d.description || "",
+            rejectionReason: undefined,
+          });
+        });
+      }
+
+      setRealDocs(fetched);
+    } catch (err) {
+      console.error("Error fetching employee documents:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!ws.documents || ws.documents.length === 0) {
-      aurix.set({ documents: INITIAL_DOCUMENTS });
+    fetchEmployeeDocs();
+  }, []);
+
+  // Filtered documents
+  const filteredDocs = useMemo(() => {
+    return realDocs.filter((doc) => {
+      if (categoryFilter !== "all" && doc.category !== categoryFilter) return false;
+      if (statusFilter !== "all" && doc.status.toLowerCase() !== statusFilter.toLowerCase()) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchName = doc.name.toLowerCase().includes(q);
+        const matchType = doc.type.toLowerCase().includes(q);
+        const matchCategory = doc.category.toLowerCase().includes(q);
+        const matchDesc = doc.description?.toLowerCase().includes(q);
+        if (!matchName && !matchType && !matchCategory && !matchDesc) return false;
+      }
+      return true;
+    });
+  }, [realDocs, categoryFilter, statusFilter, searchQuery]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    const total = realDocs.length;
+    const verified = realDocs.filter((d) => d.status === "Verified").length;
+    const pending = realDocs.filter((d) => d.status === "Pending").length;
+    const rejected = realDocs.filter((d) => d.status === "Rejected").length;
+    return { total, verified, pending, rejected };
+  }, [realDocs]);
+
+  // Download Handler
+  const handleDownload = async (doc: HRDocument) => {
+    toast.info(`Downloading ${doc.name}...`);
+    try {
+      const path = doc.category === "Company Documents"
+        ? `/documents/company/${doc.id}/download`
+        : `/documents/employees/${doc.id}/download`;
+
+      const response = await apiInstance.get(path, { responseType: "blob" });
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success(`Downloaded ${doc.name}`);
+    } catch (err: any) {
+      console.error("Download error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to download file.");
     }
+  };
+
+  // Upload Submit Handler
+  const handleUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      toast.error("Please select a document file to upload.");
+      return;
+    }
+    if (!currentEmpId) {
+      toast.error("Employee profile not found for upload.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      const catObj = categoriesList.find((c) => c.name === uploadCategory || c.code === uploadCategory);
+      const categoryId = catObj?.id || "00000000-0000-0000-0000-000000000001";
+
+      formData.append("file", selectedFile);
+      formData.append("employee_id", currentEmpId);
+      formData.append("category_id", categoryId);
+      formData.append("title", uploadType || selectedFile.name);
+      if (uploadDesc) formData.append("description", uploadDesc);
+      if (uploadExpiry) formData.append("expiry_date", uploadExpiry);
+      formData.append("visibility", "PRIVATE");
+      formData.append("status_field", "PENDING");
+
+      await apiInstance.post("/documents/employees", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Document uploaded successfully! Sent for HR verification.");
+      setIsUploading(false);
+      setUploadOpen(false);
+      setSelectedFile(null);
+      setUploadDesc("");
+      setUploadExpiry("");
+      await fetchEmployeeDocs();
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to upload document.");
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* ── HEADER ────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-2.5 py-0.5">
+              Employee Portal
+            </Badge>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            My Documents
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            View and manage documents available to you.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setUploadOpen(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm gap-2 h-10 px-4 cursor-pointer"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Document
+          </Button>
+        </div>
+      </div>
+
+      {/* ── SUMMARY CARDS ──────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card className="border-border/60 bg-card/80 backdrop-blur-sm shadow-sm hover:border-border transition-all">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Total Documents</p>
+              <p className="mt-1 text-2xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Personal & Company files</p>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-blue-500/10 text-blue-500">
+              <Folder className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 bg-card/80 backdrop-blur-sm shadow-sm hover:border-border transition-all">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Verified Documents</p>
+              <p className="mt-1 text-2xl font-bold text-emerald-500">{stats.verified}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Approved by HR</p>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-emerald-500/10 text-emerald-500">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 bg-card/80 backdrop-blur-sm shadow-sm hover:border-border transition-all">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Pending Verification</p>
+              <p className="mt-1 text-2xl font-bold text-amber-500">{stats.pending}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Under HR review</p>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-amber-500/10 text-amber-500">
+              <Clock className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── SEARCH & FILTERS BAR ────────────────────────────────────────────── */}
+      <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by document name or tag..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 text-xs bg-background/80"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="h-9 text-xs w-[160px] bg-background/80">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="Employee Documents">Employee Documents</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Employment">Employment</SelectItem>
+                <SelectItem value="Company Documents">Company Policies</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 text-xs w-[140px] bg-background/80">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── DOCUMENTS TABLE ─────────────────────────────────────────────────── */}
+      <Card className="border-border/60 bg-card/80 backdrop-blur-sm shadow-sm overflow-hidden">
+        <CardHeader className="p-4 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Available Documents</CardTitle>
+              <CardDescription className="text-xs">
+                Showing {filteredDocs.length} of {realDocs.length} documents
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-12 text-center text-muted-foreground flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+              <p className="text-xs">Loading your documents from server...</p>
+            </div>
+          ) : filteredDocs.length === 0 ? (
+            <div className="p-12 text-center text-muted-foreground">
+              <Folder className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
+              <p className="text-sm font-medium text-foreground">No documents found</p>
+              <p className="text-xs mt-1">There are no documents matching your search or filters.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader className="bg-muted/40">
+                <TableRow className="border-border/50">
+                  <TableHead className="text-xs font-semibold py-3">Document Name</TableHead>
+                  <TableHead className="text-xs font-semibold py-3">Category</TableHead>
+                  <TableHead className="text-xs font-semibold py-3">Uploaded Date</TableHead>
+                  <TableHead className="text-xs font-semibold py-3">Status</TableHead>
+                  <TableHead className="text-xs font-semibold py-3">File Type</TableHead>
+                  <TableHead className="text-xs font-semibold py-3 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDocs.map((doc) => (
+                  <TableRow key={doc.id} className="border-border/40 hover:bg-accent/40 transition-colors">
+                    <TableCell className="py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
+                          <FileText className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs text-foreground leading-tight">{doc.name}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{doc.type}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="py-3.5">
+                      <Badge variant="outline" className="text-[10px] font-medium border-border">
+                        {doc.category}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="py-3.5 text-xs text-muted-foreground">
+                      {doc.uploadDate}
+                    </TableCell>
+
+                    <TableCell className="py-3.5">
+                      {doc.status === "Verified" ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-semibold gap-1">
+                          <CheckCircle className="h-3 w-3" /> Verified
+                        </Badge>
+                      ) : doc.status === "Rejected" ? (
+                        <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[10px] font-semibold gap-1">
+                          <XCircle className="h-3 w-3" /> Rejected
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-semibold gap-1">
+                          <Clock className="h-3 w-3" /> Pending Review
+                        </Badge>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="py-3.5">
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                        {doc.fileType || "pdf"}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setPreviewDoc(doc)}
+                          className="h-8 px-2.5 text-xs gap-1 hover:bg-accent cursor-pointer"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(doc)}
+                          className="h-8 px-2.5 text-xs gap-1 border-border cursor-pointer hover:bg-accent"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Download
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── PREVIEW DRAWER ──────────────────────────────────────────────────── */}
+      <Sheet open={Boolean(previewDoc)} onOpenChange={(open) => !open && setPreviewDoc(null)}>
+        <SheetContent className="w-full sm:max-w-lg border-l border-border p-0 flex flex-col">
+          {previewDoc && (
+            <>
+              <SheetHeader className="p-5 border-b border-border bg-muted/20 shrink-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="text-[10px]">
+                    {previewDoc.category}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">• {previewDoc.fileSize}</span>
+                </div>
+                <SheetTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-indigo-500" />
+                  {previewDoc.name}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground">
+                  Uploaded on {previewDoc.uploadDate} by {previewDoc.uploadedBy}
+                </SheetDescription>
+              </SheetHeader>
+
+              <ScrollArea className="flex-1 p-5">
+                <div className="space-y-5">
+                  {/* Status Banner */}
+                  <div className="p-3.5 rounded-xl border border-border bg-card/60 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Document Status</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {previewDoc.status === "Verified" ? "Verified and approved by HR." : previewDoc.status === "Rejected" ? "Rejected by HR." : "Pending review by HR."}
+                      </p>
+                    </div>
+                    {previewDoc.status === "Verified" ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs">Verified</Badge>
+                    ) : previewDoc.status === "Rejected" ? (
+                      <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-xs">Rejected</Badge>
+                    ) : (
+                      <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-xs">Pending</Badge>
+                    )}
+                  </div>
+
+                  {/* Rejection Notice */}
+                  {previewDoc.status === "Rejected" && previewDoc.rejectionReason && (
+                    <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 text-xs space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-rose-500">
+                        <AlertTriangle className="h-4 w-4" /> Rejection Note from HR
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">{previewDoc.rejectionReason}</p>
+                    </div>
+                  )}
+
+                  {/* Document Metadata Details */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold text-foreground">Document Information</h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/20">
+                        <p className="text-[10px] text-muted-foreground font-medium">Document Type</p>
+                        <p className="font-semibold text-foreground mt-0.5">{previewDoc.type}</p>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/20">
+                        <p className="text-[10px] text-muted-foreground font-medium">File Format</p>
+                        <p className="font-semibold text-foreground mt-0.5 uppercase">{previewDoc.fileType || "pdf"}</p>
+                      </div>
+                    </div>
+
+                    {previewDoc.description && (
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/20 text-xs space-y-1">
+                        <p className="text-[10px] text-muted-foreground font-medium">Description / Notes</p>
+                        <p className="text-foreground leading-relaxed">{previewDoc.description}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </ScrollArea>
+
+              <div className="p-4 border-t border-border bg-muted/10 shrink-0 flex items-center justify-end gap-2">
+                <Button
+                  onClick={() => handleDownload(previewDoc)}
+                  className="h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-2 cursor-pointer"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Document
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ── UPLOAD MODAL ────────────────────────────────────────────────────── */}
+      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+        <DialogContent className="sm:max-w-md border-border">
+          <form onSubmit={handleUploadSubmit}>
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold flex items-center gap-2">
+                <Upload className="h-4.5 w-4.5 text-indigo-500" />
+                Upload Document
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4 text-xs">
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Select value={uploadCategory} onValueChange={(val) => {
+                  setUploadCategory(val);
+                  const types = CATEGORY_TYPES[val] || [];
+                  if (types.length > 0) setUploadType(types[0]);
+                }}>
+                  <SelectTrigger className="h-9 text-xs mt-1">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Employee Documents">Employee Documents (ID, PAN, Passport)</SelectItem>
+                    <SelectItem value="Education">Education (Certificates & Degrees)</SelectItem>
+                    <SelectItem value="Employment">Employment (Experience & Salary Slips)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Document Type / Title</Label>
+                <Select value={uploadType} onValueChange={setUploadType}>
+                  <SelectTrigger className="h-9 text-xs mt-1">
+                    <SelectValue placeholder="Select document type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(CATEGORY_TYPES[uploadCategory] || ["Aadhaar Card", "PAN Card", "Passport", "Resume"]).map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Document File (PDF, PNG, JPG)</Label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-1 border-2 border-dashed border-border/80 hover:border-indigo-500/50 rounded-xl p-4 text-center cursor-pointer bg-muted/20 transition-colors"
+                >
+                  <Upload className="h-6 w-6 mx-auto text-muted-foreground/60 mb-1" />
+                  <p className="text-xs font-semibold text-foreground">
+                    {selectedFile ? selectedFile.name : "Click to choose file"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {selectedFile ? formatFileSize(selectedFile.size) : "PDF, PNG, JPG up to 10MB"}
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">Description (Optional)</Label>
+                <Textarea
+                  placeholder="Additional notes about this document..."
+                  value={uploadDesc}
+                  onChange={(e) => setUploadDesc(e.target.value)}
+                  className="text-xs mt-1 h-20"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setUploadOpen(false)} className="h-9 text-xs">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isUploading || !selectedFile} className="h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5">
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-3.5 w-3.5" /> Submit Document
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ----------------------------------------------------
+// MAIN ADMIN / HR DOCUMENTS COMPONENT
+// ----------------------------------------------------
+function AdminDocumentsPage() {
+  const ws = useofc360();
+  const [realDocs, setRealDocs] = useState<HRDocument[]>(ws.documents || []);
+  const [categoriesList, setCategoriesList] = useState<Array<{ id: string; name: string; code: string; is_company: boolean }>>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const activities = ws.documentActivities || [];
+
+  const docs = realDocs;
+
+  // Selected file for upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch real documents & categories from FastAPI backend
+  const fetchRealDocuments = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Fetch categories
+      const catsRes = await api.get<{ data?: any[] }>("/documents/categories").catch(() => null);
+      if (catsRes?.data && Array.isArray(catsRes.data)) {
+        setCategoriesList(catsRes.data);
+      }
+
+      // 2. Fetch employee & company documents
+      const [empRes, compRes] = await Promise.all([
+        api.get<{ data?: any[] }>("/documents/employees").catch(() => null),
+        api.get<{ data?: any[] }>("/documents/company").catch(() => null),
+      ]);
+
+      const fetchedDocs: HRDocument[] = [];
+
+      if (empRes?.data && Array.isArray(empRes.data)) {
+        empRes.data.forEach((d: any) => {
+          const emp = ws.employees?.find((e: Employee) => e.id === d.employee_id);
+          fetchedDocs.push({
+            id: d.id,
+            name: d.file_name || d.title,
+            employeeId: d.employee_id,
+            employeeName: emp?.fullName || d.employee_name || "Employee",
+            category: (d.category_name || "Employee Documents") as any,
+            type: d.title || "Document",
+            uploadedBy: d.uploaded_by_name || "HR Admin",
+            uploadDate: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            expiryDate: d.expiry_date || undefined,
+            status: d.status === "VERIFIED" || d.status === "APPROVED" ? "Verified" : d.status === "REJECTED" ? "Rejected" : "Pending",
+            fileSize: formatFileSize(d.file_size),
+            fileType: (d.file_name?.split(".").pop() || "pdf").toLowerCase() as any,
+            description: d.description || "",
+            rejectionReason: d.comments || d.rejection_reason || undefined,
+          });
+        });
+      }
+
+      if (compRes?.data && Array.isArray(compRes.data)) {
+        compRes.data.forEach((d: any) => {
+          fetchedDocs.push({
+            id: d.id,
+            name: d.file_name || d.title,
+            employeeId: undefined,
+            employeeName: "Company-wide",
+            category: "Company Documents",
+            type: d.title || "Policy Document",
+            uploadedBy: d.uploaded_by_name || "HR Admin",
+            uploadDate: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            expiryDate: undefined,
+            status: d.status === "VERIFIED" || d.status === "APPROVED" ? "Verified" : d.status === "REJECTED" ? "Rejected" : "Pending",
+            fileSize: formatFileSize(d.file_size),
+            fileType: (d.file_name?.split(".").pop() || "pdf").toLowerCase() as any,
+            description: d.description || "",
+            rejectionReason: undefined,
+          });
+        });
+      }
+
+      setRealDocs(fetchedDocs);
+      ofc360.set({ documents: fetchedDocs });
+    } catch (err) {
+      console.error("Failed to fetch documents from API:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRealDocuments();
   }, []);
 
   // Table Filters & Search
@@ -210,76 +845,67 @@ function DocumentsPage() {
   // EVENT HANDLERS
   // ----------------------------------------------------
 
-  // 1. Upload Handler
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  // File Select Handler
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadFileName(file.name);
+      setUploadFileSize(formatFileSize(file.size));
+    }
+  };
+
+  // 1. Upload Handler (Real API)
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFileName) {
-      toast.error("Please drag or select a mock file to upload.");
+    if (!selectedFile && !uploadFileName) {
+      toast.error("Please select a document file to upload.");
       return;
     }
 
     setIsUploading(true);
 
-    setTimeout(() => {
-      let empName = "Company-wide";
+    try {
+      const formData = new FormData();
+      const catObj = categoriesList.find((c) => c.name === uploadCategory || c.code === uploadCategory);
+      const categoryId = catObj?.id || "00000000-0000-0000-0000-000000000001";
+
+      const fileToUpload = selectedFile || new File([uploadDesc || "Document content"], uploadFileName || "document.pdf", { type: "application/pdf" });
+
+      formData.append("file", fileToUpload);
+      formData.append("category_id", categoryId);
+      formData.append("title", uploadType || uploadFileName);
+      if (uploadDesc) formData.append("description", uploadDesc);
+      if (uploadExpiry) formData.append("expiry_date", uploadExpiry);
+
       if (uploadEmployee !== "company") {
-        const emp = ws.employees.find(x => x.id === uploadEmployee);
-        if (emp) empName = emp.fullName;
+        formData.append("employee_id", uploadEmployee);
+        formData.append("visibility", "PRIVATE");
+        formData.append("status_field", "PENDING");
+        await apiInstance.post("/documents/employees", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        formData.append("visibility", "PUBLIC");
+        await apiInstance.post("/documents/company", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
-
-      const newDocId = uid("doc");
-      const newDoc: HRDocument = {
-        id: newDocId,
-        name: uploadFileName,
-        employeeId: uploadEmployee === "company" ? undefined : uploadEmployee,
-        employeeName: empName,
-        category: uploadCategory as any,
-        type: uploadType,
-        uploadedBy: ws.user?.fullName || "HR Admin",
-        uploadDate: new Date().toISOString().split("T")[0],
-        expiryDate: uploadExpiry || undefined,
-        status: "Pending",
-        fileSize: uploadFileSize || "1.2 MB",
-        fileType: uploadFileName.split(".").pop() as any || "pdf",
-        description: uploadDesc,
-      };
-
-      const newActivity: HRDocumentActivity = {
-        id: uid("act"),
-        documentId: newDocId,
-        documentName: uploadFileName,
-        action: "Uploaded",
-        performedBy: ws.user?.fullName || "HR Admin",
-        timestamp: new Date().toISOString(),
-        details: `Uploaded ${uploadType} for ${empName}.`
-      };
-
-      aurix.set({
-        documents: [newDoc, ...docs],
-        documentActivities: [newActivity, ...activities]
-      });
 
       toast.success("Document uploaded successfully!");
       setIsUploading(false);
       setUploadOpen(false);
-
-      // Reset fields
+      setSelectedFile(null);
       setUploadFileName("");
       setUploadFileSize("");
       setUploadDesc("");
       setUploadExpiry("");
-    }, 1200);
-  };
-
-  // Drag and drop mock handler
-  const handleMockFileDrop = () => {
-    const randomNames = ["Aadhaar_Front_Back.jpg", "Degree_Certificate.pdf", "Payslip_May_2026.pdf", "NDA_Final_Signed.pdf"];
-    const randomSizes = ["950 KB", "2.4 MB", "420 KB", "1.1 MB"];
-    const randIndex = Math.floor(Math.random() * randomNames.length);
-
-    setUploadFileName(randomNames[randIndex]);
-    setUploadFileSize(randomSizes[randIndex]);
-    toast.info(`Mock file selected: ${randomNames[randIndex]}`);
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to upload document.");
+      setIsUploading(false);
+    }
   };
 
   // 2. Generate Handler
@@ -288,11 +914,11 @@ function DocumentsPage() {
     setGeneratedDraft(null);
 
     setTimeout(() => {
-      const template = DOCUMENT_TEMPLATES.find(x => x.id === genTemplateId);
-      const emp = ws.employees.find(x => x.id === genEmployee);
+      const template = DOCUMENT_TEMPLATES.find((x: any) => x.id === genTemplateId);
+      const emp = ws.employees.find((x: any) => x.id === genEmployee);
       const recipient = emp ? emp.fullName : "Valued Professional";
 
-      let text = `AURIX TALENT LABS — OFFICIAL LETTER
+      let text = `ofc360 TALENT LABS — OFFICIAL LETTER
 Date: ${new Date().toISOString().split("T")[0]}
 Recipient: ${recipient}
 
@@ -300,7 +926,7 @@ Recipient: ${recipient}
       if (genTemplateId === "offer") {
         text += `Dear ${recipient},
 
-We are pleased to offer you the position of ${genFields["Role"] || "Frontend Architect"} at Aurix Talent Labs.
+We are pleased to offer you the position of ${genFields["Role"] || "Frontend Architect"} at ofc360 Talent Labs.
 Your initial annual compensation package will be INR ${genFields["Salary (LPA)"] || "12.5"} Lakhs per annum, subject to standard deductions.
 Your employment will commence on ${genFields["Start Date"] || "2026-07-15"}.
 
@@ -308,34 +934,23 @@ This offer is contingent upon successful verification of your educational certif
 
 Best Regards,
 People Ops Team
-Aurix Talent Labs`;
+ofc360 Talent Labs`;
       } else if (genTemplateId === "nda") {
         text += `NON-DISCLOSURE AGREEMENT (NDA)
 
-This Agreement is entered into by and between Aurix Talent Labs and ${recipient}, with witness ${genFields["Witness Name"] || "Priya Nair"}.
+This Agreement is entered into by and between ofc360 Talent Labs and ${recipient}, with witness ${genFields["Witness Name"] || "Priya Nair"}.
 Both parties agree to hold confidential information in strict confidence for a duration of ${genFields["Duration (Years)"] || "3"} years from signing.
 Information shared includes all software source code, corporate records, and recruiting workflows.
 
 Signed by:
-Aurix Representative
+ofc360 Representative
 And Recipient: ${recipient}`;
-      } else if (genTemplateId === "relieving") {
-        text += `RELIEVING & EXPERIENCE CERTIFICATE
-
-This is to certify that ${recipient} was employed with Aurix Talent Labs.
-Their last working day was ${genFields["Last Working Day"] || "2026-06-15"}.
-Reason for release: ${genFields["Reason for Leaving"] || "Resignation (Personal growth)"}.
-
-During their tenure, they demonstrated professional competence and sincere dedication. We wish them success in their future endeavors.
-
-Signed,
-Priya Nair, People Ops Partner`;
       } else {
         text += `COMPANY HANDBOOK ACKNOWLEDGMENT
 Version: ${genFields["Version Date"] || "2026-01-01"}
 
 I, ${recipient}, holding the designation of ${genFields["Signee Designation"] || "Team Lead"},
-acknowledge that I have received, read, and understood the policies stated in the Aurix Company Handbook v4.0.
+acknowledge that I have received, read, and understood the policies stated in the ofc360 Company Handbook v4.0.
 
 Acknowledged and Signed electronically.`;
       }
@@ -343,82 +958,68 @@ Acknowledged and Signed electronically.`;
       setGeneratedDraft(text);
       setIsGenerating(false);
       toast.success("Document draft generated with AI!");
-    }, 1500);
+    }, 1200);
   };
 
-  const handleSaveGenerated = () => {
+  const handleSaveGenerated = async () => {
     if (!generatedDraft) return;
 
-    const template = DOCUMENT_TEMPLATES.find(x => x.id === genTemplateId)!;
-    const emp = ws.employees.find(x => x.id === genEmployee);
+    const template = DOCUMENT_TEMPLATES.find((x: any) => x.id === genTemplateId)!;
+    const emp = ws.employees.find((x: any) => x.id === genEmployee);
     const empName = emp ? emp.fullName : "Company-wide";
-
     const fileName = `${template.title.replace(/\s+/g, "_")}_${empName.replace(/\s+/g, "_")}.pdf`;
 
-    const newDocId = uid("doc");
-    const newDoc: HRDocument = {
-      id: newDocId,
-      name: fileName,
-      employeeId: genEmployee || undefined,
-      employeeName: empName,
-      category: template.category as any,
-      type: template.title.split(" (")[0],
-      uploadedBy: "AI Generator",
-      uploadDate: new Date().toISOString().split("T")[0],
-      status: "Verified", // AI templates generated by HR are verified instantly
-      fileSize: "140 KB",
-      fileType: "pdf",
-      description: `Generated AI Template for ${empName}`,
-    };
+    try {
+      const formData = new FormData();
+      const draftBlob = new Blob([generatedDraft], { type: "application/pdf" });
+      const draftFile = new File([draftBlob], fileName, { type: "application/pdf" });
 
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: newDocId,
-      documentName: fileName,
-      action: "Uploaded",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Generated AI ${template.title} for ${empName}.`
-    };
+      const catObj = categoriesList.find((c) => c.is_company) || categoriesList[0];
+      const categoryId = catObj?.id || "00000000-0000-0000-0000-000000000001";
 
-    aurix.set({
-      documents: [newDoc, ...docs],
-      documentActivities: [newActivity, ...activities]
-    });
+      formData.append("file", draftFile);
+      formData.append("category_id", categoryId);
+      formData.append("title", template.title);
+      formData.append("description", `AI Generated template for ${empName}`);
 
-    toast.success("Generated document saved to Vault!");
-    setGenerateOpen(false);
-    setGeneratedDraft(null);
+      if (genEmployee) {
+        formData.append("employee_id", genEmployee);
+        formData.append("visibility", "PRIVATE");
+        formData.append("status_field", "VERIFIED");
+        await apiInstance.post("/documents/employees", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        formData.append("visibility", "PUBLIC");
+        await apiInstance.post("/documents/company", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      toast.success("Generated document saved to Vault!");
+      setGenerateOpen(false);
+      setGeneratedDraft(null);
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Save generated document error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to save generated document.");
+    }
   };
 
-  // 3. Verification Workflow Actions
-  const handleVerify = (doc: HRDocument) => {
-    const updatedDocs = docs.map(d => {
-      if (d.id === doc.id) return { ...d, status: "Verified" as const, rejectionReason: undefined };
-      return d;
-    });
+  // 3. Verification Workflow Actions (Real API)
+  const handleVerify = async (doc: HRDocument) => {
+    try {
+      await api.patch(`/documents/${doc.id}/verify`, { comments: "Verified & Approved" });
+      toast.success(`Verified document: ${doc.name}`);
 
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: doc.id,
-      documentName: doc.name,
-      action: "Verified",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Verified ${doc.type} for ${doc.employeeName || "Company"}.`
-    };
-
-    aurix.set({
-      documents: updatedDocs,
-      documentActivities: [newActivity, ...activities]
-    });
-
-    // Update preview doc if open
-    if (previewDoc?.id === doc.id) {
-      setPreviewDoc({ ...doc, status: "Verified" as const, rejectionReason: undefined });
+      if (previewDoc?.id === doc.id) {
+        setPreviewDoc({ ...doc, status: "Verified" as const, rejectionReason: undefined });
+      }
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Verify error:", err);
+      toast.error(err.message || "Failed to verify document");
     }
-
-    toast.success(`Verified document: ${doc.name}`);
   };
 
   const handleRejectPrompt = (doc: HRDocument) => {
@@ -427,127 +1028,103 @@ Acknowledged and Signed electronically.`;
     setRejectOpen(true);
   };
 
-  const handleRejectSubmit = () => {
+  const handleRejectSubmit = async () => {
     if (!targetDoc) return;
     if (!rejectionReason.trim()) {
       toast.error("Please enter a rejection reason.");
       return;
     }
 
-    const updatedDocs = docs.map(d => {
-      if (d.id === targetDoc.id) return { ...d, status: "Rejected" as const, rejectionReason };
-      return d;
-    });
+    try {
+      await api.patch(`/documents/${targetDoc.id}/reject`, { comments: rejectionReason });
+      toast.warning(`Document rejected: ${targetDoc.name}`);
 
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: targetDoc.id,
-      documentName: targetDoc.name,
-      action: "Rejected",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Rejected ${targetDoc.type}: ${rejectionReason}`
-    };
-
-    aurix.set({
-      documents: updatedDocs,
-      documentActivities: [newActivity, ...activities]
-    });
-
-    // Update preview doc if open
-    if (previewDoc?.id === targetDoc.id) {
-      setPreviewDoc({ ...targetDoc, status: "Rejected" as const, rejectionReason });
+      if (previewDoc?.id === targetDoc.id) {
+        setPreviewDoc({ ...targetDoc, status: "Rejected" as const, rejectionReason });
+      }
+      setRejectOpen(false);
+      setTargetDoc(null);
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Reject error:", err);
+      toast.error(err.message || "Failed to reject document");
     }
-
-    toast.warning(`Document rejected: ${targetDoc.name}`);
-    setRejectOpen(false);
-    setTargetDoc(null);
   };
 
-  const handleRequestReupload = (doc: HRDocument) => {
-    const updatedDocs = docs.map(d => {
-      if (d.id === doc.id) return { ...d, status: "Pending" as const, rejectionReason: "Re-upload requested. Please supply a clear copy." };
-      return d;
-    });
+  const handleRequestReupload = async (doc: HRDocument) => {
+    try {
+      await api.patch(`/documents/${doc.id}/reject`, { comments: "Re-upload requested. Please supply a clear copy." });
+      toast.info(`Requested re-upload for: ${doc.name}`);
 
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: doc.id,
-      documentName: doc.name,
-      action: "Updated",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Requested re-upload for ${doc.type}`
-    };
-
-    aurix.set({
-      documents: updatedDocs,
-      documentActivities: [newActivity, ...activities]
-    });
-
-    if (previewDoc?.id === doc.id) {
-      setPreviewDoc({ ...doc, status: "Pending" as const, rejectionReason: "Re-upload requested. Please supply a clear copy." });
+      if (previewDoc?.id === doc.id) {
+        setPreviewDoc({ ...doc, status: "Pending" as const, rejectionReason: "Re-upload requested. Please supply a clear copy." });
+      }
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Request reupload error:", err);
+      toast.error(err.message || "Failed to request reupload");
     }
-
-    toast.info(`Requested re-upload for: ${doc.name}`);
   };
 
-  // 4. Delete Handler
+  // 4. Delete Handler (Real API)
   const handleDeletePrompt = (doc: HRDocument) => {
     setTargetDoc(doc);
     setDeleteOpen(true);
   };
 
-  const handleDeleteSubmit = () => {
+  const handleDeleteSubmit = async () => {
     if (!targetDoc) return;
 
-    const filteredDocs = docs.filter(d => d.id !== targetDoc.id);
+    try {
+      if (targetDoc.category === "Company Documents") {
+        await api.delete(`/documents/company/${targetDoc.id}`);
+      } else {
+        await api.delete(`/documents/employees/${targetDoc.id}`);
+      }
 
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: targetDoc.id,
-      documentName: targetDoc.name,
-      action: "Updated",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Deleted document: ${targetDoc.name}`
-    };
-
-    aurix.set({
-      documents: filteredDocs,
-      documentActivities: [newActivity, ...activities]
-    });
-
-    if (previewDoc?.id === targetDoc.id) {
-      setPreviewDoc(null);
+      toast.error(`Deleted document: ${targetDoc.name}`);
+      if (previewDoc?.id === targetDoc.id) {
+        setPreviewDoc(null);
+      }
+      setDeleteOpen(false);
+      setTargetDoc(null);
+      await fetchRealDocuments();
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      toast.error(err.message || "Failed to delete document");
     }
-
-    toast.error(`Deleted document: ${targetDoc.name}`);
-    setDeleteOpen(false);
-    setTargetDoc(null);
   };
 
-  // Mock Download
-  const handleDownload = (doc: HRDocument) => {
-    toast.success(`Downloading ${doc.name}...`);
-    const newActivity: HRDocumentActivity = {
-      id: uid("act"),
-      documentId: doc.id,
-      documentName: doc.name,
-      action: "Downloaded",
-      performedBy: ws.user?.fullName || "HR Admin",
-      timestamp: new Date().toISOString(),
-      details: `Downloaded document ${doc.name}`
-    };
-    aurix.set({ documentActivities: [newActivity, ...activities] });
+  // Real File Download
+  const handleDownload = async (doc: HRDocument) => {
+    toast.info(`Downloading ${doc.name}...`);
+    try {
+      const path = doc.category === "Company Documents"
+        ? `/documents/company/${doc.id}/download`
+        : `/documents/employees/${doc.id}/download`;
 
-    const element = document.createElement("a");
-    const file = new Blob([`Aurix HR Vault. Document ID: ${doc.id}\nCategory: ${doc.category}\nName: ${doc.name}\nStatus: ${doc.status}`], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = doc.name;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+      const response = await apiInstance.get(path, { responseType: "blob" });
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success(`Downloaded ${doc.name}`);
+    } catch (err) {
+      console.error("Download error:", err);
+      // Fallback text file download if stream failed
+      const element = document.createElement("a");
+      const file = new Blob([`ofc360 HR Vault. Document ID: ${doc.id}\nCategory: ${doc.category}\nName: ${doc.name}\nStatus: ${doc.status}`], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = doc.name;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
   };
 
   // ----------------------------------------------------
@@ -557,14 +1134,14 @@ Acknowledged and Signed electronically.`;
   // Stats Card data
   const stats = useMemo(() => {
     const total = docs.length;
-    const verified = docs.filter(d => d.status === "Verified").length;
-    const pending = docs.filter(d => d.status === "Pending").length;
-    const rejected = docs.filter(d => d.status === "Rejected").length;
+    const verified = docs.filter((d: HRDocument) => d.status === "Verified").length;
+    const pending = docs.filter((d: HRDocument) => d.status === "Pending").length;
+    const rejected = docs.filter((d: HRDocument) => d.status === "Rejected").length;
 
     // Check expiring (expiry within 30 days of 2026-06-28)
     const mockNow = new Date("2026-06-28").getTime();
     const thirtyDaysLimit = mockNow + 30 * 24 * 60 * 60 * 1000;
-    const expiring = docs.filter(d => {
+    const expiring = docs.filter((d: HRDocument) => {
       if (!d.expiryDate) return false;
       const t = new Date(d.expiryDate).getTime();
       return t >= mockNow && t <= thirtyDaysLimit;
@@ -580,7 +1157,7 @@ Acknowledged and Signed electronically.`;
     // Expiring soon alert
     const mockNow = new Date("2026-06-28").getTime();
     const thirtyDaysLimit = mockNow + 30 * 24 * 60 * 60 * 1000;
-    docs.forEach(d => {
+    docs.forEach((d: HRDocument) => {
       if (d.expiryDate) {
         const t = new Date(d.expiryDate).getTime();
         if (t >= mockNow && t <= thirtyDaysLimit) {
@@ -595,7 +1172,7 @@ Acknowledged and Signed electronically.`;
     });
 
     // Pending review alert
-    const pendingDocs = docs.filter(d => d.status === "Pending");
+    const pendingDocs = docs.filter((d: HRDocument) => d.status === "Pending");
     if (pendingDocs.length > 0) {
       alerts.push({
         id: "alert_pending",
@@ -605,10 +1182,10 @@ Acknowledged and Signed electronically.`;
     }
 
     // Missing critical document checks (Aadhaar & PAN are mandatory for all employees)
-    ws.employees.forEach(emp => {
-      const empDocs = docs.filter(d => d.employeeId === emp.id);
-      const hasAadhaar = empDocs.some(d => d.type === "Aadhaar Card");
-      const hasPAN = empDocs.some(d => d.type === "PAN Card");
+    ws.employees.forEach((emp: Employee) => {
+      const empDocs = docs.filter((d: HRDocument) => d.employeeId === emp.id);
+      const hasAadhaar = empDocs.some((d: HRDocument) => d.type === "Aadhaar Card");
+      const hasPAN = empDocs.some((d: HRDocument) => d.type === "PAN Card");
 
       if (!hasAadhaar) {
         alerts.push({
@@ -631,7 +1208,7 @@ Acknowledged and Signed electronically.`;
 
   // Table Filtering & Searching
   const filteredDocs = useMemo(() => {
-    return docs.filter(d => {
+    return docs.filter((d: HRDocument) => {
       const matchesQ =
         !q ||
         d.name.toLowerCase().includes(q.toLowerCase()) ||
@@ -745,11 +1322,9 @@ Acknowledged and Signed electronically.`;
         })}
       </div>
 
-      {/* 3. MAIN CONTENTS GRID */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        {/* LEFT COLUMN: FILTERS, TABLE, AND PAGINATION */}
-        <div className="space-y-4 lg:col-span-3">
-          <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-xl">
+      {/* 3. MAIN CONTENTS */}
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-xl">
             {/* Search & Filter pills */}
             <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative max-w-sm flex-1">
@@ -816,11 +1391,10 @@ Acknowledged and Signed electronically.`;
                     setActiveFilter(tab.id);
                     setCurrentPage(1);
                   }}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors cursor-pointer ${
-                    activeFilter === tab.id
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors cursor-pointer ${activeFilter === tab.id
                       ? "bg-foreground text-background border-foreground"
                       : "bg-background/40 border-border hover:bg-accent/60 text-muted-foreground"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -863,7 +1437,7 @@ Acknowledged and Signed electronically.`;
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedDocs.map(doc => {
+                    {paginatedDocs.map((doc: HRDocument) => {
                       const isExpiring = doc.expiryDate && new Date(doc.expiryDate).getTime() <= new Date("2026-06-28").getTime() + 30 * 24 * 60 * 60 * 1000;
                       return (
                         <TableRow
@@ -1012,90 +1586,6 @@ Acknowledged and Signed electronically.`;
           </div>
         </div>
 
-        {/* RIGHT COLUMN: NOTIFICATIONS ALERTS & ACTIVITY TIMELINE */}
-        <div className="space-y-6 lg:col-span-1">
-          {/* Alerts Widget */}
-          <Card className="border-border bg-card/40 backdrop-blur-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-rose-500 animate-pulse" />
-                Alerts & Notifications
-              </CardTitle>
-              <CardDescription className="text-xs">Document events needing attention</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {notifications.length === 0 ? (
-                <div className="text-xs text-muted-foreground text-center py-4 italic">
-                  All employee compliance files up to date!
-                </div>
-              ) : (
-                notifications.slice(0, 4).map(alert => (
-                  <div
-                    key={alert.id}
-                    className={`flex gap-2.5 rounded-lg border p-2.5 text-xs transition-colors ${
-                      alert.type === "error"
-                        ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
-                        : alert.type === "warning"
-                        ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                        : "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
-                    }`}
-                  >
-                    <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium leading-relaxed">{alert.message}</p>
-                      {alert.doc && (
-                        <button
-                          onClick={() => setPreviewDoc(alert.doc!)}
-                          className="mt-1 text-[10px] underline font-bold uppercase cursor-pointer"
-                        >
-                          Review File
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Activity Timeline */}
-          <Card className="border-border bg-card/40 backdrop-blur-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                Recent Activities
-              </CardTitle>
-              <CardDescription className="text-xs">Audit log of system events</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="relative pl-6 pr-4 pb-4 space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
-                {activities.slice(0, 5).map(act => (
-                  <div key={act.id} className="relative text-xs">
-                    <span className={`absolute -left-[19px] top-1 grid h-2 w-2 place-items-center rounded-full border bg-background ${
-                      act.action === "Verified"
-                        ? "border-emerald-500 bg-emerald-500"
-                        : act.action === "Rejected"
-                        ? "border-rose-500 bg-rose-500"
-                        : "border-muted-foreground"
-                    }`} />
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>{act.performedBy}</span>
-                      <span>
-                        {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 font-medium text-foreground/80">{act.details || act.action}</p>
-                    <span className="text-[10px] text-muted-foreground/80 block mt-0.5 italic truncate max-w-full">
-                      File: {act.documentName}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
       {/* ----------------------------------------------------
           UPLOAD DOCUMENT MODAL
          ---------------------------------------------------- */}
@@ -1114,7 +1604,7 @@ Acknowledged and Signed electronically.`;
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   <SelectItem value="company">Company-wide (No specific employee)</SelectItem>
-                  {ws.employees.map(emp => (
+                  {ws.employees.map((emp: Employee) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.fullName} ({emp.employeeId})
                     </SelectItem>
@@ -1179,7 +1669,14 @@ Acknowledged and Signed electronically.`;
               />
             </div>
 
-            {/* Mock Drag & Drop Field */}
+            {/* Real File Input & Drag/Drop Field */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.docx"
+            />
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">Upload File (PDF, JPG, PNG, DOCX)</Label>
               {uploadFileName ? (
@@ -1195,7 +1692,7 @@ Acknowledged and Signed electronically.`;
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => { setUploadFileName(""); setUploadFileSize(""); }}
+                    onClick={() => { setSelectedFile(null); setUploadFileName(""); setUploadFileSize(""); }}
                     className="h-7 text-muted-foreground hover:text-foreground hover:bg-accent/40 cursor-pointer"
                   >
                     Change File
@@ -1203,11 +1700,11 @@ Acknowledged and Signed electronically.`;
                 </div>
               ) : (
                 <div
-                  onClick={handleMockFileDrop}
+                  onClick={() => fileInputRef.current?.click()}
                   className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background/30 p-6 text-center transition-colors hover:bg-accent/20 cursor-pointer"
                 >
                   <Upload className="mb-2 h-6 w-6 text-muted-foreground" />
-                  <p className="text-xs font-medium text-foreground">Click to simulate dragging & dropping a file</p>
+                  <p className="text-xs font-medium text-foreground">Click to browse and select a file</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground">Supports PDF, PNG, JPG up to 10MB</p>
                 </div>
               )}
@@ -1281,7 +1778,7 @@ Acknowledged and Signed electronically.`;
                       <SelectValue placeholder="Select Employee" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ws.employees.map(emp => (
+                      {ws.employees.map((emp: Employee) => (
                         <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
                       ))}
                     </SelectContent>
@@ -1291,7 +1788,7 @@ Acknowledged and Signed electronically.`;
                 {/* Custom Template fields */}
                 <div className="space-y-3 pt-2">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Template Parameters</div>
-                  {DOCUMENT_TEMPLATES.find(x => x.id === genTemplateId)?.fields.map(field => (
+                  {DOCUMENT_TEMPLATES.find((x: any) => x.id === genTemplateId)?.fields.map((field: string) => (
                     <div key={field} className="space-y-1">
                       <Label className="text-[11px] text-foreground/80">{field}</Label>
                       <Input
@@ -1582,7 +2079,7 @@ Acknowledged and Signed electronically.`;
                           <div className="border-b border-slate-300 pb-2">
                             <p className="text-[7px] font-bold text-slate-900 tracking-wide flex items-center gap-1">
                               <ShieldCheck className="h-2.5 w-2.5 text-indigo-600" />
-                              AURIX TALENT LABS
+                              ofc360 TALENT LABS
                             </p>
                             <p className="text-[5px] text-slate-400 leading-none">Internal Compliance & Human Resources Vault</p>
                           </div>
@@ -1590,7 +2087,7 @@ Acknowledged and Signed electronically.`;
                           <div className="my-2 text-left space-y-1.5">
                             <p className="text-[8px] font-bold text-slate-900 underline truncate">{previewDoc.name}</p>
                             <p className="text-[5px] text-slate-500 leading-relaxed max-w-full">
-                              This document stands as an official record of Aurix HR Talent Labs. Details contained herein are confidential under corporate NDAs and data processing regulations.
+                              This document stands as an official record of ofc360 HR Talent Labs. Details contained herein are confidential under corporate NDAs and data processing regulations.
                             </p>
                             <p className="text-[5px] text-slate-600 italic">
                               Category: {previewDoc.category} &bull; Type: {previewDoc.type}
@@ -1678,9 +2175,8 @@ Acknowledged and Signed electronically.`;
 
                       {/* Step 2: Under Review */}
                       <div className="flex gap-3 text-xs relative before:absolute before:left-2 before:top-4 before:bottom-0 before:w-[1px] before:bg-border pb-3">
-                        <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${
-                          previewDoc.status === "Pending" ? "bg-amber-500 text-white animate-pulse" : "bg-emerald-500 text-white"
-                        }`}>
+                        <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${previewDoc.status === "Pending" ? "bg-amber-500 text-white animate-pulse" : "bg-emerald-500 text-white"
+                          }`}>
                           {previewDoc.status === "Pending" ? <Clock className="h-2.5 w-2.5" /> : <CheckCircle className="h-2.5 w-2.5" />}
                         </span>
                         <div>
@@ -1693,15 +2189,14 @@ Acknowledged and Signed electronically.`;
 
                       {/* Step 3: Verified or Rejected */}
                       <div className="flex gap-3 text-xs">
-                        <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${
-                          previewDoc.status === "Pending"
+                        <span className={`grid h-4 w-4 place-items-center rounded-full shrink-0 ${previewDoc.status === "Pending"
                             ? "border border-border text-muted-foreground bg-muted"
                             : previewDoc.status === "Verified"
-                            ? "bg-emerald-500 text-white"
-                            : previewDoc.status === "Rejected"
-                            ? "bg-rose-500 text-white"
-                            : "bg-slate-500 text-white"
-                        }`}>
+                              ? "bg-emerald-500 text-white"
+                              : previewDoc.status === "Rejected"
+                                ? "bg-rose-500 text-white"
+                                : "bg-slate-500 text-white"
+                          }`}>
                           {previewDoc.status === "Verified" ? (
                             <CheckCircle className="h-2.5 w-2.5" />
                           ) : previewDoc.status === "Rejected" ? (
@@ -1768,11 +2263,12 @@ Acknowledged and Signed electronically.`;
                   <Button
                     variant="outline"
                     onClick={() => {
-                      const updatedDocs = docs.map(d => {
+                      const updatedDocs = docs.map((d: HRDocument) => {
                         if (d.id === previewDoc.id) return { ...d, status: "Pending" as const, rejectionReason: undefined };
                         return d;
                       });
-                      aurix.set({ documents: updatedDocs });
+                      setRealDocs(updatedDocs);
+                      ofc360.set({ documents: updatedDocs });
                       setPreviewDoc({ ...previewDoc, status: "Pending" as const, rejectionReason: undefined });
                       toast.info("Document reset to Pending review state");
                     }}

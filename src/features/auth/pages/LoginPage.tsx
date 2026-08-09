@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { rememberStore } from "@/lib/aurix-store";
+import { rememberStore } from "@/lib/ofc360-store";
 import { getPostLoginRoute, persistAuthSession } from "@/lib/auth-bootstrap";
 import { api } from "@/api";
 import { getErrorMessage } from "@/api/utils";
@@ -80,10 +80,10 @@ export function LoginPage() {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in to your Aurix workspace"
+      subtitle="Sign in to your ofc360 workspace"
       footer={
         <>
-          New to Aurix?{" "}
+          New to ofc360?{" "}
           <Link to="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
             Create a workspace
           </Link>

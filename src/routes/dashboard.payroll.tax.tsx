@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Percent } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/tax")({
-  head: () => ({ meta: [{ title: "Tax Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Tax Management — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Tax Management" description="Manage TDS, declarations, and tax filings." />

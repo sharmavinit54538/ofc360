@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Moon, Sun, Sparkles } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { cn } from "@/lib/utils";
 
@@ -41,13 +41,8 @@ export function Navbar() {
           )}
         >
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-brand blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
-              <div className="relative h-8 w-8 rounded-lg bg-gradient-brand grid place-items-center">
-                <Sparkles className="h-4 w-4 text-brand-foreground" />
-              </div>
-            </div>
-            <span className="font-display text-xl font-bold tracking-tight">Aurix</span>
+            <img src="/logo.png" alt="OFC360 logo" className="h-8 w-auto object-contain" />
+            <span className="font-display text-xl font-bold tracking-tight">OFC360</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">

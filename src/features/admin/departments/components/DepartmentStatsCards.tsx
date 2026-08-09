@@ -2,22 +2,22 @@ import React from "react";
 import { Building, Activity, Users, UserCheck, ShieldCheck, HelpCircle, Landmark, TrendingUp, TrendingDown } from "lucide-react";
 import type { Department } from "../types";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 
 interface DepartmentStatsCardsProps {
   departments: Department[];
 }
 
 export function DepartmentStatsCards({ departments }: DepartmentStatsCardsProps) {
-  const ws = useAurix();
+  const ws = useofc360();
 
   const totalDepartments = departments.length;
   const activeDepartments = departments.filter((d) => d.status === "active").length;
-  
+
   // Total employees and managers from store
   const totalEmployees = ws.employees.length || 0;
   const totalManagers = ws.managers.length || 0;
-  
+
   // Avg. Team Size
   const avgTeamSize = totalManagers > 0 ? Math.round(totalEmployees / totalManagers) : 0;
 

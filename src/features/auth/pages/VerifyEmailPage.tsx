@@ -5,14 +5,14 @@ import { AuthShell } from "@/features/auth/components/AuthShell";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { aurix, useAurix } from "@/lib/aurix-store";
+import { ofc360, useofc360 } from "@/lib/ofc360-store";
 import { api } from "@/api";
 import { toast } from "sonner";
 import type { ApiResponse } from "@/api/types";
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
-  const ws = useAurix();
+  const ws = useofc360();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -55,7 +55,7 @@ export function VerifyEmailPage() {
 
       if (res.success) {
         if (ws.user) {
-          aurix.set({ user: { ...ws.user, emailVerified: true } });
+          ofc360.set({ user: { ...ws.user, emailVerified: true } });
         }
         setSuccess(true);
         toast.success(res.message || "Email verified successfully!");

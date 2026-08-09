@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Enterprise Executive Dashboard — Live Data Schema
+// ofc360 HR — Enterprise Executive Dashboard — Live Data Schema
 // ============================================================
 
 export interface KpiSparkPoint { v: number }

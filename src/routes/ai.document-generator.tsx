@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { FilePlus2, FileText, Download, Wand2, Briefcase, Award, AlertTriangle, LogOut, XCircle } from "lucide-react";
-import { AIHero } from "@/components/aurix/AIModule";
+import { AIHero } from "@/components/ofc360/AIModule";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/ai/document-generator")({
-  head: () => ({ meta: [{ title: "AI Document Generator — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Document Generator — ofc360" }] }),
   component: Page,
 });
 
@@ -29,15 +29,15 @@ function Page() {
   function generate() {
     const t = TEMPLATES.find((x) => x.id === selected)!;
     setDraft(
-`${t.title}
+      `${t.title}
 
 Dear ${name},
 
-We are pleased to inform you regarding your ${t.title.toLowerCase()} as ${role} at Aurix Inc.
+We are pleased to inform you regarding your ${t.title.toLowerCase()} as ${role} at ofc360 Inc.
 This letter confirms the terms and conditions of your engagement, effective from the joining date discussed.
 
 Sincerely,
-HR Team — Aurix Inc.`
+HR Team — ofc360 Inc.`
     );
   }
   return (

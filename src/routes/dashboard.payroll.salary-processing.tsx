@@ -18,7 +18,7 @@ import {
   Download,
   Filter,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import { api } from "@/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/payroll/salary-processing")({
-  head: () => ({ meta: [{ title: "Salary Processing — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Salary Processing — ofc360" }] }),
   component: SalaryProcessingPage,
 });
 
@@ -311,11 +311,10 @@ function SalaryProcessingPage() {
               return (
                 <div
                   key={s.step}
-                  className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-                    isDone
+                  className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${isDone
                       ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
                       : "border-border bg-background/40 text-muted-foreground"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-1.5 text-xs font-semibold">
                     {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Clock className="h-4 w-4" />}

@@ -1,7 +1,7 @@
 
 import { useMemo, useState } from "react";
 import { AlertTriangle, FileSearch, GitCompareArrows, History, ScanLine, Sparkles, Upload } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CandidateAvatar } from "@/features/admin/recruitment/components/Bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

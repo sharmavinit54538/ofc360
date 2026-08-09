@@ -57,7 +57,7 @@ import {
 } from "recharts";
 import { fmtDate } from "../utils";
 import { toast } from "sonner";
-import { useMounted } from "@/lib/aurix-store";
+import { useMounted } from "@/lib/ofc360-store";
 
 interface EmployeePerformanceProfileProps {
   open: boolean;
@@ -218,7 +218,7 @@ export function EmployeePerformanceProfile({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md md:max-w-xl border-l border-border bg-card/95 backdrop-blur-xl p-0 shadow-2xl flex flex-col h-full z-45">
-        
+
         {/* Drawer Header */}
         <SheetHeader className="p-6 border-b border-border/60">
           <div className="flex items-center gap-4">
@@ -254,9 +254,8 @@ export function EmployeePerformanceProfile({
               <button
                 key={tab}
                 onClick={() => setActiveSubTab(tab)}
-                className={`py-2 text-xs font-semibold border-b-2 cursor-pointer transition-all duration-200 capitalize flex-1 text-center truncate ${
-                  activeSubTab === tab ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                className={`py-2 text-xs font-semibold border-b-2 cursor-pointer transition-all duration-200 capitalize flex-1 text-center truncate ${activeSubTab === tab ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {tab === "development" ? "L&D / Training" : tab}
               </button>
@@ -267,11 +266,11 @@ export function EmployeePerformanceProfile({
         {/* Scrollable details */}
         <ScrollArea className="flex-1 p-6">
           <div className="space-y-6 pb-6">
-            
+
             {/* TAB 1: OVERVIEW */}
             {activeSubTab === "overview" && (
               <div className="space-y-6">
-                
+
                 {/* Competency Spider Chart */}
                 <div className="rounded-2xl border border-border/60 bg-card/40 p-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
@@ -555,7 +554,7 @@ export function EmployeePerformanceProfile({
                             {course.completionDate && ` • Completed ${fmtDate(course.completionDate)}`}
                           </p>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {course.status !== "completed" ? (
                             <>

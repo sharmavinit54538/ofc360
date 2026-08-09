@@ -1,6 +1,6 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, Funnel, FunnelChart, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
 import { STAGES, STAGE_LABEL } from "@/features/admin/recruitment/types";
@@ -33,19 +33,19 @@ export function RecruitmentReportsPage() {
     const dept = job?.department || "General";
     const offer = offers.find((o) => o.candidateId === c.id);
     const days = getDaysDiff(offer?.respondedAt || offer?.joiningDate || c.appliedAt, c.appliedAt) || 15;
-    
+
     if (!deptTthMap[dept]) {
       deptTthMap[dept] = { totalDays: 0, count: 0 };
     }
     deptTthMap[dept].totalDays += days;
     deptTthMap[dept].count += 1;
   });
-  
+
   const tth = Object.entries(deptTthMap).map(([d, data]) => ({
     d,
     v: Math.round(data.totalDays / data.count)
   }));
-  
+
   if (tth.length === 0) {
     const departments = Array.from(new Set(jobs.map((j) => j.department).filter(Boolean)));
     if (departments.length > 0) {

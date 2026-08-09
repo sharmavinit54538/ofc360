@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Users, UserPlus, Building2, ArrowRight, ShieldCheck, UserCheck, Layers } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/people")({
-  head: () => ({ meta: [{ title: "People Hub — Aurix" }] }),
+  head: () => ({ meta: [{ title: "People Hub — ofc360" }] }),
   component: PeopleHubPage,
 });
 

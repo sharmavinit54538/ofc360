@@ -106,7 +106,7 @@ export function ImportDialog({
       }
 
       const headers = parseCSVLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").toLowerCase().trim());
-      
+
       const fieldMap: Record<string, keyof Department | string> = {
         "department name": "name",
         "departmentname": "name",
@@ -273,7 +273,7 @@ export function ImportDialog({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aurix_departments_import_template.csv");
+    link.setAttribute("download", "ofc360_departments_import_template.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -281,7 +281,7 @@ export function ImportDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(val) => { onOpenChange(val); if(!val) resetState(); }}>
+    <Dialog open={open} onOpenChange={(val) => { onOpenChange(val); if (!val) resetState(); }}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto rounded-2xl border-border bg-card p-6 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/attendance/shifts")({
-  head: () => ({ meta: [{ title: "Shifts — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Shifts — ofc360" }] }),
   component: ShiftsPage,
 });
 

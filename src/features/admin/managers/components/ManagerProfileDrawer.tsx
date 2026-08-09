@@ -26,7 +26,7 @@ import {
   UserCheck2,
 } from "lucide-react";
 import { fmtDate, avatarHue } from "../utils";
-import { Loader } from "@/components/aurix/Loader";
+import { Loader } from "@/components/ofc360/Loader";
 
 const STATUS_STYLES: Record<Manager["status"], string> = {
   PROBATION: "bg-amber-500/10 text-amber-500 border-amber-500/20",

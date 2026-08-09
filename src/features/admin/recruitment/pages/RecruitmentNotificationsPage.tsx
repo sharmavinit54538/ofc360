@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AtSign, Bell, CheckCheck, FileText, Mail, MessageSquare, UserCheck } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

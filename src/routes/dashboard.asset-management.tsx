@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Package, CheckCircle2, AlertTriangle, XCircle, Wrench, Plus, Trash2, Pencil, QrCode } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CsvButton, GlassCard, QrTile, SearchBox, StatCard, StatusBadge } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { Asset, AssetCategory, AssetStatus } from "@/lib/hrms/types";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/dashboard/asset-management")({
   beforeLoad: () => {
     throw redirect({ to: "/dashboard/assets", replace: true });
   },
-  head: () => ({ meta: [{ title: "Asset Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Asset Management — ofc360" }] }),
   component: AssetManagementPage,
 });
 

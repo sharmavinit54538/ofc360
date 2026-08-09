@@ -17,7 +17,7 @@ interface HrmsState {
   offboarding: OffboardingCase[];
 }
 
-const STORAGE_KEY = "aurix.hrms.v1";
+const STORAGE_KEY = "ofc360.hrms.v1";
 
 const initial: HrmsState = {
   timeline: seedTimeline,
@@ -161,11 +161,11 @@ export const hrms = {
       exits: state.exits.map((e) =>
         e.id === id
           ? {
-              ...e,
-              checklist: e.checklist.map((c) =>
-                c.key === key ? { ...c, done: !c.done, doneAt: !c.done ? new Date().toISOString() : undefined } : c,
-              ),
-            }
+            ...e,
+            checklist: e.checklist.map((c) =>
+              c.key === key ? { ...c, done: !c.done, doneAt: !c.done ? new Date().toISOString() : undefined } : c,
+            ),
+          }
           : e,
       ),
     }),

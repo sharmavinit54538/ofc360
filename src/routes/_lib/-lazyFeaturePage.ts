@@ -28,6 +28,6 @@ export function lazyFeaturePage(
     if ("default" in module && module.default) {
       return { default: module.default };
     }
-    throw new Error("Feature page must use default export or pass exportName to lazyFeaturePage");
+    throw new Error("Feature page must use default export or pass exportName to -lazyFeaturePage");
   });
 }

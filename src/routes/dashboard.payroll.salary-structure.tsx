@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layers } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/salary-structure")({
-  head: () => ({ meta: [{ title: "Salary Structure — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Salary Structure — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Salary Structure" description="Define pay components, grades, and templates." />

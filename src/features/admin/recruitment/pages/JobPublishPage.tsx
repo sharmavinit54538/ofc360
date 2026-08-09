@@ -4,7 +4,7 @@ import {
   ArrowLeft, CheckCircle2, ChevronRight, Globe, Lock, Mail, ShieldAlert, Sparkles,
   AlertCircle
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -92,13 +92,12 @@ export function JobPublishPage() {
         ].map((s) => (
           <div key={s.num} className="flex items-center gap-2">
             <div
-              className={`grid h-8 w-8 place-items-center rounded-full text-xs font-semibold transition-all ${
-                step === s.num
+              className={`grid h-8 w-8 place-items-center rounded-full text-xs font-semibold transition-all ${step === s.num
                   ? "bg-primary text-primary-foreground shadow-glow"
                   : step > s.num
-                  ? "bg-emerald-500 text-white"
-                  : "bg-muted text-muted-foreground border border-border"
-              }`}
+                    ? "bg-emerald-500 text-white"
+                    : "bg-muted text-muted-foreground border border-border"
+                }`}
             >
               {step > s.num ? "✓" : s.num}
             </div>
@@ -123,11 +122,10 @@ export function JobPublishPage() {
                 <button
                   key={p.key}
                   onClick={() => setPlatform(p.key)}
-                  className={`flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
-                    platform === p.key
+                  className={`flex flex-col items-start rounded-xl border p-4 text-left transition-all ${platform === p.key
                       ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:bg-accent/40"
-                  }`}
+                    }`}
                 >
                   <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {p.icon}

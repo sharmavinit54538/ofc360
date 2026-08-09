@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Gift } from "lucide-react";
-import { ComingSoon, PageHeader } from "@/components/aurix/DashboardShell";
+import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/bonuses")({
-  head: () => ({ meta: [{ title: "Bonuses & Incentives — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Bonuses & Incentives — ofc360" }] }),
   component: () => (
     <>
       <PageHeader title="Bonuses & Incentives" description="Reward performance with bonuses and incentive payouts." />

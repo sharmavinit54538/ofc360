@@ -1,4 +1,4 @@
-import type { Role } from "@/lib/aurix-store";
+import type { Role } from "@/lib/ofc360-store";
 
 export interface ApiResponse<T = unknown> {
   success: boolean;

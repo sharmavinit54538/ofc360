@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { aurix } from "@/lib/aurix-store";
+import { ofc360 } from "@/lib/ofc360-store";
 import { api } from "@/api";
 import { toast } from "sonner";
 
@@ -87,9 +87,9 @@ export function RegisterPage() {
         company_name: form.companyName,
       };
       const res = await api.post<{ success?: boolean; message?: string }>("auth/register", payload);
-console.log("Register response:", res);
+      console.log("Register response:", res);
       if (res.success) {
-        aurix.set({
+        ofc360.set({
           user: {
             id: "",
             fullName: form.fullName,

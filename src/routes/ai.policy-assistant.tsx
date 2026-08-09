@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BookOpen, Send, Sparkles, FileText, Briefcase, CalendarDays, Banknote } from "lucide-react";
-import { AIHero } from "@/components/aurix/AIModule";
+import { AIHero } from "@/components/ofc360/AIModule";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/ai/policy-assistant")({
-  head: () => ({ meta: [{ title: "AI Policy Assistant — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Policy Assistant — ofc360" }] }),
   component: Page,
 });
 

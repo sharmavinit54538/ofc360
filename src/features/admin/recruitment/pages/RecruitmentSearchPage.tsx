@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bookmark, Briefcase, Calendar, FileText, Gift, Save, Search as SearchIcon, Sparkles, Users } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CandidateAvatar } from "@/features/admin/recruitment/components/Bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

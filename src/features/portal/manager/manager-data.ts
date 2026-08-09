@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Manager Dashboard — Data Schema
+// ofc360 HR — Manager Dashboard — Data Schema
 // ============================================================
 
 export interface ManagerKpi {

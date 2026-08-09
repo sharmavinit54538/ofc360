@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Enterprise Executive Command Center
+// ofc360 HR — Enterprise Executive Command Center
 // A world-class HR operating system dashboard.
 // ============================================================
 import { Link } from "@tanstack/react-router";
@@ -51,7 +51,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,9 +110,8 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-sm ${
-        noPad ? "" : "p-5"
-      } ${className}`}
+      className={`rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-sm ${noPad ? "" : "p-5"
+        } ${className}`}
     >
       {children}
     </div>
@@ -168,7 +167,7 @@ function LiveClock() {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  
+
   if (!mounted) {
     return (
       <div className="text-right hidden sm:block">
@@ -245,13 +244,12 @@ function KpiCards() {
               <div className="font-display text-2xl font-bold tracking-tight">{kpi.value}</div>
               <div className="mt-1 text-xs text-muted-foreground">{kpi.label}</div>
               <div
-                className={`mt-2 flex items-center gap-1 text-xs font-medium ${
-                  kpi.changeType === "up"
+                className={`mt-2 flex items-center gap-1 text-xs font-medium ${kpi.changeType === "up"
                     ? "text-emerald-500"
                     : kpi.changeType === "down"
-                    ? "text-rose-500"
-                    : "text-muted-foreground"
-                }`}
+                      ? "text-rose-500"
+                      : "text-muted-foreground"
+                  }`}
               >
                 {kpi.changeType === "up" ? (
                   <TrendingUp className="h-3 w-3" />
@@ -271,26 +269,26 @@ function KpiCards() {
                         kpi.accent.includes("emerald")
                           ? "#10b981"
                           : kpi.accent.includes("blue")
-                          ? "#3b82f6"
-                          : kpi.accent.includes("violet")
-                          ? "#8b5cf6"
-                          : kpi.accent.includes("amber")
-                          ? "#f59e0b"
-                          : kpi.accent.includes("rose")
-                          ? "#f43f5e"
-                          : kpi.accent.includes("cyan")
-                          ? "#06b6d4"
-                          : kpi.accent.includes("indigo")
-                          ? "#6366f1"
-                          : kpi.accent.includes("teal")
-                          ? "#14b8a6"
-                          : kpi.accent.includes("orange")
-                          ? "#f97316"
-                          : kpi.accent.includes("green")
-                          ? "#22c55e"
-                          : kpi.accent.includes("slate")
-                          ? "#64748b"
-                          : "#6366f1"
+                            ? "#3b82f6"
+                            : kpi.accent.includes("violet")
+                              ? "#8b5cf6"
+                              : kpi.accent.includes("amber")
+                                ? "#f59e0b"
+                                : kpi.accent.includes("rose")
+                                  ? "#f43f5e"
+                                  : kpi.accent.includes("cyan")
+                                    ? "#06b6d4"
+                                    : kpi.accent.includes("indigo")
+                                      ? "#6366f1"
+                                      : kpi.accent.includes("teal")
+                                        ? "#14b8a6"
+                                        : kpi.accent.includes("orange")
+                                          ? "#f97316"
+                                          : kpi.accent.includes("green")
+                                            ? "#22c55e"
+                                            : kpi.accent.includes("slate")
+                                              ? "#64748b"
+                                              : "#6366f1"
                       }
                       strokeWidth={2}
                       dot={false}
@@ -328,18 +326,16 @@ function ApprovalCenter() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                activeTab === tab
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${activeTab === tab
                   ? "bg-foreground text-background"
                   : "border border-border text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {tab}
               {APPROVAL_DATA[tab].length > 0 && (
                 <span
-                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                    activeTab === tab ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
-                  }`}
+                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${activeTab === tab ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
+                    }`}
                 >
                   {APPROVAL_DATA[tab].length}
                 </span>
@@ -681,7 +677,7 @@ function ExitManagement() {
 
 // ── 11. Documents Center ──────────────────────────────────────
 function DocumentsCenter() {
-  const ws = useAurix();
+  const ws = useofc360();
   const docs = ws.documents ?? [];
   const pending = docs.filter((d) => d.status === "Pending");
   const missing = docs.filter((d) => d.status === "Rejected");
@@ -740,7 +736,7 @@ function AICommandCenter() {
   return (
     <motion.div {...fadeUp}>
       <Card>
-        <SectionHeader title="AI Command Center" subtitle="Powered by Aurix AI" link="/ai" />
+        <SectionHeader title="AI Command Center" subtitle="Powered by ofc360 AI" link="/ai" />
         {/* Metrics row */}
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {AI_METRICS.map((m) => (
@@ -1169,7 +1165,7 @@ function ScoreWidgets() {
 
 // ── Main Executive Dashboard ──────────────────────────────────
 export function ExecutiveDashboard() {
-  const ws = useAurix();
+  const ws = useofc360();
   const firstName = ws.user?.fullName?.split(" ")[0] ?? "there";
   const companyName = ws.company?.name ?? "Your Workspace";
 

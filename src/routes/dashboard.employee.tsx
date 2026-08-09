@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazyFeaturePage } from "./_lib/lazyFeaturePage";
+import { lazyFeaturePage } from "./_lib/-lazyFeaturePage";
 
 const EmployeePage = lazyFeaturePage(
   () => import("@/features/portal/employee/pages/EmployeePage"),
@@ -9,11 +9,11 @@ const EmployeePage = lazyFeaturePage(
 export const Route = createFileRoute("/dashboard/employee")({
   head: () => ({
     meta: [
-      { title: "My Dashboard — Aurix HR" },
+      { title: "My Dashboard — ofc360 HR" },
       {
         name: "description",
         content:
-          "Aurix HR Employee Self-Service Dashboard — manage your attendance, leaves, payslips, performance goals, documents, and assets.",
+          "ofc360 HR Employee Self-Service Dashboard — manage your attendance, leaves, payslips, performance goals, documents, and assets.",
       },
     ],
   }),

@@ -29,6 +29,7 @@ import { Route as DashboardVisitorsRouteImport } from './routes/dashboard.visito
 import { Route as DashboardTravelRouteImport } from './routes/dashboard.travel'
 import { Route as DashboardTimesheetsRouteImport } from './routes/dashboard.timesheets'
 import { Route as DashboardTimelineRouteImport } from './routes/dashboard.timeline'
+import { Route as DashboardSuperAdminRouteImport } from './routes/dashboard.super-admin'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardRolesRouteImport } from './routes/dashboard.roles'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -82,10 +83,25 @@ import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-pass
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as DashboardSuperAdminIndexRouteImport } from './routes/dashboard.super-admin.index'
 import { Route as DashboardRecruitmentIndexRouteImport } from './routes/dashboard/recruitment/index'
 import { Route as DashboardPayrollIndexRouteImport } from './routes/dashboard.payroll.index'
 import { Route as DashboardAttendanceIndexRouteImport } from './routes/dashboard.attendance.index'
 import { Route as JobsApplyUkeyRouteImport } from './routes/jobs.apply.$ukey'
+import { Route as DashboardSuperAdminUsersRouteImport } from './routes/dashboard.super-admin.users'
+import { Route as DashboardSuperAdminUnpaidActiveRouteImport } from './routes/dashboard.super-admin.unpaid-active'
+import { Route as DashboardSuperAdminSystemHealthRouteImport } from './routes/dashboard.super-admin.system-health'
+import { Route as DashboardSuperAdminSettingsRouteImport } from './routes/dashboard.super-admin.settings'
+import { Route as DashboardSuperAdminSecurityRouteImport } from './routes/dashboard.super-admin.security'
+import { Route as DashboardSuperAdminPlansRouteImport } from './routes/dashboard.super-admin.plans'
+import { Route as DashboardSuperAdminPaymentsRouteImport } from './routes/dashboard.super-admin.payments'
+import { Route as DashboardSuperAdminOrganizationsRouteImport } from './routes/dashboard.super-admin.organizations'
+import { Route as DashboardSuperAdminEntitlementsRouteImport } from './routes/dashboard.super-admin.entitlements'
+import { Route as DashboardSuperAdminBillingRouteImport } from './routes/dashboard.super-admin.billing'
+import { Route as DashboardSuperAdminAuditLogsRouteImport } from './routes/dashboard.super-admin.audit-logs'
+import { Route as DashboardSuperAdminAnnouncementsRouteImport } from './routes/dashboard.super-admin.announcements'
+import { Route as DashboardSuperAdminAnalyticsRouteImport } from './routes/dashboard.super-admin.analytics'
+import { Route as DashboardSuperAdminAiUsageRouteImport } from './routes/dashboard.super-admin.ai-usage'
 import { Route as DashboardRecruitmentVendorsRouteImport } from './routes/dashboard/recruitment/vendors'
 import { Route as DashboardRecruitmentTemplatesRouteImport } from './routes/dashboard/recruitment/templates'
 import { Route as DashboardRecruitmentTalentPoolRouteImport } from './routes/dashboard/recruitment/talent-pool'
@@ -131,6 +147,7 @@ import { Route as DashboardAttendanceHolidaysRouteImport } from './routes/dashbo
 import { Route as DashboardAttendanceCheckinRouteImport } from './routes/dashboard.attendance.checkin'
 import { Route as DashboardRecruitmentJobsIndexRouteImport } from './routes/dashboard/recruitment/jobs/index'
 import { Route as DashboardRecruitmentCandidatesIndexRouteImport } from './routes/dashboard/recruitment/candidates/index'
+import { Route as DashboardSuperAdminOrganizationsIdRouteImport } from './routes/dashboard.super-admin.organizations.$id'
 import { Route as DashboardRecruitmentJobsNewRouteImport } from './routes/dashboard/recruitment/jobs/new'
 import { Route as DashboardRecruitmentJobsJobIdRouteImport } from './routes/dashboard/recruitment/jobs/$jobId'
 import { Route as DashboardRecruitmentCandidatesCandidateIdRouteImport } from './routes/dashboard/recruitment/candidates/$candidateId'
@@ -234,6 +251,11 @@ const DashboardTimesheetsRoute = DashboardTimesheetsRouteImport.update({
 const DashboardTimelineRoute = DashboardTimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSuperAdminRoute = DashboardSuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -503,6 +525,12 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSuperAdminIndexRoute =
+  DashboardSuperAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
 const DashboardRecruitmentIndexRoute =
   DashboardRecruitmentIndexRouteImport.update({
     id: '/',
@@ -525,6 +553,90 @@ const JobsApplyUkeyRoute = JobsApplyUkeyRouteImport.update({
   path: '/jobs/apply/$ukey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSuperAdminUsersRoute =
+  DashboardSuperAdminUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminUnpaidActiveRoute =
+  DashboardSuperAdminUnpaidActiveRouteImport.update({
+    id: '/unpaid-active',
+    path: '/unpaid-active',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminSystemHealthRoute =
+  DashboardSuperAdminSystemHealthRouteImport.update({
+    id: '/system-health',
+    path: '/system-health',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminSettingsRoute =
+  DashboardSuperAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminSecurityRoute =
+  DashboardSuperAdminSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminPlansRoute =
+  DashboardSuperAdminPlansRouteImport.update({
+    id: '/plans',
+    path: '/plans',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminPaymentsRoute =
+  DashboardSuperAdminPaymentsRouteImport.update({
+    id: '/payments',
+    path: '/payments',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminOrganizationsRoute =
+  DashboardSuperAdminOrganizationsRouteImport.update({
+    id: '/organizations',
+    path: '/organizations',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminEntitlementsRoute =
+  DashboardSuperAdminEntitlementsRouteImport.update({
+    id: '/entitlements',
+    path: '/entitlements',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminBillingRoute =
+  DashboardSuperAdminBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminAuditLogsRoute =
+  DashboardSuperAdminAuditLogsRouteImport.update({
+    id: '/audit-logs',
+    path: '/audit-logs',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminAnnouncementsRoute =
+  DashboardSuperAdminAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminAnalyticsRoute =
+  DashboardSuperAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
+const DashboardSuperAdminAiUsageRoute =
+  DashboardSuperAdminAiUsageRouteImport.update({
+    id: '/ai-usage',
+    path: '/ai-usage',
+    getParentRoute: () => DashboardSuperAdminRoute,
+  } as any)
 const DashboardRecruitmentVendorsRoute =
   DashboardRecruitmentVendorsRouteImport.update({
     id: '/vendors',
@@ -789,6 +901,12 @@ const DashboardRecruitmentCandidatesIndexRoute =
     path: '/',
     getParentRoute: () => DashboardRecruitmentCandidatesRoute,
   } as any)
+const DashboardSuperAdminOrganizationsIdRoute =
+  DashboardSuperAdminOrganizationsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => DashboardSuperAdminOrganizationsRoute,
+  } as any)
 const DashboardRecruitmentJobsNewRoute =
   DashboardRecruitmentJobsNewRouteImport.update({
     id: '/jobs/new',
@@ -881,6 +999,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/roles': typeof DashboardRolesRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/super-admin': typeof DashboardSuperAdminRouteWithChildren
   '/dashboard/timeline': typeof DashboardTimelineRoute
   '/dashboard/timesheets': typeof DashboardTimesheetsRoute
   '/dashboard/travel': typeof DashboardTravelRoute
@@ -931,13 +1050,29 @@ export interface FileRoutesByFullPath {
   '/dashboard/recruitment/talent-pool': typeof DashboardRecruitmentTalentPoolRoute
   '/dashboard/recruitment/templates': typeof DashboardRecruitmentTemplatesRoute
   '/dashboard/recruitment/vendors': typeof DashboardRecruitmentVendorsRoute
+  '/dashboard/super-admin/ai-usage': typeof DashboardSuperAdminAiUsageRoute
+  '/dashboard/super-admin/analytics': typeof DashboardSuperAdminAnalyticsRoute
+  '/dashboard/super-admin/announcements': typeof DashboardSuperAdminAnnouncementsRoute
+  '/dashboard/super-admin/audit-logs': typeof DashboardSuperAdminAuditLogsRoute
+  '/dashboard/super-admin/billing': typeof DashboardSuperAdminBillingRoute
+  '/dashboard/super-admin/entitlements': typeof DashboardSuperAdminEntitlementsRoute
+  '/dashboard/super-admin/organizations': typeof DashboardSuperAdminOrganizationsRouteWithChildren
+  '/dashboard/super-admin/payments': typeof DashboardSuperAdminPaymentsRoute
+  '/dashboard/super-admin/plans': typeof DashboardSuperAdminPlansRoute
+  '/dashboard/super-admin/security': typeof DashboardSuperAdminSecurityRoute
+  '/dashboard/super-admin/settings': typeof DashboardSuperAdminSettingsRoute
+  '/dashboard/super-admin/system-health': typeof DashboardSuperAdminSystemHealthRoute
+  '/dashboard/super-admin/unpaid-active': typeof DashboardSuperAdminUnpaidActiveRoute
+  '/dashboard/super-admin/users': typeof DashboardSuperAdminUsersRoute
   '/jobs/apply/$ukey': typeof JobsApplyUkeyRoute
   '/dashboard/attendance/': typeof DashboardAttendanceIndexRoute
   '/dashboard/payroll/': typeof DashboardPayrollIndexRoute
   '/dashboard/recruitment/': typeof DashboardRecruitmentIndexRoute
+  '/dashboard/super-admin/': typeof DashboardSuperAdminIndexRoute
   '/dashboard/recruitment/candidates/$candidateId': typeof DashboardRecruitmentCandidatesCandidateIdRoute
   '/dashboard/recruitment/jobs/$jobId': typeof DashboardRecruitmentJobsJobIdRouteWithChildren
   '/dashboard/recruitment/jobs/new': typeof DashboardRecruitmentJobsNewRoute
+  '/dashboard/super-admin/organizations/$id': typeof DashboardSuperAdminOrganizationsIdRoute
   '/dashboard/recruitment/candidates/': typeof DashboardRecruitmentCandidatesIndexRoute
   '/dashboard/recruitment/jobs/': typeof DashboardRecruitmentJobsIndexRoute
   '/dashboard/recruitment/jobs/$jobId/publish': typeof DashboardRecruitmentJobsJobIdPublishRoute
@@ -1052,13 +1187,29 @@ export interface FileRoutesByTo {
   '/dashboard/recruitment/talent-pool': typeof DashboardRecruitmentTalentPoolRoute
   '/dashboard/recruitment/templates': typeof DashboardRecruitmentTemplatesRoute
   '/dashboard/recruitment/vendors': typeof DashboardRecruitmentVendorsRoute
+  '/dashboard/super-admin/ai-usage': typeof DashboardSuperAdminAiUsageRoute
+  '/dashboard/super-admin/analytics': typeof DashboardSuperAdminAnalyticsRoute
+  '/dashboard/super-admin/announcements': typeof DashboardSuperAdminAnnouncementsRoute
+  '/dashboard/super-admin/audit-logs': typeof DashboardSuperAdminAuditLogsRoute
+  '/dashboard/super-admin/billing': typeof DashboardSuperAdminBillingRoute
+  '/dashboard/super-admin/entitlements': typeof DashboardSuperAdminEntitlementsRoute
+  '/dashboard/super-admin/organizations': typeof DashboardSuperAdminOrganizationsRouteWithChildren
+  '/dashboard/super-admin/payments': typeof DashboardSuperAdminPaymentsRoute
+  '/dashboard/super-admin/plans': typeof DashboardSuperAdminPlansRoute
+  '/dashboard/super-admin/security': typeof DashboardSuperAdminSecurityRoute
+  '/dashboard/super-admin/settings': typeof DashboardSuperAdminSettingsRoute
+  '/dashboard/super-admin/system-health': typeof DashboardSuperAdminSystemHealthRoute
+  '/dashboard/super-admin/unpaid-active': typeof DashboardSuperAdminUnpaidActiveRoute
+  '/dashboard/super-admin/users': typeof DashboardSuperAdminUsersRoute
   '/jobs/apply/$ukey': typeof JobsApplyUkeyRoute
   '/dashboard/attendance': typeof DashboardAttendanceIndexRoute
   '/dashboard/payroll': typeof DashboardPayrollIndexRoute
   '/dashboard/recruitment': typeof DashboardRecruitmentIndexRoute
+  '/dashboard/super-admin': typeof DashboardSuperAdminIndexRoute
   '/dashboard/recruitment/candidates/$candidateId': typeof DashboardRecruitmentCandidatesCandidateIdRoute
   '/dashboard/recruitment/jobs/$jobId': typeof DashboardRecruitmentJobsJobIdRouteWithChildren
   '/dashboard/recruitment/jobs/new': typeof DashboardRecruitmentJobsNewRoute
+  '/dashboard/super-admin/organizations/$id': typeof DashboardSuperAdminOrganizationsIdRoute
   '/dashboard/recruitment/candidates': typeof DashboardRecruitmentCandidatesIndexRoute
   '/dashboard/recruitment/jobs': typeof DashboardRecruitmentJobsIndexRoute
   '/dashboard/recruitment/jobs/$jobId/publish': typeof DashboardRecruitmentJobsJobIdPublishRoute
@@ -1131,6 +1282,7 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/roles': typeof DashboardRolesRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/super-admin': typeof DashboardSuperAdminRouteWithChildren
   '/dashboard/timeline': typeof DashboardTimelineRoute
   '/dashboard/timesheets': typeof DashboardTimesheetsRoute
   '/dashboard/travel': typeof DashboardTravelRoute
@@ -1181,13 +1333,29 @@ export interface FileRoutesById {
   '/dashboard/recruitment/talent-pool': typeof DashboardRecruitmentTalentPoolRoute
   '/dashboard/recruitment/templates': typeof DashboardRecruitmentTemplatesRoute
   '/dashboard/recruitment/vendors': typeof DashboardRecruitmentVendorsRoute
+  '/dashboard/super-admin/ai-usage': typeof DashboardSuperAdminAiUsageRoute
+  '/dashboard/super-admin/analytics': typeof DashboardSuperAdminAnalyticsRoute
+  '/dashboard/super-admin/announcements': typeof DashboardSuperAdminAnnouncementsRoute
+  '/dashboard/super-admin/audit-logs': typeof DashboardSuperAdminAuditLogsRoute
+  '/dashboard/super-admin/billing': typeof DashboardSuperAdminBillingRoute
+  '/dashboard/super-admin/entitlements': typeof DashboardSuperAdminEntitlementsRoute
+  '/dashboard/super-admin/organizations': typeof DashboardSuperAdminOrganizationsRouteWithChildren
+  '/dashboard/super-admin/payments': typeof DashboardSuperAdminPaymentsRoute
+  '/dashboard/super-admin/plans': typeof DashboardSuperAdminPlansRoute
+  '/dashboard/super-admin/security': typeof DashboardSuperAdminSecurityRoute
+  '/dashboard/super-admin/settings': typeof DashboardSuperAdminSettingsRoute
+  '/dashboard/super-admin/system-health': typeof DashboardSuperAdminSystemHealthRoute
+  '/dashboard/super-admin/unpaid-active': typeof DashboardSuperAdminUnpaidActiveRoute
+  '/dashboard/super-admin/users': typeof DashboardSuperAdminUsersRoute
   '/jobs/apply/$ukey': typeof JobsApplyUkeyRoute
   '/dashboard/attendance/': typeof DashboardAttendanceIndexRoute
   '/dashboard/payroll/': typeof DashboardPayrollIndexRoute
   '/dashboard/recruitment/': typeof DashboardRecruitmentIndexRoute
+  '/dashboard/super-admin/': typeof DashboardSuperAdminIndexRoute
   '/dashboard/recruitment/candidates/$candidateId': typeof DashboardRecruitmentCandidatesCandidateIdRoute
   '/dashboard/recruitment/jobs/$jobId': typeof DashboardRecruitmentJobsJobIdRouteWithChildren
   '/dashboard/recruitment/jobs/new': typeof DashboardRecruitmentJobsNewRoute
+  '/dashboard/super-admin/organizations/$id': typeof DashboardSuperAdminOrganizationsIdRoute
   '/dashboard/recruitment/candidates/': typeof DashboardRecruitmentCandidatesIndexRoute
   '/dashboard/recruitment/jobs/': typeof DashboardRecruitmentJobsIndexRoute
   '/dashboard/recruitment/jobs/$jobId/publish': typeof DashboardRecruitmentJobsJobIdPublishRoute
@@ -1261,6 +1429,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/roles'
     | '/dashboard/settings'
+    | '/dashboard/super-admin'
     | '/dashboard/timeline'
     | '/dashboard/timesheets'
     | '/dashboard/travel'
@@ -1311,13 +1480,29 @@ export interface FileRouteTypes {
     | '/dashboard/recruitment/talent-pool'
     | '/dashboard/recruitment/templates'
     | '/dashboard/recruitment/vendors'
+    | '/dashboard/super-admin/ai-usage'
+    | '/dashboard/super-admin/analytics'
+    | '/dashboard/super-admin/announcements'
+    | '/dashboard/super-admin/audit-logs'
+    | '/dashboard/super-admin/billing'
+    | '/dashboard/super-admin/entitlements'
+    | '/dashboard/super-admin/organizations'
+    | '/dashboard/super-admin/payments'
+    | '/dashboard/super-admin/plans'
+    | '/dashboard/super-admin/security'
+    | '/dashboard/super-admin/settings'
+    | '/dashboard/super-admin/system-health'
+    | '/dashboard/super-admin/unpaid-active'
+    | '/dashboard/super-admin/users'
     | '/jobs/apply/$ukey'
     | '/dashboard/attendance/'
     | '/dashboard/payroll/'
     | '/dashboard/recruitment/'
+    | '/dashboard/super-admin/'
     | '/dashboard/recruitment/candidates/$candidateId'
     | '/dashboard/recruitment/jobs/$jobId'
     | '/dashboard/recruitment/jobs/new'
+    | '/dashboard/super-admin/organizations/$id'
     | '/dashboard/recruitment/candidates/'
     | '/dashboard/recruitment/jobs/'
     | '/dashboard/recruitment/jobs/$jobId/publish'
@@ -1432,13 +1617,29 @@ export interface FileRouteTypes {
     | '/dashboard/recruitment/talent-pool'
     | '/dashboard/recruitment/templates'
     | '/dashboard/recruitment/vendors'
+    | '/dashboard/super-admin/ai-usage'
+    | '/dashboard/super-admin/analytics'
+    | '/dashboard/super-admin/announcements'
+    | '/dashboard/super-admin/audit-logs'
+    | '/dashboard/super-admin/billing'
+    | '/dashboard/super-admin/entitlements'
+    | '/dashboard/super-admin/organizations'
+    | '/dashboard/super-admin/payments'
+    | '/dashboard/super-admin/plans'
+    | '/dashboard/super-admin/security'
+    | '/dashboard/super-admin/settings'
+    | '/dashboard/super-admin/system-health'
+    | '/dashboard/super-admin/unpaid-active'
+    | '/dashboard/super-admin/users'
     | '/jobs/apply/$ukey'
     | '/dashboard/attendance'
     | '/dashboard/payroll'
     | '/dashboard/recruitment'
+    | '/dashboard/super-admin'
     | '/dashboard/recruitment/candidates/$candidateId'
     | '/dashboard/recruitment/jobs/$jobId'
     | '/dashboard/recruitment/jobs/new'
+    | '/dashboard/super-admin/organizations/$id'
     | '/dashboard/recruitment/candidates'
     | '/dashboard/recruitment/jobs'
     | '/dashboard/recruitment/jobs/$jobId/publish'
@@ -1510,6 +1711,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/roles'
     | '/dashboard/settings'
+    | '/dashboard/super-admin'
     | '/dashboard/timeline'
     | '/dashboard/timesheets'
     | '/dashboard/travel'
@@ -1560,13 +1762,29 @@ export interface FileRouteTypes {
     | '/dashboard/recruitment/talent-pool'
     | '/dashboard/recruitment/templates'
     | '/dashboard/recruitment/vendors'
+    | '/dashboard/super-admin/ai-usage'
+    | '/dashboard/super-admin/analytics'
+    | '/dashboard/super-admin/announcements'
+    | '/dashboard/super-admin/audit-logs'
+    | '/dashboard/super-admin/billing'
+    | '/dashboard/super-admin/entitlements'
+    | '/dashboard/super-admin/organizations'
+    | '/dashboard/super-admin/payments'
+    | '/dashboard/super-admin/plans'
+    | '/dashboard/super-admin/security'
+    | '/dashboard/super-admin/settings'
+    | '/dashboard/super-admin/system-health'
+    | '/dashboard/super-admin/unpaid-active'
+    | '/dashboard/super-admin/users'
     | '/jobs/apply/$ukey'
     | '/dashboard/attendance/'
     | '/dashboard/payroll/'
     | '/dashboard/recruitment/'
+    | '/dashboard/super-admin/'
     | '/dashboard/recruitment/candidates/$candidateId'
     | '/dashboard/recruitment/jobs/$jobId'
     | '/dashboard/recruitment/jobs/new'
+    | '/dashboard/super-admin/organizations/$id'
     | '/dashboard/recruitment/candidates/'
     | '/dashboard/recruitment/jobs/'
     | '/dashboard/recruitment/jobs/$jobId/publish'
@@ -1737,6 +1955,13 @@ declare module '@tanstack/react-router' {
       path: '/timeline'
       fullPath: '/dashboard/timeline'
       preLoaderRoute: typeof DashboardTimelineRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/super-admin': {
+      id: '/dashboard/super-admin'
+      path: '/super-admin'
+      fullPath: '/dashboard/super-admin'
+      preLoaderRoute: typeof DashboardSuperAdminRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/settings': {
@@ -2110,6 +2335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/super-admin/': {
+      id: '/dashboard/super-admin/'
+      path: '/'
+      fullPath: '/dashboard/super-admin/'
+      preLoaderRoute: typeof DashboardSuperAdminIndexRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
     '/dashboard/recruitment/': {
       id: '/dashboard/recruitment/'
       path: '/'
@@ -2137,6 +2369,104 @@ declare module '@tanstack/react-router' {
       fullPath: '/jobs/apply/$ukey'
       preLoaderRoute: typeof JobsApplyUkeyRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/super-admin/users': {
+      id: '/dashboard/super-admin/users'
+      path: '/users'
+      fullPath: '/dashboard/super-admin/users'
+      preLoaderRoute: typeof DashboardSuperAdminUsersRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/unpaid-active': {
+      id: '/dashboard/super-admin/unpaid-active'
+      path: '/unpaid-active'
+      fullPath: '/dashboard/super-admin/unpaid-active'
+      preLoaderRoute: typeof DashboardSuperAdminUnpaidActiveRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/system-health': {
+      id: '/dashboard/super-admin/system-health'
+      path: '/system-health'
+      fullPath: '/dashboard/super-admin/system-health'
+      preLoaderRoute: typeof DashboardSuperAdminSystemHealthRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/settings': {
+      id: '/dashboard/super-admin/settings'
+      path: '/settings'
+      fullPath: '/dashboard/super-admin/settings'
+      preLoaderRoute: typeof DashboardSuperAdminSettingsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/security': {
+      id: '/dashboard/super-admin/security'
+      path: '/security'
+      fullPath: '/dashboard/super-admin/security'
+      preLoaderRoute: typeof DashboardSuperAdminSecurityRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/plans': {
+      id: '/dashboard/super-admin/plans'
+      path: '/plans'
+      fullPath: '/dashboard/super-admin/plans'
+      preLoaderRoute: typeof DashboardSuperAdminPlansRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/payments': {
+      id: '/dashboard/super-admin/payments'
+      path: '/payments'
+      fullPath: '/dashboard/super-admin/payments'
+      preLoaderRoute: typeof DashboardSuperAdminPaymentsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/organizations': {
+      id: '/dashboard/super-admin/organizations'
+      path: '/organizations'
+      fullPath: '/dashboard/super-admin/organizations'
+      preLoaderRoute: typeof DashboardSuperAdminOrganizationsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/entitlements': {
+      id: '/dashboard/super-admin/entitlements'
+      path: '/entitlements'
+      fullPath: '/dashboard/super-admin/entitlements'
+      preLoaderRoute: typeof DashboardSuperAdminEntitlementsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/billing': {
+      id: '/dashboard/super-admin/billing'
+      path: '/billing'
+      fullPath: '/dashboard/super-admin/billing'
+      preLoaderRoute: typeof DashboardSuperAdminBillingRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/audit-logs': {
+      id: '/dashboard/super-admin/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/dashboard/super-admin/audit-logs'
+      preLoaderRoute: typeof DashboardSuperAdminAuditLogsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/announcements': {
+      id: '/dashboard/super-admin/announcements'
+      path: '/announcements'
+      fullPath: '/dashboard/super-admin/announcements'
+      preLoaderRoute: typeof DashboardSuperAdminAnnouncementsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/analytics': {
+      id: '/dashboard/super-admin/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/super-admin/analytics'
+      preLoaderRoute: typeof DashboardSuperAdminAnalyticsRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
+    }
+    '/dashboard/super-admin/ai-usage': {
+      id: '/dashboard/super-admin/ai-usage'
+      path: '/ai-usage'
+      fullPath: '/dashboard/super-admin/ai-usage'
+      preLoaderRoute: typeof DashboardSuperAdminAiUsageRouteImport
+      parentRoute: typeof DashboardSuperAdminRoute
     }
     '/dashboard/recruitment/vendors': {
       id: '/dashboard/recruitment/vendors'
@@ -2453,6 +2783,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRecruitmentCandidatesIndexRouteImport
       parentRoute: typeof DashboardRecruitmentCandidatesRoute
     }
+    '/dashboard/super-admin/organizations/$id': {
+      id: '/dashboard/super-admin/organizations/$id'
+      path: '/$id'
+      fullPath: '/dashboard/super-admin/organizations/$id'
+      preLoaderRoute: typeof DashboardSuperAdminOrganizationsIdRouteImport
+      parentRoute: typeof DashboardSuperAdminOrganizationsRoute
+    }
     '/dashboard/recruitment/jobs/new': {
       id: '/dashboard/recruitment/jobs/new'
       path: '/jobs/new'
@@ -2698,6 +3035,61 @@ const DashboardRecruitmentRouteChildren: DashboardRecruitmentRouteChildren = {
 const DashboardRecruitmentRouteWithChildren =
   DashboardRecruitmentRoute._addFileChildren(DashboardRecruitmentRouteChildren)
 
+interface DashboardSuperAdminOrganizationsRouteChildren {
+  DashboardSuperAdminOrganizationsIdRoute: typeof DashboardSuperAdminOrganizationsIdRoute
+}
+
+const DashboardSuperAdminOrganizationsRouteChildren: DashboardSuperAdminOrganizationsRouteChildren =
+  {
+    DashboardSuperAdminOrganizationsIdRoute:
+      DashboardSuperAdminOrganizationsIdRoute,
+  }
+
+const DashboardSuperAdminOrganizationsRouteWithChildren =
+  DashboardSuperAdminOrganizationsRoute._addFileChildren(
+    DashboardSuperAdminOrganizationsRouteChildren,
+  )
+
+interface DashboardSuperAdminRouteChildren {
+  DashboardSuperAdminAiUsageRoute: typeof DashboardSuperAdminAiUsageRoute
+  DashboardSuperAdminAnalyticsRoute: typeof DashboardSuperAdminAnalyticsRoute
+  DashboardSuperAdminAnnouncementsRoute: typeof DashboardSuperAdminAnnouncementsRoute
+  DashboardSuperAdminAuditLogsRoute: typeof DashboardSuperAdminAuditLogsRoute
+  DashboardSuperAdminBillingRoute: typeof DashboardSuperAdminBillingRoute
+  DashboardSuperAdminEntitlementsRoute: typeof DashboardSuperAdminEntitlementsRoute
+  DashboardSuperAdminOrganizationsRoute: typeof DashboardSuperAdminOrganizationsRouteWithChildren
+  DashboardSuperAdminPaymentsRoute: typeof DashboardSuperAdminPaymentsRoute
+  DashboardSuperAdminPlansRoute: typeof DashboardSuperAdminPlansRoute
+  DashboardSuperAdminSecurityRoute: typeof DashboardSuperAdminSecurityRoute
+  DashboardSuperAdminSettingsRoute: typeof DashboardSuperAdminSettingsRoute
+  DashboardSuperAdminSystemHealthRoute: typeof DashboardSuperAdminSystemHealthRoute
+  DashboardSuperAdminUnpaidActiveRoute: typeof DashboardSuperAdminUnpaidActiveRoute
+  DashboardSuperAdminUsersRoute: typeof DashboardSuperAdminUsersRoute
+  DashboardSuperAdminIndexRoute: typeof DashboardSuperAdminIndexRoute
+}
+
+const DashboardSuperAdminRouteChildren: DashboardSuperAdminRouteChildren = {
+  DashboardSuperAdminAiUsageRoute: DashboardSuperAdminAiUsageRoute,
+  DashboardSuperAdminAnalyticsRoute: DashboardSuperAdminAnalyticsRoute,
+  DashboardSuperAdminAnnouncementsRoute: DashboardSuperAdminAnnouncementsRoute,
+  DashboardSuperAdminAuditLogsRoute: DashboardSuperAdminAuditLogsRoute,
+  DashboardSuperAdminBillingRoute: DashboardSuperAdminBillingRoute,
+  DashboardSuperAdminEntitlementsRoute: DashboardSuperAdminEntitlementsRoute,
+  DashboardSuperAdminOrganizationsRoute:
+    DashboardSuperAdminOrganizationsRouteWithChildren,
+  DashboardSuperAdminPaymentsRoute: DashboardSuperAdminPaymentsRoute,
+  DashboardSuperAdminPlansRoute: DashboardSuperAdminPlansRoute,
+  DashboardSuperAdminSecurityRoute: DashboardSuperAdminSecurityRoute,
+  DashboardSuperAdminSettingsRoute: DashboardSuperAdminSettingsRoute,
+  DashboardSuperAdminSystemHealthRoute: DashboardSuperAdminSystemHealthRoute,
+  DashboardSuperAdminUnpaidActiveRoute: DashboardSuperAdminUnpaidActiveRoute,
+  DashboardSuperAdminUsersRoute: DashboardSuperAdminUsersRoute,
+  DashboardSuperAdminIndexRoute: DashboardSuperAdminIndexRoute,
+}
+
+const DashboardSuperAdminRouteWithChildren =
+  DashboardSuperAdminRoute._addFileChildren(DashboardSuperAdminRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardAiInsightsRoute: typeof DashboardAiInsightsRoute
   DashboardAssetManagementRoute: typeof DashboardAssetManagementRoute
@@ -2728,6 +3120,7 @@ interface DashboardRouteChildren {
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardRolesRoute: typeof DashboardRolesRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSuperAdminRoute: typeof DashboardSuperAdminRouteWithChildren
   DashboardTimelineRoute: typeof DashboardTimelineRoute
   DashboardTimesheetsRoute: typeof DashboardTimesheetsRoute
   DashboardTravelRoute: typeof DashboardTravelRoute
@@ -2765,6 +3158,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardRolesRoute: DashboardRolesRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSuperAdminRoute: DashboardSuperAdminRouteWithChildren,
   DashboardTimelineRoute: DashboardTimelineRoute,
   DashboardTimesheetsRoute: DashboardTimesheetsRoute,
   DashboardTravelRoute: DashboardTravelRoute,

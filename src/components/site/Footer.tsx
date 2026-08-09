@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles, Twitter, Github, Linkedin } from "lucide-react";
+import { Twitter, Github, Linkedin } from "lucide-react";
 
 const cols = [
   {
@@ -35,13 +35,11 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-brand grid place-items-center">
-                <Sparkles className="h-4 w-4 text-brand-foreground" />
-              </div>
-              <span className="font-display text-xl font-bold">Aurix</span>
+              <img src="/logo.png" alt="OFC360 logo" className="h-8 w-auto object-contain" />
+              <span className="font-display text-xl font-bold">OFC360</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-              The modern operating system for teams that ship. Built for speed, designed for clarity.
+              AI-powered HRMS platform for modern organizations. Built by EquinoxSphere Technologies.
             </p>
             <div className="flex gap-2 mt-6">
               {[Twitter, Github, Linkedin].map((Icon, i) => (
@@ -69,7 +67,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Aurix Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} EquinoxSphere Technologies. All rights reserved.</p>
           <p>Crafted with precision.</p>
         </div>
       </div>

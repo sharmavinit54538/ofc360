@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { LogOut, FileText, ShieldCheck, Wallet, CheckCircle2, Plus } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, PrintButton, Progress, StatCard, StatusBadge } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { ExitCase, ExitStage } from "@/lib/hrms/types";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/exit")({
-  head: () => ({ meta: [{ title: "Exit Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Exit Management — ofc360" }] }),
   component: ExitPage,
 });
 
@@ -121,9 +121,8 @@ function ExitPage() {
                 <div className="flex gap-1">
                   {STAGES.map((s) => (
                     <button key={s} onClick={() => hrms.upsertExit({ ...e, stage: s })}
-                      className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${
-                        e.stage === s ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
-                      }`}>{s}</button>
+                      className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${e.stage === s ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
+                        }`}>{s}</button>
                   ))}
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { UserPlus, LogIn, LogOut as LogOutIcon, CheckCircle2, XCircle, QrCode } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, QrTile, SearchBox, StatCard, StatusBadge } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { Visitor, VisitorStatus } from "@/lib/hrms/types";
@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/visitors")({
-  head: () => ({ meta: [{ title: "Visitor Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Visitor Management — ofc360" }] }),
   component: VisitorsPage,
 });
 
@@ -59,7 +59,7 @@ function VisitorsPage() {
     .filter((v) => (filter === "all" ? true : v.status === filter))
     .filter((v) => query.trim() === "" ? true : `${v.name} ${v.company ?? ""} ${v.hostEmployee} ${v.purpose}`.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
-  [visitors, filter, query]);
+    [visitors, filter, query]);
 
   const hourly = useMemo(() => {
     const buckets = Array.from({ length: 12 }, (_, i) => ({ hour: `${i + 8}:00`, visitors: 0 }));
@@ -193,7 +193,7 @@ function VisitorsPage() {
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="text-lg font-semibold">{pass.name}</div>
               <div className="text-xs text-muted-foreground">Host: {pass.hostEmployee}</div>
-              <QrTile value={`AURIX-VISITOR:${pass.passCode}`} label={pass.passCode} size={170} />
+              <QrTile value={`ofc360-VISITOR:${pass.passCode}`} label={pass.passCode} size={170} />
               <Button variant="outline" size="sm" onClick={() => window.print()}>Print pass</Button>
             </div>
           ) : null}

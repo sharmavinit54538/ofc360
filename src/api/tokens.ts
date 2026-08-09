@@ -1,4 +1,4 @@
-const TOKENS_KEY = "aurix:tokens";
+const TOKENS_KEY = "ofc360:tokens";
 
 export interface Tokens {
   accessToken: string;
@@ -23,5 +23,5 @@ export function setTokens(tokens: Tokens | null) {
     } else {
       localStorage.removeItem(TOKENS_KEY);
     }
-  } catch {}
+  } catch { }
 }

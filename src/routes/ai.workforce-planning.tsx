@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Target, UserPlus, Building2, Activity, TrendingUp, Sparkles,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/workforce-planning")({
-  head: () => ({ meta: [{ title: "AI Workforce Planning — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Workforce Planning — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "line", title: "Hiring Forecast", xKey: "m",
           series: [{ key: "needed", label: "Needed" }, { key: "planned", label: "Planned" }],
-          data: ["Jan","Feb","Mar","Apr","May","Jun"].map((m,i)=>({m, needed: 8+i, planned: 6+i})),
+          data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m, i) => ({ m, needed: 8 + i, planned: 6 + i })),
         },
         {
           type: "bar", title: "Capacity vs. Demand", xKey: "d",
           series: [{ key: "cap", label: "Capacity" }, { key: "dem", label: "Demand" }],
-          data: [{d:"Eng",cap:120,dem:138},{d:"Sales",cap:80,dem:72},{d:"Design",cap:32,dem:40},{d:"Ops",cap:48,dem:44},{d:"Support",cap:60,dem:68}],
+          data: [{ d: "Eng", cap: 120, dem: 138 }, { d: "Sales", cap: 80, dem: 72 }, { d: "Design", cap: 32, dem: 40 }, { d: "Ops", cap: 48, dem: 44 }, { d: "Support", cap: 60, dem: 68 }],
         },
       ]}
       features={[

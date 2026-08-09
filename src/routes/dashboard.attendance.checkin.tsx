@@ -9,14 +9,14 @@ import {
   Shield, ShieldCheck, Sparkles, Star, Timer, TrendingUp, User, UserCog,
   Wifi, X, Zap, Activity,
 } from "lucide-react";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GlassCard, StatCard } from "@/components/hrms/Shared";
 
 // ── Route ─────────────────────────────────────────────────────
 export const Route = createFileRoute("/dashboard/attendance/checkin")({
-  head: () => ({ meta: [{ title: "Check In / Check Out — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Check In / Check Out — ofc360" }] }),
   component: CheckInPage,
 });
 
@@ -114,12 +114,12 @@ function LiveClock() {
 
 // ── Status Chip ────────────────────────────────────────────────
 const STATUS_MAP: Record<DayStatus, { label: string; cls: string }> = {
-  present:     { label: "Present",     cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-1 ring-emerald-500/30" },
-  absent:      { label: "Absent",      cls: "bg-rose-500/15 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/30" },
-  late:        { label: "Late",        cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/30" },
-  "half-day":  { label: "Half Day",   cls: "bg-sky-500/15 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/30" },
-  "on-leave":  { label: "On Leave",   cls: "bg-violet-500/15 text-violet-600 dark:text-violet-300 ring-1 ring-violet-500/30" },
-  wfh:         { label: "Work From Home", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-300 ring-1 ring-blue-500/30" },
+  present: { label: "Present", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-1 ring-emerald-500/30" },
+  absent: { label: "Absent", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/30" },
+  late: { label: "Late", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/30" },
+  "half-day": { label: "Half Day", cls: "bg-sky-500/15 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/30" },
+  "on-leave": { label: "On Leave", cls: "bg-violet-500/15 text-violet-600 dark:text-violet-300 ring-1 ring-violet-500/30" },
+  wfh: { label: "Work From Home", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-300 ring-1 ring-blue-500/30" },
 };
 
 function DayStatusChip({ status }: { status: DayStatus }) {
@@ -138,7 +138,7 @@ function AttendBtn({ label, icon: Icon, onClick, disabled, variant, loading }: {
     primary: "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/25",
     success: "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25",
     warning: "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/25",
-    danger:  "bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-600 hover:to-red-700 shadow-lg shadow-rose-500/25",
+    danger: "bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-600 hover:to-red-700 shadow-lg shadow-rose-500/25",
   }[variant];
   return (
     <button
@@ -301,9 +301,8 @@ function AIInsights() {
           <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Weekly Summary</div>
           <div className="flex gap-1 mt-2">
             {["P", "P", "P", "L", "P"].map((s, i) => (
-              <div key={i} className={`flex-1 h-8 rounded text-[9px] flex items-center justify-center font-bold ${
-                s === "P" ? "bg-emerald-500/20 text-emerald-600" : "bg-violet-500/20 text-violet-600"
-              }`}>{s}</div>
+              <div key={i} className={`flex-1 h-8 rounded text-[9px] flex items-center justify-center font-bold ${s === "P" ? "bg-emerald-500/20 text-emerald-600" : "bg-violet-500/20 text-violet-600"
+                }`}>{s}</div>
             ))}
           </div>
           <div className="mt-1 text-[10px] text-muted-foreground text-center">Mon–Fri</div>
@@ -394,7 +393,7 @@ function HistoryTable() {
 
 // ── Main Page ─────────────────────────────────────────────────
 function CheckInPage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const user = ws.user;
 
   // ── Attendance state ────────────────────────────────────────
@@ -529,14 +528,13 @@ function CheckInPage() {
     <div className="space-y-6 pb-24">
       {/* ── Toast ── */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-xl backdrop-blur-xl ${
-          toast.type === "success" ? "bg-emerald-600 text-white" :
-          toast.type === "error" ? "bg-rose-600 text-white" :
-          "bg-sky-600 text-white"
-        }`}>
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-xl backdrop-blur-xl ${toast.type === "success" ? "bg-emerald-600 text-white" :
+            toast.type === "error" ? "bg-rose-600 text-white" :
+              "bg-sky-600 text-white"
+          }`}>
           {toast.type === "success" ? <CheckCircle2 className="h-4 w-4" /> :
-           toast.type === "error" ? <AlertCircle className="h-4 w-4" /> :
-           <Info className="h-4 w-4" />}
+            toast.type === "error" ? <AlertCircle className="h-4 w-4" /> :
+              <Info className="h-4 w-4" />}
           {toast.msg}
         </div>
       )}
@@ -585,11 +583,10 @@ function CheckInPage() {
                     style={{ background: "var(--gradient-brand)" }}>
                     {initials}
                   </div>
-                  <div className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background ${
-                    status === "checked-in" ? "bg-emerald-500" :
-                    status === "on-break" ? "bg-amber-500" :
-                    status === "checked-out" ? "bg-muted-foreground" : "bg-muted-foreground"
-                  }`} />
+                  <div className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background ${status === "checked-in" ? "bg-emerald-500" :
+                      status === "on-break" ? "bg-amber-500" :
+                        status === "checked-out" ? "bg-muted-foreground" : "bg-muted-foreground"
+                    }`} />
                 </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -655,15 +652,14 @@ function CheckInPage() {
               {/* Status bar */}
               <div className="mt-4 flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2.5 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${
-                    status === "checked-in" ? "bg-emerald-500 animate-pulse" :
-                    status === "on-break" ? "bg-amber-500 animate-pulse" :
-                    status === "checked-out" ? "bg-muted-foreground" : "bg-muted-foreground"
-                  }`} />
+                  <span className={`h-2 w-2 rounded-full ${status === "checked-in" ? "bg-emerald-500 animate-pulse" :
+                      status === "on-break" ? "bg-amber-500 animate-pulse" :
+                        status === "checked-out" ? "bg-muted-foreground" : "bg-muted-foreground"
+                    }`} />
                   <span className="font-medium">
                     {status === "not-checked-in" ? "Not Checked In" :
-                     status === "checked-in" ? "Currently Working" :
-                     status === "on-break" ? "On Break" : "Day Complete"}
+                      status === "checked-in" ? "Currently Working" :
+                        status === "on-break" ? "On Break" : "Day Complete"}
                   </span>
                 </div>
                 <div className="flex gap-4 text-muted-foreground">
@@ -758,9 +754,8 @@ function CheckInPage() {
               <SectionHeader title="Geo Location" icon={MapPin} />
               {geo ? (
                 <div className="space-y-3">
-                  <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium w-fit ${
-                    geo.inside ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" : "bg-rose-500/15 text-rose-600"
-                  }`}>
+                  <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium w-fit ${geo.inside ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" : "bg-rose-500/15 text-rose-600"
+                    }`}>
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     {geo.inside ? "Inside Office Radius" : "Outside Office Radius"}
                   </div>
@@ -953,7 +948,7 @@ function CheckInPage() {
 
           {/* ── AI Insights ── */}
           <GlassCard>
-            <SectionHeader title="AI Attendance Insights" subtitle="Powered by Aurix AI" icon={Brain} />
+            <SectionHeader title="AI Attendance Insights" subtitle="Powered by ofc360 AI" icon={Brain} />
             <AIInsights />
           </GlassCard>
 
@@ -1062,7 +1057,7 @@ function CheckInPage() {
                 <div className="text-2xl">🎉</div>
                 <div className="min-w-0">
                   <div className="text-xs font-semibold">Priya Nair — Work Anniversary</div>
-                  <div className="text-[10px] text-muted-foreground">Today · 5 years at Aurix!</div>
+                  <div className="text-[10px] text-muted-foreground">Today · 5 years at ofc360!</div>
                 </div>
               </div>
             </div>
@@ -1107,9 +1102,9 @@ function FloatingActions({ onCheckIn, onCheckOut, status }: {
   const actions = [
     { label: "Check In", icon: LogIn, onClick: onCheckIn, disabled: status !== "not-checked-in", color: "bg-emerald-500 hover:bg-emerald-600" },
     { label: "Check Out", icon: LogOut, onClick: onCheckOut, disabled: status !== "checked-in" && status !== "on-break", color: "bg-rose-500 hover:bg-rose-600" },
-    { label: "Regularize", icon: FileText, onClick: () => {}, color: "bg-amber-500 hover:bg-amber-600" },
-    { label: "Download", icon: Download, onClick: () => {}, color: "bg-sky-500 hover:bg-sky-600" },
-    { label: "Contact HR", icon: MessageSquare, onClick: () => {}, color: "bg-violet-500 hover:bg-violet-600" },
+    { label: "Regularize", icon: FileText, onClick: () => { }, color: "bg-amber-500 hover:bg-amber-600" },
+    { label: "Download", icon: Download, onClick: () => { }, color: "bg-sky-500 hover:bg-sky-600" },
+    { label: "Contact HR", icon: MessageSquare, onClick: () => { }, color: "bg-violet-500 hover:bg-violet-600" },
   ];
   return (
     <div className="fixed bottom-6 right-6 z-40 flex flex-col-reverse items-end gap-2">

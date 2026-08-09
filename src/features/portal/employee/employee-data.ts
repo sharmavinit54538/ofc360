@@ -1,5 +1,5 @@
 // ============================================================
-// Aurix HR — Employee Dashboard — Data Schema
+// ofc360 HR — Employee Dashboard — Data Schema
 // ============================================================
 
 export interface EmpKpi {

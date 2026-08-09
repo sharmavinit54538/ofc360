@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   FileText, CheckCircle2, AlertTriangle, Users, TrendingUp, CalendarRange,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/leave-assistant")({
-  head: () => ({ meta: [{ title: "AI Leave Assistant — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Leave Assistant — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Leave Forecast (next 12 weeks)", xKey: "w",
           series: [{ key: "leaves", label: "Forecasted leaves" }],
-          data: Array.from({length:12},(_,i)=>({w:`W${i+1}`, leaves: 8+((i*11)%14)})),
+          data: Array.from({ length: 12 }, (_, i) => ({ w: `W${i + 1}`, leaves: 8 + ((i * 11) % 14) })),
         },
         {
           type: "bar", title: "Leave Type Distribution", xKey: "t",
           series: [{ key: "days", label: "Days" }],
-          data: [{t:"Casual",days:62},{t:"Sick",days:41},{t:"Earned",days:118},{t:"WFH",days:88},{t:"Comp",days:24}],
+          data: [{ t: "Casual", days: 62 }, { t: "Sick", days: 41 }, { t: "Earned", days: 118 }, { t: "WFH", days: 88 }, { t: "Comp", days: 24 }],
         },
       ]}
       features={[

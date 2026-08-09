@@ -28,7 +28,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -596,12 +596,12 @@ export default function HolidaysPage() {
         prev.map((h) =>
           h.id === editingHolidayId
             ? {
-                ...h, name: formName, description: formDescription, date: formDate, type: formType,
-                country: formCountry, state: formState, office: formOffice, department: formDepartment,
-                color: formColor, recurring: formRecurring, everyYear: formEveryYear,
-                applyToAll: formApplyToAll, notes: formNotes,
-                updatedDate: new Date().toISOString().split("T")[0],
-              }
+              ...h, name: formName, description: formDescription, date: formDate, type: formType,
+              country: formCountry, state: formState, office: formOffice, department: formDepartment,
+              color: formColor, recurring: formRecurring, everyYear: formEveryYear,
+              applyToAll: formApplyToAll, notes: formNotes,
+              updatedDate: new Date().toISOString().split("T")[0],
+            }
             : h
         )
       );
@@ -647,7 +647,7 @@ export default function HolidaysPage() {
     const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `aurix_holidays_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `ofc360_holidays_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -761,9 +761,9 @@ export default function HolidaysPage() {
             </div>
 
             {[
-              { icon: Filter, label: "Country", value: countryFilter, set: setCountryFilter, opts: [["all","All Countries"],["usa","USA"],["india","India"],["global","Global"]] },
-              { icon: MapPin, label: "State", value: stateFilter, set: setStateFilter, opts: [["all","All States"],["delhi","Delhi"],["california","California"],["karnataka","Karnataka"]] },
-              { icon: Building2, label: "Office", value: officeFilter, set: setOfficeFilter, opts: [["all","All Offices"],["san francisco hq","San Francisco HQ"],["bengaluru tech park","Bengaluru Tech Park"]] },
+              { icon: Filter, label: "Country", value: countryFilter, set: setCountryFilter, opts: [["all", "All Countries"], ["usa", "USA"], ["india", "India"], ["global", "Global"]] },
+              { icon: MapPin, label: "State", value: stateFilter, set: setStateFilter, opts: [["all", "All States"], ["delhi", "Delhi"], ["california", "California"], ["karnataka", "Karnataka"]] },
+              { icon: Building2, label: "Office", value: officeFilter, set: setOfficeFilter, opts: [["all", "All Offices"], ["san francisco hq", "San Francisco HQ"], ["bengaluru tech park", "Bengaluru Tech Park"]] },
             ].map(({ icon: Icon, label, value, set, opts }) => (
               <div key={label} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/60 px-2.5 py-1.5 text-xs text-muted-foreground">
                 <Icon className="h-3 w-3" />
@@ -848,7 +848,7 @@ export default function HolidaysPage() {
               </div>
 
               <div className="grid grid-cols-7 border-b border-border bg-muted/10 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5">
-                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => <div key={d}>{d}</div>)}
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
               </div>
 
               <div className="grid grid-cols-7 bg-border/5">
@@ -1027,7 +1027,7 @@ export default function HolidaysPage() {
             <div className="space-y-3.5">
               {[
                 { label: "Public Holidays", desc: "National or federal statutory paid off.", count: categoryCounts.Public, color: "bg-blue-500" },
-                { label: "Company Holidays", desc: "Strategic operations days off by Aurix.", count: categoryCounts.Company, color: "bg-emerald-500" },
+                { label: "Company Holidays", desc: "Strategic operations days off by ofc360.", count: categoryCounts.Company, color: "bg-emerald-500" },
                 { label: "Regional Holidays", desc: "State or territory level local festivals.", count: categoryCounts.Regional, color: "bg-amber-500" },
                 { label: "Optional / Floating", desc: "Personal cultural or religious choices.", count: categoryCounts.Optional, color: "bg-purple-500" },
               ].map((cat, i) => (

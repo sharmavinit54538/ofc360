@@ -6,7 +6,7 @@ import {
   Clock, Inbox, Link2, Mail, MessageSquare, Phone,
   Plus, Search, StickyNote, Users, X,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { CandidateAvatar, StageBadge } from "@/features/admin/recruitment/components/Bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,11 +30,11 @@ interface CrmNote {
 }
 
 const CH: Record<Channel, { label: string; Icon: any; color: string; bg: string }> = {
-  email:    { label: "Email",    Icon: Mail,          color: "text-sky-500",     bg: "bg-sky-500/10" },
-  call:     { label: "Call",     Icon: Phone,         color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  sms:      { label: "SMS",      Icon: MessageSquare, color: "text-violet-500",  bg: "bg-violet-500/10" },
-  linkedin: { label: "LinkedIn", Icon: Link2,         color: "text-blue-500",    bg: "bg-blue-500/10" },
-  note:     { label: "Note",     Icon: StickyNote,    color: "text-amber-500",   bg: "bg-amber-500/10" },
+  email: { label: "Email", Icon: Mail, color: "text-sky-500", bg: "bg-sky-500/10" },
+  call: { label: "Call", Icon: Phone, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  sms: { label: "SMS", Icon: MessageSquare, color: "text-violet-500", bg: "bg-violet-500/10" },
+  linkedin: { label: "LinkedIn", Icon: Link2, color: "text-blue-500", bg: "bg-blue-500/10" },
+  note: { label: "Note", Icon: StickyNote, color: "text-amber-500", bg: "bg-amber-500/10" },
 };
 
 function fmtTs(d: string) {
@@ -46,7 +46,7 @@ function fmtDate(d: string) {
 
 export function RecruitmentCRMPage() {
   const candidates = useRecruitment((s) => s.candidates);
-  const [search, setSearch]   = useState("");
+  const [search, setSearch] = useState("");
   const [activeId, setActiveId] = useState(candidates[0]?.id ?? "");
   const [watchSet, setWatchSet] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("crm.watch") ?? "[]")); }
@@ -57,12 +57,12 @@ export function RecruitmentCRMPage() {
   // Form state
   const [channel, setChannel] = useState<Channel>("note");
   const [subject, setSubject] = useState("");
-  const [body, setBody]       = useState("");
+  const [body, setBody] = useState("");
   const [followDate, setFollowDate] = useState("");
-  const [saving, setSaving]   = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Notes cache: candidateId -> CrmNote[]
-  const [notes, setNotes]     = useState<Record<string, CrmNote[]>>({});
+  const [notes, setNotes] = useState<Record<string, CrmNote[]>>({});
   const [loading, setLoading] = useState(false);
 
   const active = useMemo(() => candidates.find((c) => c.id === activeId), [candidates, activeId]);
@@ -196,8 +196,8 @@ export function RecruitmentCRMPage() {
                   ? <div className="p-4 text-center text-xs text-muted-foreground">No results.</div>
                   : filtered.map((c) => {
                     const isActive = c.id === activeId;
-                    const watched  = watchSet.has(c.id);
-                    const cnt      = notes[c.id]?.length ?? 0;
+                    const watched = watchSet.has(c.id);
+                    const cnt = notes[c.id]?.length ?? 0;
                     return (
                       <button key={c.id} onClick={() => setActiveId(c.id)}
                         className={`group flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors ${isActive ? "bg-accent" : "hover:bg-accent/40"}`}>
@@ -374,7 +374,7 @@ export function RecruitmentCRMPage() {
                   {followUps.map(({ n, cand }) => {
                     const ch = (n.channel in CH ? n.channel : "note") as Channel;
                     const { Icon, color } = CH[ch];
-                    const isToday   = n.follow_up_date === today;
+                    const isToday = n.follow_up_date === today;
                     const isOverdue = n.follow_up_date! < today;
                     return (
                       <button key={n.id} onClick={() => setActiveId(cand.id)}

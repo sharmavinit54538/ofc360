@@ -4,14 +4,14 @@ import {
   Award, Briefcase, CalendarCheck, FileSignature, GraduationCap, LogOut as LogOutIcon,
   PartyPopper, Plane, ShieldAlert, Sparkles, TrendingUp, UserCheck, UserCog, Wallet,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, PrintButton, SearchBox, StatusBadge, useDelayedReady, Skeleton } from "@/components/hrms/Shared";
 import { useHrms } from "@/lib/hrms/store";
 import type { TimelineEvent, TimelineEventKind } from "@/lib/hrms/types";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/timeline")({
-  head: () => ({ meta: [{ title: "Employee Timeline — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Employee Timeline — ofc360" }] }),
   component: TimelinePage,
 });
 
@@ -91,9 +91,8 @@ function TimelinePage() {
             <button
               key={k}
               onClick={() => toggle(k)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
-                on ? "border-foreground/20 bg-accent text-foreground" : "border-border bg-card/40 text-muted-foreground"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${on ? "border-foreground/20 bg-accent text-foreground" : "border-border bg-card/40 text-muted-foreground"
+                }`}
             >
               <Icon className="h-3.5 w-3.5" />
               {label}

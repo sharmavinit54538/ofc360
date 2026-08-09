@@ -12,7 +12,7 @@ import {
   AlertTriangle,
   TrendingUp,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useHrms } from "@/lib/hrms/store";
@@ -30,7 +30,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/hr-ops")({
-  head: () => ({ meta: [{ title: "Operations — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Operations — ofc360" }] }),
   component: OperationsHubPage,
 });
 

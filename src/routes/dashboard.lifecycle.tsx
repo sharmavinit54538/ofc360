@@ -11,13 +11,13 @@ import {
   ShieldAlert,
   Users,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useHrms } from "@/lib/hrms/store";
 
 export const Route = createFileRoute("/dashboard/lifecycle")({
-  head: () => ({ meta: [{ title: "Employee Lifecycle — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Employee Lifecycle — ofc360" }] }),
   component: EmployeeLifecyclePage,
 });
 

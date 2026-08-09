@@ -11,7 +11,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/dashboard/ai-insights")({
   head: () => ({
     meta: [
-      { title: "AI Insights — Aurix" },
+      { title: "AI Insights — ofc360" },
       { name: "description", content: "AI-powered workforce intelligence and automation for your organization." },
     ],
   }),
@@ -99,13 +99,13 @@ const HIRING_DEMAND = [
 ];
 
 const PAYROLL_TREND = [
-  { m: "Mar", cost: 78 },{ m: "Apr", cost: 80 },{ m: "May", cost: 82 },
-  { m: "Jun", cost: 81 },{ m: "Jul", cost: 85 },{ m: "Aug", cost: 91 },
+  { m: "Mar", cost: 78 }, { m: "Apr", cost: 80 }, { m: "May", cost: 82 },
+  { m: "Jun", cost: 81 }, { m: "Jul", cost: 85 }, { m: "Aug", cost: 91 },
 ];
 
 const SATISFACTION_TREND = [
-  { m: "Mar", s: 74 },{ m: "Apr", s: 76 },{ m: "May", s: 79 },
-  { m: "Jun", s: 78 },{ m: "Jul", s: 81 },{ m: "Aug", s: 82 },
+  { m: "Mar", s: 74 }, { m: "Apr", s: 76 }, { m: "May", s: 79 },
+  { m: "Jun", s: 78 }, { m: "Jul", s: 81 }, { m: "Aug", s: 82 },
 ];
 
 const DOCUMENTS = [
@@ -505,7 +505,7 @@ function HeroBanner() {
             <Brain className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Aurix Intelligence</div>
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">ofc360 Intelligence</div>
             <div className="font-display text-lg font-semibold">12 new insights generated this week</div>
           </div>
         </div>
@@ -632,7 +632,7 @@ function BarChart3Like(props: any) {
 function AIChatPanel() {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([
-    { role: "ai", text: "Hi! I’m Aurix AI. Ask me about attrition, attendance, hiring or payroll." },
+    { role: "ai", text: "Hi! I’m ofc360 AI. Ask me about attrition, attendance, hiring or payroll." },
   ]);
 
   function send(value?: string) {
@@ -652,7 +652,7 @@ function AIChatPanel() {
           <div className="grid h-7 w-7 place-items-center rounded-lg text-brand-foreground" style={{ background: "var(--gradient-brand)" }}>
             <Brain className="h-3.5 w-3.5" />
           </div>
-          <div className="text-sm font-medium">Aurix AI Assistant</div>
+          <div className="text-sm font-medium">ofc360 AI Assistant</div>
         </div>
         <Badge variant="secondary" className="text-[10px]">Beta</Badge>
       </div>
@@ -676,7 +676,7 @@ function AIChatPanel() {
           ))}
         </div>
         <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex items-center gap-2">
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask Aurix AI anything..." className="h-9" />
+          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask ofc360 AI anything..." className="h-9" />
           <Button type="submit" size="sm"><Send className="h-4 w-4" /></Button>
         </form>
       </div>

@@ -1,12 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiInstance } from "@/api";
 import { tryApi } from "@/api/utils";
-import { aurix } from "@/lib/aurix-store";
+import { ofc360 } from "@/lib/ofc360-store";
 import { SEED_DEPARTMENTS } from "./constants";
 import type { Department } from "./types";
 
 function syncWithEmployees(departments: Department[]): Department[] {
-  const workspace = aurix.get();
+  const workspace = ofc360.get();
   if (workspace.employees.length === 0) return departments;
 
   return departments.map((d) => {
@@ -99,7 +99,7 @@ export const addEmployeeToDepartment = createAsyncThunk<
   { deptId: string; employeeId: string },
   { rejectValue: string }
 >("departments/addEmployeeToDepartment", async ({ deptId, employeeId }, { getState }) => {
-  const workspace = aurix.get();
+  const workspace = ofc360.get();
   const state = getState() as { departments: { departments: Department[] } };
   const dept = state.departments.departments.find((d) => d.id === deptId);
   const emp = workspace.employees.find((e) => e.id === employeeId);
@@ -110,7 +110,7 @@ export const addEmployeeToDepartment = createAsyncThunk<
         ? { ...e, department: dept.name, managerName: dept.departmentHeadName }
         : e,
     );
-    aurix.set({ employees: updatedEmployees });
+    ofc360.set({ employees: updatedEmployees });
   }
 
   await tryApi(
@@ -125,14 +125,14 @@ export const removeEmployeeFromDepartment = createAsyncThunk<
   { deptId: string; employeeId: string },
   { rejectValue: string }
 >("departments/removeEmployeeFromDepartment", async ({ deptId, employeeId }) => {
-  const workspace = aurix.get();
+  const workspace = ofc360.get();
   const emp = workspace.employees.find((e) => e.id === employeeId);
 
   if (emp) {
     const updatedEmployees = workspace.employees.map((e) =>
       e.id === employeeId ? { ...e, department: "", managerName: "" } : e,
     );
-    aurix.set({ employees: updatedEmployees });
+    ofc360.set({ employees: updatedEmployees });
   }
 
   await tryApi(
@@ -153,13 +153,13 @@ export const transferDepartmentEmployees = createAsyncThunk<
 
   if (fromDept && toDept) {
     const idsToTransfer = fromDept.employeeIds;
-    const workspace = aurix.get();
+    const workspace = ofc360.get();
     const updatedEmployees = workspace.employees.map((e) =>
       idsToTransfer.includes(e.id)
         ? { ...e, department: toDept.name, managerName: toDept.departmentHeadName }
         : e,
     );
-    aurix.set({ employees: updatedEmployees });
+    ofc360.set({ employees: updatedEmployees });
   }
 
   await tryApi(
@@ -174,13 +174,13 @@ export const promoteDepartmentEmployee = createAsyncThunk<
   { employeeId: string; newDesignation: string },
   { rejectValue: string }
 >("departments/promoteDepartmentEmployee", async ({ employeeId, newDesignation }) => {
-  const workspace = aurix.get();
+  const workspace = ofc360.get();
   const emp = workspace.employees.find((e) => e.id === employeeId);
   if (emp) {
     const updatedEmployees = workspace.employees.map((e) =>
       e.id === employeeId ? { ...e, designation: newDesignation } : e,
     );
-    aurix.set({ employees: updatedEmployees });
+    ofc360.set({ employees: updatedEmployees });
   }
 
   await tryApi(

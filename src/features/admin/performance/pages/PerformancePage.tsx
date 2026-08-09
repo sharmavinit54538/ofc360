@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,11 +69,11 @@ import { ImportDialog } from "../components/ImportDialog";
 import type { PerformanceReview, Goal, Reward, Feedback360, TrainingCourse } from "../types";
 import { REVIEW_STATUS_OPTIONS, DEFAULT_FILTERS } from "../constants";
 import { applyFilters, applySorting, paginate, buildCSV } from "../utils";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 export function PerformancePage() {
-  const ws = useAurix();
+  const ws = useofc360();
   const {
     reviews,
     goals,
@@ -298,7 +298,7 @@ export function PerformancePage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `aurix_performance_export_${Date.now()}.csv`);
+    link.setAttribute("download", `ofc360_performance_export_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -342,7 +342,7 @@ export function PerformancePage() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Performance Reviews Pool - Aurix HRMS</title>
+          <title>Performance Reviews Pool - ofc360 HRMS</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: #333; }
             h1 { font-size: 18px; margin-bottom: 5px; }
@@ -455,9 +455,8 @@ export function PerformancePage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className={`rounded-xl border-border/80 h-9 gap-1.5 text-xs font-medium cursor-pointer ${
-                    showAdvancedFilters ? "bg-muted text-foreground" : "bg-background/40 hover:bg-muted/40"
-                  }`}
+                  className={`rounded-xl border-border/80 h-9 gap-1.5 text-xs font-medium cursor-pointer ${showAdvancedFilters ? "bg-muted text-foreground" : "bg-background/40 hover:bg-muted/40"
+                    }`}
                 >
                   <Filter className="h-3.5 w-3.5" />
                   Filters
@@ -780,9 +779,8 @@ export function PerformancePage() {
                           variant={currentPage === pNum ? "default" : "outline"}
                           size="icon"
                           onClick={() => setCurrentPage(pNum)}
-                          className={`h-8 w-8 rounded-lg text-xs font-semibold cursor-pointer ${
-                            currentPage === pNum ? "bg-brand text-brand-foreground shadow-glow hover:bg-brand/90" : "border-border/80 bg-background/50 hover:bg-muted"
-                          }`}
+                          className={`h-8 w-8 rounded-lg text-xs font-semibold cursor-pointer ${currentPage === pNum ? "bg-brand text-brand-foreground shadow-glow hover:bg-brand/90" : "border-border/80 bg-background/50 hover:bg-muted"
+                            }`}
                         >
                           {pNum}
                         </Button>

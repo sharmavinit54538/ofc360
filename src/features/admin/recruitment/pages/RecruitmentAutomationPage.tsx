@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bot, Clock, Mail, Plus, Power, Trash2, UserCheck, Workflow, Zap } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ export function RecruitmentAutomationPage() {
               <Plus className="mr-1 h-4 w-4" />Add Rule
             </Button>
           </div>
-          
+
           {rules.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-2xl bg-card/40">
               <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-muted text-muted-foreground">

@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Briefcase, FileSearch, Trophy, GitCompareArrows, MessageSquare, ThumbsUp, Star, BarChart3,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/recruiter")({
-  head: () => ({ meta: [{ title: "AI Recruiter — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Recruiter — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "line", title: "Candidate Funnel", description: "Last 8 weeks",
           xKey: "w", series: [{ key: "applied", label: "Applied" }, { key: "shortlist", label: "Shortlist" }, { key: "offers", label: "Offers" }],
-          data: Array.from({length:8}, (_,i)=>({ w:`W${i+1}`, applied: 140+i*12, shortlist: 28+i*2, offers: 4+(i%3) })),
+          data: Array.from({ length: 8 }, (_, i) => ({ w: `W${i + 1}`, applied: 140 + i * 12, shortlist: 28 + i * 2, offers: 4 + (i % 3) })),
         },
         {
           type: "bar", title: "JD Match Distribution", xKey: "band",
           series: [{ key: "n", label: "Candidates" }],
-          data: [{band:"90–100",n:18},{band:"80–89",n:42},{band:"70–79",n:96},{band:"60–69",n:140},{band:"<60",n:312}],
+          data: [{ band: "90–100", n: 18 }, { band: "80–89", n: 42 }, { band: "70–79", n: 96 }, { band: "60–69", n: 140 }, { band: "<60", n: 312 }],
         },
       ]}
       features={[

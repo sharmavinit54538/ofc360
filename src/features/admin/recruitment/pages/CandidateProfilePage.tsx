@@ -5,7 +5,7 @@ import {
   Activity, ArrowLeft, Award, Briefcase, Calendar, CheckCircle2, Download, FileText, Globe2,
   GraduationCap, Mail, MapPin, MessageSquare, Phone, Send, Sparkles, Star, Tag, X,
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,8 +88,8 @@ export function CandidateProfilePage() {
 
   // Initialize form default values once candidate is loaded
   if (candidate && !emailSubject) {
-    setEmailSubject(`Aurix Job Application Update - ${candidate.appliedPosition}`);
-    setEmailBody(`Dear ${candidate.name},\n\nThank you for taking the time to apply for the ${candidate.appliedPosition} role at Aurix.\n\nWe have reviewed your application and would love to move you forward to the next stage of our recruitment process.\n\nBest regards,\nRecruitment Team\nAurix`);
+    setEmailSubject(`ofc360 Job Application Update - ${candidate.appliedPosition}`);
+    setEmailBody(`Dear ${candidate.name},\n\nThank you for taking the time to apply for the ${candidate.appliedPosition} role at ofc360.\n\nWe have reviewed your application and would love to move you forward to the next stage of our recruitment process.\n\nBest regards,\nRecruitment Team\nofc360`);
   }
 
   function move(s: Stage) {
@@ -245,9 +245,8 @@ export function CandidateProfilePage() {
                 <button
                   key={s}
                   onClick={() => move(s)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ring-1 transition-all ${
-                    candidate.stage === s ? "bg-foreground text-background ring-foreground" : "bg-card text-muted-foreground ring-border hover:bg-accent"
-                  }`}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ring-1 transition-all ${candidate.stage === s ? "bg-foreground text-background ring-foreground" : "bg-card text-muted-foreground ring-border hover:bg-accent"
+                    }`}
                 >{STAGE_LABEL[s]}</button>
               ))}
             </div>
@@ -466,7 +465,7 @@ export function CandidateProfilePage() {
               <div className="space-y-1">
                 <label className="text-xs font-medium">Offered Benefits Included</label>
                 <div className="text-xs space-y-1.5 pl-1 pt-1 text-muted-foreground">
-                  <div className="flex items-center gap-2">✓ Standard Aurix Health Insurance (Group Plan)</div>
+                  <div className="flex items-center gap-2">✓ Standard ofc360 Health Insurance (Group Plan)</div>
                   <div className="flex items-center gap-2">✓ Equity / Employee Stock Options (ESOPs)</div>
                   <div className="flex items-center gap-2">✓ Remote Home-Office Setup Allowance</div>
                 </div>

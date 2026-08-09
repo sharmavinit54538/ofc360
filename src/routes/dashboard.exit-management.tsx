@@ -6,7 +6,7 @@ import {
   FileSignature, ChevronRight, Check, X, AlertCircle, FileSpreadsheet, Star,
   PowerOff, Archive, Mail, Eye
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
-import { useAurix } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import type { ExitCase, ExitStage, ExitAssetReturn, ExitDepartmentClearance, ExitSettlementDetails, ExitInterviewDetails, ExitTimelineEvent } from "@/lib/hrms/types";
 import { toast } from "sonner";
 import {
@@ -32,7 +32,7 @@ import {
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/exit-management")({
-  head: () => ({ meta: [{ title: "Exit Management — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Exit Management — ofc360" }] }),
   component: ExitManagementPage,
 });
 
@@ -87,7 +87,7 @@ const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 // ----------------------------------------------------
 function ExitManagementPage() {
   const exits = useHrms((s) => s.exits);
-  const authWs = useAurix(); // Fetch active employees and HR profiles
+  const authWs = useofc360(); // Fetch active employees and HR profiles
 
   // Filters & Page Navigation
   const [q, setQ] = useState("");
@@ -188,7 +188,7 @@ function ExitManagementPage() {
         // Populate standard mock assets for clearance simulation
         { id: newId("ret"), assetId: "a1", assetName: "MacBook Pro 14 M3", category: "laptop", serial: "C02XJ1", status: "pending" },
         { id: newId("ret"), assetId: "a3", assetName: "LG UltraFine 27", category: "monitor", serial: "LG2701", status: "pending" },
-        { id: newId("ret"), assetId: "a10", assetName: "Aurix access ID Card", category: "accessory", serial: "AC-19401", status: "pending" }
+        { id: newId("ret"), assetId: "a10", assetName: "ofc360 access ID Card", category: "accessory", serial: "AC-19401", status: "pending" }
       ],
       clearanceWorkflow: [
         { department: "HR", status: "pending" },
@@ -557,11 +557,11 @@ function ExitManagementPage() {
   };
 
   const handlePreviewLetter = (exit: ExitCase, docName: string) => {
-    let text = `AURIX TALENT LABS
+    let text = `ofc360 TALENT LABS
 To whom it may concern,
 
 This is to certify that ${exit.employee} (Employee ID: ${exit.employeeId || "AUR-1048"})
-was employed with Aurix Talent Labs from ${exit.joiningDate || "2024-01-01"} to ${exit.lastWorkingDay}.
+was employed with ofc360 Talent Labs from ${exit.joiningDate || "2024-01-01"} to ${exit.lastWorkingDay}.
 During their tenure, they held the designation of ${exit.designation || exit.role} under Platform Engineering department.
 
 We verify that all clearances have been successfully compiled.
@@ -571,7 +571,7 @@ Priya Nair
 Head of People Operations`;
 
     if (docName.includes("Settlement")) {
-      text = `AURIX TALENT LABS — FINAL SETTLEMENT SHEET
+      text = `ofc360 TALENT LABS — FINAL SETTLEMENT SHEET
 Employee: ${exit.employee}
 Designation: ${exit.designation}
 
@@ -661,7 +661,7 @@ Finance Operations Partner`;
     const total = exits.length;
     const approvals = exits.filter(e => e.stage === "requested" || e.stage === "under-review").length;
     const notice = exits.filter(e => e.stage === "notice" || e.stage === "clearance").length;
-    
+
     // Check clearance pending
     const clearance = exits.filter(e => {
       if (e.stage !== "clearance") return false;
@@ -851,11 +851,10 @@ Finance Operations Partner`;
                       <button
                         key={tab.id}
                         onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer ${
-                          activeFilter === tab.id
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer ${activeFilter === tab.id
                             ? "bg-foreground text-background border-foreground"
                             : "bg-background/40 border-border hover:bg-accent/60 text-muted-foreground"
-                        }`}
+                          }`}
                       >
                         {tab.label}
                       </button>
@@ -918,7 +917,7 @@ Finance Operations Partner`;
                               <TableCell className="px-4 py-3">
                                 <div className="flex items-center gap-2.5">
                                   <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-accent-foreground font-bold text-xs">
-                                    {exit.employee.split(" ").map(n => n[0]).slice(0,2).join("")}
+                                    {exit.employee.split(" ").map(n => n[0]).slice(0, 2).join("")}
                                   </span>
                                   <div className="font-semibold text-foreground truncate max-w-[150px]">{exit.employee}</div>
                                 </div>
@@ -1064,13 +1063,12 @@ Finance Operations Partner`;
                     alertsList.map(alert => (
                       <div
                         key={alert.id}
-                        className={`flex gap-2.5 rounded-lg border p-2.5 text-xs transition-colors ${
-                          alert.type === "error"
+                        className={`flex gap-2.5 rounded-lg border p-2.5 text-xs transition-colors ${alert.type === "error"
                             ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
                             : alert.type === "warning"
-                            ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                            : "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
-                        }`}
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+                              : "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
+                          }`}
                       >
                         <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                         <div className="flex-1">
@@ -1731,7 +1729,7 @@ Finance Operations Partner`;
                   {/* INTERVIEW TAB */}
                   <TabsContent value="interview" className="space-y-4 mt-0 text-left">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Exit Interview Feedback Report</h4>
-                    
+
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Reason for departure</Label>
                       <Input value={intReason} onChange={e => setIntReason(e.target.value)} className="bg-background/50 border-border text-xs h-8" />
@@ -1760,7 +1758,7 @@ Finance Operations Partner`;
 
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Suggestions for Improvement</Label>
-                      <Textarea value={intSuggestions} onChange={e => setIntSuggestions(e.target.value)} placeholder="How can Aurix HR retain talent better?" className="min-h-[50px] bg-background/50 border-border text-xs" />
+                      <Textarea value={intSuggestions} onChange={e => setIntSuggestions(e.target.value)} placeholder="How can ofc360 HR retain talent better?" className="min-h-[50px] bg-background/50 border-border text-xs" />
                     </div>
 
                     <div className="pt-2 flex justify-end">

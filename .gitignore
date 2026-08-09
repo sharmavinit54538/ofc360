@@ -18,7 +18,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
-.git-aurix-ai-for-backup/
+.git-ofc360-ai-for-backup/
 README.ofc360-backup.md
 
 # Wrangler / Cloudflare

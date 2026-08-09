@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ClipboardCheck, Plus, Trash2 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -79,9 +79,8 @@ export function ScorecardsPage() {
               <button
                 key={s.id}
                 onClick={() => setActive(s.id)}
-                className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all backdrop-blur-xl ${
-                  current && current.id === s.id ? "border-foreground/40 bg-accent/40" : "border-border bg-card/60 hover:bg-accent/30"
-                }`}
+                className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all backdrop-blur-xl ${current && current.id === s.id ? "border-foreground/40 bg-accent/40" : "border-border bg-card/60 hover:bg-accent/30"
+                  }`}
               >
                 <ClipboardCheck className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0 flex-1">

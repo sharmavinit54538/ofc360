@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, UserCheck, ClipboardCheck } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { GlassCard, Progress, StatCard } from "@/components/hrms/Shared";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
 import type { OnboardingCase } from "@/lib/hrms/types";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/onboarding-checklist")({
-  head: () => ({ meta: [{ title: "Onboarding Checklist — Aurix" }] }),
+  head: () => ({ meta: [{ title: "Onboarding Checklist — ofc360" }] }),
   component: OnboardingPage,
 });
 

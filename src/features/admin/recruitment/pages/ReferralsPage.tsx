@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { Award, Gift, TrendingUp, Users } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CandidateAvatar } from "@/features/admin/recruitment/components/Bits";
@@ -103,7 +103,7 @@ export function ReferralsPage() {
         reward_status: rewardStatus.toUpperCase(),
       });
       toast.success("Referral status updated successfully!");
-      
+
       // Reload referrals list
       const response = await apiInstance.get("/referrals?limit=100");
       setReferralList(response.data?.data?.items || []);
@@ -136,7 +136,7 @@ export function ReferralsPage() {
         jobId: "",
         bonus: "3000",
       });
-      
+
       // Reload referrals list
       const response = await apiInstance.get("/referrals?limit=100");
       setReferralList(response.data?.data?.items || []);

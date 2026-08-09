@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, Clock, FileCheck2, Send, X } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
@@ -27,9 +27,8 @@ export function OffersPage() {
             <button
               key={o.id}
               onClick={() => setSelected(o.id)}
-              className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all ${
-                active?.id === o.id ? "border-foreground/40 bg-accent/40" : "border-border bg-card/60 hover:bg-accent/30"
-              } backdrop-blur-xl`}
+              className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all ${active?.id === o.id ? "border-foreground/40 bg-accent/40" : "border-border bg-card/60 hover:bg-accent/30"
+                } backdrop-blur-xl`}
             >
               <CandidateAvatar name={o.candidateName} size={36} />
               <div className="min-w-0 flex-1">
@@ -68,9 +67,8 @@ export function OffersPage() {
               <ol className="relative space-y-4 border-l border-border pl-5">
                 {active.approvals.map((a, i) => (
                   <li key={i} className="relative">
-                    <span className={`absolute -left-[27px] top-1 grid h-4 w-4 place-items-center rounded-full ${
-                      a.status === "approved" ? "bg-emerald-500 text-white" : a.status === "rejected" ? "bg-rose-500 text-white" : "bg-muted text-muted-foreground"
-                    }`}>
+                    <span className={`absolute -left-[27px] top-1 grid h-4 w-4 place-items-center rounded-full ${a.status === "approved" ? "bg-emerald-500 text-white" : a.status === "rejected" ? "bg-rose-500 text-white" : "bg-muted text-muted-foreground"
+                      }`}>
                       {a.status === "approved" ? <Check className="h-2.5 w-2.5" /> : a.status === "rejected" ? <X className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
                     </span>
                     <div className="text-sm font-medium">{a.stage}</div>

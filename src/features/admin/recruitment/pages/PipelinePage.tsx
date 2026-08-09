@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from "react";
 import { LayoutGrid, Filter, Search } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { KanbanCard } from "@/features/admin/recruitment/components/Bits";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
 import { STAGES, STAGE_LABEL, type Stage } from "@/features/admin/recruitment/types";
@@ -63,7 +63,7 @@ export function PipelinePage() {
             className="h-9 pl-9 bg-card/40"
           />
         </div>
-        
+
         <div className="inline-flex items-center gap-2 rounded-md border border-border bg-card/60 px-3 py-1">
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Job Requisition:</span>
@@ -93,9 +93,8 @@ export function PipelinePage() {
                 onDragOver={(e) => { e.preventDefault(); setOver(s); }}
                 onDragLeave={() => setOver((cur) => (cur === s ? null : cur))}
                 onDrop={(e) => onDrop(e, s)}
-                className={`flex w-[280px] shrink-0 flex-col rounded-2xl border bg-card/40 p-3 backdrop-blur-xl transition-colors ${
-                  isOver ? "border-foreground/40 bg-accent/40" : "border-border"
-                }`}
+                className={`flex w-[280px] shrink-0 flex-col rounded-2xl border bg-card/40 p-3 backdrop-blur-xl transition-colors ${isOver ? "border-foreground/40 bg-accent/40" : "border-border"
+                  }`}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">

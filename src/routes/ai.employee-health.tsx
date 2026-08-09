@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   HeartPulse, Flame, Activity, AlertTriangle, Timer, Smile,
 } from "lucide-react";
-import { AIModulePage } from "@/components/aurix/AIModule";
+import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/employee-health")({
-  head: () => ({ meta: [{ title: "AI Employee Health — Aurix" }] }),
+  head: () => ({ meta: [{ title: "AI Employee Health — ofc360" }] }),
   component: Page,
 });
 
@@ -27,12 +27,12 @@ function Page() {
         {
           type: "area", title: "Burnout Risk Trend", xKey: "w",
           series: [{ key: "risk", label: "Risk index" }],
-          data: Array.from({length:8},(_,i)=>({w:`W${i+1}`, risk: 22-(i%4)+((i*3)%5)})),
+          data: Array.from({ length: 8 }, (_, i) => ({ w: `W${i + 1}`, risk: 22 - (i % 4) + ((i * 3) % 5) })),
         },
         {
           type: "bar", title: "Overtime by Team (hrs)", xKey: "t",
           series: [{ key: "ot", label: "OT hrs" }],
-          data: [{t:"Eng",ot:88},{t:"Support",ot:54},{t:"Ops",ot:42},{t:"Sales",ot:26}],
+          data: [{ t: "Eng", ot: 88 }, { t: "Support", ot: 54 }, { t: "Ops", ot: 42 }, { t: "Sales", ot: 26 }],
         },
       ]}
       features={[
