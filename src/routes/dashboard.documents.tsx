@@ -5,7 +5,7 @@ import {
   FileText, Shield, Trash2, Eye, FileSpreadsheet, RefreshCw, Info, Calendar,
   ShieldCheck, User, AlertCircle, Loader2
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ofc360, uid, useofc360, type HRDocument, type HRDocumentActivity, type Employee } from "@/lib/aurix-store";
+import { ofc360, uid, useofc360, type HRDocument, type HRDocumentActivity, type Employee } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 import { api } from "@/api/client";
 import apiInstance, { BASE_URL } from "@/api/apiInstance";

@@ -182,9 +182,6 @@ export function useofc360(): Workspace {
   );
 }
 
-export const aurix = ofc360;
-export const useAurix = useofc360;
-
 export function useMounted() {
   const [m, setM] = useState(false);
   useEffect(() => setM(true), []);

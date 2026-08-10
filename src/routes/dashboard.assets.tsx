@@ -6,7 +6,7 @@ import {
   User, Building2, MapPin, Tag, ShieldCheck, DollarSign, ExternalLink, QrCode as QrIcon,
   AlertCircle
 } from "lucide-react";
-import { PageHeader } from "@/components/aurix/DashboardShell";
+import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { hrms, newId, useHrms } from "@/lib/hrms/store";
-import { useofc360 } from "@/lib/aurix-store";
+import { useofc360 } from "@/lib/ofc360-store";
 import type { Asset, AssetCategory, AssetStatus, AssetAssignmentHistory, AssetMaintenanceRecord, AssetTimelineEvent } from "@/lib/hrms/types";
 import { QrTile } from "@/components/hrms/Shared";
 import { toast } from "sonner";

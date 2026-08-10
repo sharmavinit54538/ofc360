@@ -28,7 +28,7 @@ const aboutJsonLd = {
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: buildMeta({
-      title: "About OFC360 — Company & Ownership Info",
+      title: "OFC360 | About Us — Company & Ownership Info",
       description:
         "OFC360 is owned by Banoth Siddharth and Vinit Sharma. Learn about EquinoxSphere Technologies and the vision powering the OFC360 AI-powered HRMS platform.",
       url: "/about",

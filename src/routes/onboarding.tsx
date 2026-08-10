@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Stepper } from "@/components/aurix/Stepper";
-import { ofc360, useofc360, uid } from "@/lib/aurix-store";
+import { Stepper } from "@/components/ofc360/Stepper";
+import { ofc360, useofc360, uid } from "@/lib/ofc360-store";
 import { api, setTokens, apiInstance } from "@/api";
 import { toast } from "sonner";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";

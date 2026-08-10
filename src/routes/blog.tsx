@@ -4,7 +4,7 @@ import { buildMeta, buildCanonical } from "@/lib/seo";
 export const Route = createFileRoute("/blog")({
   head: () => ({
     meta: buildMeta({
-      title: "Blog — OFC360",
+      title: "OFC360 | Blog — Insights on HR, AI & Future of Work",
       description: "Stories, product updates, and ideas from the OFC360 team.",
       url: "/blog",
     }),

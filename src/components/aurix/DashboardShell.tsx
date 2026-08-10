@@ -14,7 +14,7 @@ import {
   Repeat, Wrench, TrendingDown, BrainCircuit, Fingerprint, Coffee, HeartHandshake, GraduationCap,
   BookMarked, PenLine, FileEdit, Landmark, Coins, Building, Hash,
 } from "lucide-react";
-import { ofc360, useofc360, type Role } from "@/lib/aurix-store";
+import { ofc360, useofc360, type Role } from "@/lib/ofc360-store";
 import { useAuthReady } from "@/lib/auth-bootstrap";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { hasValidAccessToken, setTokens } from "@/api";

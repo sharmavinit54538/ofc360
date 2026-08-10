@@ -11,7 +11,7 @@ import { buildMeta, buildCanonical } from "@/lib/seo";
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: buildMeta({
-      title: "Features — OFC360 AI-Powered HRMS",
+      title: "OFC360 | Features — AI-Powered HRMS Capabilities",
       description:
         "Explore OFC360 features — recruitment AI, attendance, payroll, performance management, analytics, integrations, and 70+ AI agents.",
       url: "/features",

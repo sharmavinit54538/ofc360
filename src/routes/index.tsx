@@ -39,9 +39,9 @@ const homeJsonLd = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: buildMeta({
-      title: "OFC360 — AI-Powered HRMS Platform",
+      title: "OFC360 | AI-Powered HRMS for Modern Businesses",
       description:
-        "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
+        "OFC360 is an AI-powered HRMS that brings recruitment, attendance, payroll, performance, employee management, and intelligent HR automation together in one modern platform.",
       url: "/",
     }),
     links: buildCanonical("/"),

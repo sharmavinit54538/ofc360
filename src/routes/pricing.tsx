@@ -12,7 +12,7 @@ import { buildMeta, buildCanonical } from "@/lib/seo";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: buildMeta({
-      title: "Pricing — OFC360 HRMS Plans",
+      title: "OFC360 | HRMS Pricing & Plans",
       description:
         "Simple, transparent pricing for OFC360 HRMS. Choose the plan that fits your team. Start with a free trial.",
       url: "/pricing",

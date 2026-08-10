@@ -29,7 +29,7 @@ const faqJsonLd = {
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: buildMeta({
-      title: "FAQ — OFC360 HRMS Platform",
+      title: "OFC360 | FAQ — Frequently Asked Questions",
       description:
         "Answers to common questions about OFC360 — product, pricing, security, integrations, and company ownership.",
       url: "/faq",
