@@ -113,8 +113,8 @@ function EmployeeDocumentsPage() {
   // Current employee ID lookup
   const currentEmpId = useMemo(() => {
     return (
-      ws.user?.employee_id ||
-      ws.user?.employeeId ||
+      (ws.user as any)?.employee_id ||
+      (ws.user as any)?.employeeId ||
       ws.employees?.find((e: any) => e.userId === ws.user?.id || e.email === ws.user?.email)?.id ||
       null
     );

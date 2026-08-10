@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Ar as Building2, C as TrendingUp, Mr as Brain, Yr as Activity, an as HeartPulse, g as UserMinus, n as Zap, u as Users, z as Sparkles } from "../_libs/lucide-react.mjs";
+import { C as TrendingUp, L as Sparkles, Sr as Building2, Vr as Activity, en as HeartPulse, g as UserMinus, n as Zap, u as Users, wr as Brain } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.workforce-insights-De6S8Y9t.js
 var import_jsx_runtime = require_jsx_runtime();

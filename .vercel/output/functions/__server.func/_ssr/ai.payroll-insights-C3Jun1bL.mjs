@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { C as TrendingUp, G as ShieldAlert, Or as Calculator, Q as Scale, Rr as Banknote, S as TriangleAlert, an as HeartPulse } from "../_libs/lucide-react.mjs";
+import { Ar as Banknote, C as TrendingUp, H as ShieldAlert, S as TriangleAlert, X as Scale, br as Calculator, en as HeartPulse } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.payroll-insights-C3Jun1bL.js
 var import_jsx_runtime = require_jsx_runtime();

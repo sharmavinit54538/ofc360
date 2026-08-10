@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CreditCard, Check, Sparkles, ShieldCheck, Zap, ArrowRight, Receipt, CheckCircle2 } from "lucide-react";
+import { CreditCard, Check, Sparkles, ShieldCheck, Zap, ArrowRight, Receipt, CheckCircle2, ShieldAlert } from "lucide-react";
 import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { processRazorpayCheckout } from "@/services/razorpayService";
 import { ofc360, useofc360 } from "@/lib/ofc360-store";
@@ -72,6 +72,22 @@ const plans: Plan[] = [
 
 function BillingPage() {
   const ws = useofc360();
+  const userRole = (ws.user?.role as string)?.toLowerCase();
+
+  if (userRole === "employee") {
+    return (
+      <div className="p-8 max-w-lg mx-auto text-center space-y-4 my-12 bg-card/60 border border-border/60 rounded-2xl backdrop-blur-xl">
+        <div className="mx-auto w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
+          <ShieldAlert className="h-6 w-6" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Access Restricted</h2>
+        <p className="text-sm text-muted-foreground">
+          You do not have permission to view workspace billing or subscription settings. Please contact your organization administrator.
+        </p>
+      </div>
+    );
+  }
+
   const user = ws.user;
   const company = ws.company;
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");

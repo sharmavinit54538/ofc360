@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { n as DefaultChatTransport, o as require_react, t as useChat } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Cn as FileText, Ft as Mail, Ir as BookOpen, J as Send, L as Square, M as Target, Mr as Brain, Rr as Banknote, S as TriangleAlert, Un as Crown, W as ShieldCheck, a as Workflow, br as ChartColumn, dr as ChevronRight, et as RotateCcw, f as User, hn as Gauge, i as Wrench, jr as Briefcase, l as Video, or as CircleCheck, pr as ChevronDown, qt as Library, u as Users, z as Sparkles, zt as LoaderCircle } from "../_libs/lucide-react.mjs";
+import { A as Target, Ar as Banknote, At as Mail, Cr as Briefcase, F as Square, Fn as Crown, Ht as Library, K as Send, L as Sparkles, Or as BookOpen, Pt as LoaderCircle, Q as RotateCcw, Qn as CircleCheck, S as TriangleAlert, V as ShieldCheck, _n as FileText, a as Workflow, ar as ChevronDown, f as User, fr as ChartColumn, i as Wrench, l as Video, ln as Gauge, rr as ChevronRight, u as Users, wr as Brain } from "../_libs/lucide-react.mjs";
 import { t as Button } from "./button-OuFjfcpS.mjs";
 import { t as Badge } from "./badge-D1Dupn2y.mjs";
 import { t as Textarea } from "./textarea-1llmCJsE.mjs";

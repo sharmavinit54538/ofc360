@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Ar as Building2, C as TrendingUp, M as Target, Yr as Activity, m as UserPlus, z as Sparkles } from "../_libs/lucide-react.mjs";
+import { A as Target, C as TrendingUp, L as Sparkles, Sr as Building2, Vr as Activity, m as UserPlus } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.workforce-planning-CVMjTCLo.js
 var import_jsx_runtime = require_jsx_runtime();

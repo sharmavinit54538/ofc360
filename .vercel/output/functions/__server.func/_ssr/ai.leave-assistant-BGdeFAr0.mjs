@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { C as TrendingUp, Cn as FileText, S as TriangleAlert, or as CircleCheck, u as Users, wr as CalendarRange } from "../_libs/lucide-react.mjs";
+import { C as TrendingUp, Qn as CircleCheck, S as TriangleAlert, _n as FileText, gr as CalendarRange, u as Users } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.leave-assistant-BGdeFAr0.js
 var import_jsx_runtime = require_jsx_runtime();

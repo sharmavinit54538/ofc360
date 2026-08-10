@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Cr as CalendarX, G as ShieldAlert, O as Timer, S as TriangleAlert, Xn as Clock, or as CircleCheck, p as UserX } from "../_libs/lucide-react.mjs";
+import { D as Timer, H as ShieldAlert, Qn as CircleCheck, S as TriangleAlert, Un as Clock, hr as CalendarX, p as UserX } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.attendance-monitor-BIWmeQpu.js
 var import_jsx_runtime = require_jsx_runtime();

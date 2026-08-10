@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Wr as ArrowRight } from "../_libs/lucide-react.mjs";
+import { Ir as ArrowRight } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Section } from "./Section-B-h92JZf.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/CTA-D43BfVU-.js

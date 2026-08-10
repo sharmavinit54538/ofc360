@@ -23,7 +23,7 @@ import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useofc360 } from "@/lib/ofc360-store";
-import { EmployeePayslipsPage } from "./dashboard.payroll.payslips";
+import { EmployeePayslipsPage } from "@/components/payroll/EmployeePayslips";
 
 export const Route = createFileRoute("/dashboard/payroll/")({
   head: () => ({ meta: [{ title: "Payroll Hub — ofc360" }] }),

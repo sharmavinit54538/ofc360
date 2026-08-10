@@ -14,6 +14,7 @@ import {
   Sliders,
   ChevronDown,
   Info,
+  ShieldAlert,
 } from "lucide-react";
 import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useofc360 } from "@/lib/ofc360-store";
 
 export const Route = createFileRoute("/dashboard/roles")({
   head: () => ({ meta: [{ title: "Roles & Permissions — ofc360" }] }),
@@ -133,6 +135,23 @@ const INITIAL_ROLES: RoleDefinition[] = [
 ];
 
 function RolesPage() {
+  const ws = useofc360();
+  const userRole = (ws.user?.role as string)?.toLowerCase();
+
+  if (userRole === "employee") {
+    return (
+      <div className="p-8 max-w-lg mx-auto text-center space-y-4 my-12 bg-card/60 border border-border/60 rounded-2xl backdrop-blur-xl">
+        <div className="mx-auto w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
+          <ShieldAlert className="h-6 w-6" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Access Restricted</h2>
+        <p className="text-sm text-muted-foreground">
+          You do not have permission to view or manage role configurations. Please contact your organization administrator.
+        </p>
+      </div>
+    );
+  }
+
   const [roles, setRoles] = useState<RoleDefinition[]>(INITIAL_ROLES);
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
 

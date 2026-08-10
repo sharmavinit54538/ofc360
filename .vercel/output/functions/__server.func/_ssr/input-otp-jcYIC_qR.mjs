@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { t as cn } from "./utils-C_uf36nf.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Et as Minus } from "../_libs/lucide-react.mjs";
+import { Ct as Minus } from "../_libs/lucide-react.mjs";
 import { n as jt, t as Lt } from "../_libs/input-otp.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/input-otp-jcYIC_qR.js
 var import_react = /* @__PURE__ */ __toESM(require_react());

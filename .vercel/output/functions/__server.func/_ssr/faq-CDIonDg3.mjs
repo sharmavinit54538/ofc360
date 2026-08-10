@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { t as cn } from "./utils-C_uf36nf.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Y as Search } from "../_libs/lucide-react.mjs";
+import { q as Search } from "../_libs/lucide-react.mjs";
 import { n as SectionHeader, r as SiteLayout, t as Section } from "./Section-B-h92JZf.mjs";
 import { t as CTA } from "./CTA-D43BfVU-.mjs";
 import { i as AccordionTrigger, n as AccordionContent, r as AccordionItem, t as Accordion } from "./accordion-DoiBdWvY.mjs";

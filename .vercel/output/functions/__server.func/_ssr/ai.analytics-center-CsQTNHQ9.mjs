@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Mr as Brain, Rr as Banknote, br as ChartColumn, hn as Gauge, jr as Briefcase, yr as ChartLine, z as Sparkles } from "../_libs/lucide-react.mjs";
+import { Ar as Banknote, Cr as Briefcase, L as Sparkles, dr as ChartLine, fr as ChartColumn, ln as Gauge, wr as Brain } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.analytics-center-CsQTNHQ9.js
 var import_jsx_runtime = require_jsx_runtime();

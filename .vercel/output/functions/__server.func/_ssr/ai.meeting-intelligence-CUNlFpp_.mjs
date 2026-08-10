@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Ht as ListChecks, Ot as MessageSquare, Qn as ClipboardList, l as Video, u as Users, z as Sparkles } from "../_libs/lucide-react.mjs";
+import { L as Sparkles, Lt as ListChecks, Tt as MessageSquare, Wn as ClipboardList, l as Video, u as Users } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C20JwVPa.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.meeting-intelligence-CUNlFpp_.js
 var import_jsx_runtime = require_jsx_runtime();

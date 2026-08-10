@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Kr as ArrowLeft, Ot as MessageSquare } from "../_libs/lucide-react.mjs";
+import { Rr as ArrowLeft, Tt as MessageSquare } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as SiteLayout, t as Section } from "./Section-B-h92JZf.mjs";
 import { t as CTA } from "./CTA-D43BfVU-.mjs";
