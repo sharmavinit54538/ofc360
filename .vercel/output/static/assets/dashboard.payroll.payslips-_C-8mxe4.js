@@ -1,1 +1,0 @@
-import{t as e}from"./EmployeePayslips-B4Hr4qsE.js";var t=e;export{t as component};
