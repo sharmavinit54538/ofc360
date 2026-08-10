@@ -10,7 +10,8 @@
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       },
-      "src": "/assets/(.*)"
+      "src": "/assets/(.*)",
+      "continue": true
     },
     {
       "handle": "filesystem"
