@@ -1,0 +1,1 @@
+import{n as e}from"./DashboardShell-SNa_p9Tv.js";var t=e;export{t as component};

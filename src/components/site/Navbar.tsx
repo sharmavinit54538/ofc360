@@ -74,16 +74,27 @@ export function Navbar() {
               Get started
             </Link>
             <button
-              onClick={toggle}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle();
+              }}
               aria-label="Toggle theme"
-              className="h-9 w-9 grid place-items-center rounded-lg hover:bg-secondary transition-colors"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="relative z-10 h-9 w-9 grid place-items-center rounded-lg hover:bg-secondary text-foreground transition-colors cursor-pointer select-none pointer-events-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 text-foreground transition-transform duration-200" />
+              ) : (
+                <Moon className="h-4 w-4 text-foreground transition-transform duration-200" />
+              )}
             </button>
             <button
+              type="button"
               onClick={() => setOpen(!open)}
               aria-label="Toggle menu"
-              className="lg:hidden h-9 w-9 grid place-items-center rounded-lg hover:bg-secondary transition-colors"
+              className="lg:hidden h-9 w-9 grid place-items-center rounded-lg hover:bg-secondary text-foreground transition-colors cursor-pointer"
             >
               {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -92,20 +103,43 @@ export function Navbar() {
 
         {open && (
           <div className="lg:hidden mt-2 glass rounded-2xl p-3 animate-fade-up">
-            <nav className="flex flex-col" aria-label="Mobile navigation">
+            <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
               {links.map((l) => (
                 <Link
                   key={l.to}
                   to={l.to}
                   activeOptions={{ exact: l.to === "/" }}
                   onClick={() => setOpen(false)}
-                  className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                  activeProps={{ className: "text-foreground bg-secondary" }}
+                  className="px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                  activeProps={{ className: "text-foreground bg-secondary font-medium" }}
                 >
                   {l.label}
                 </Link>
               ))}
             </nav>
+            <div className="flex items-center justify-between px-4 py-2.5 mt-2 border-t border-border/40 pt-3">
+              <span className="text-xs font-medium text-muted-foreground">Theme</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggle();
+                }}
+                aria-label="Toggle theme"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary text-foreground hover:bg-accent transition-colors cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="h-3.5 w-3.5" /> Light Mode
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-3.5 w-3.5" /> Dark Mode
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>

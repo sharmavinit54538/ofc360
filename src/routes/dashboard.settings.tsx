@@ -34,6 +34,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ofc360, useofc360 } from "@/lib/ofc360-store";
 import { toast } from "sonner";
+import { useTheme } from "@/components/site/ThemeProvider";
 import { api } from "@/api/client";
 import apiInstance from "@/api/apiInstance";
 
@@ -89,8 +90,8 @@ function EmployeeSettingsPage() {
   });
   const [isSavingNotifs, setIsSavingNotifs] = useState(false);
 
-  // Appearance State
-  const [themeMode, setThemeMode] = useState<"dark" | "light" | "system">("dark");
+  // Appearance State (Global Theme Provider)
+  const { themeMode, setThemeMode } = useTheme();
 
   // Load real user profile and notification preferences
   useEffect(() => {

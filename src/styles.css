@@ -144,6 +144,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator {
