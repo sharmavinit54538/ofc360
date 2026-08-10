@@ -1,1 +1,0 @@
-import{d as e,l as t,t as n}from"./generateCategoricalChart-DczEruTW.js";import{n as r,t as i}from"./YAxis-CXEv_Pv5.js";var a=n({chartName:`BarChart`,GraphicalChild:e,defaultTooltipEventType:`axis`,validateTooltipEventTypes:[`axis`,`item`],axisComponents:[{axisType:`xAxis`,AxisComp:r},{axisType:`yAxis`,AxisComp:i}],formatAxisMap:t});export{a as t};
