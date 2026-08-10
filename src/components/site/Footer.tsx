@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Twitter, Github, Linkedin } from "lucide-react";
+import { Twitter, Github, Linkedin, Instagram } from "lucide-react";
+
+const socialLinks = [
+  { icon: Instagram, href: "https://www.instagram.com/ofc360ai/", label: "Instagram" },
+  { icon: Linkedin, href: "https://www.linkedin.com/company/ofc360/?viewAsMember=true", label: "LinkedIn" },
+  { icon: Twitter, href: "https://x.com", label: "Twitter" },
+  { icon: Github, href: "https://github.com", label: "GitHub" },
+];
 
 const cols = [
   {
@@ -42,11 +49,21 @@ export function Footer() {
               AI-powered HRMS platform for modern organizations. Built by EquinoxSphere Technologies.
             </p>
             <div className="flex gap-2 mt-6">
-              {[Twitter, Github, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="h-9 w-9 grid place-items-center rounded-lg border border-border hover:bg-secondary transition-colors">
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
+              {socialLinks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    className="h-9 w-9 grid place-items-center rounded-lg border border-border hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
