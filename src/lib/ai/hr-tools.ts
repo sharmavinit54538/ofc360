@@ -39,6 +39,7 @@ const DEMO_EMPLOYEES: DemoEmployee[] = [
 ];
 
 const DEMO_POLICIES = [
+  { id: "POL-OWN-001", title: "Company Ownership & Identity", section: "1.1 Ownership", content: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
   { id: "POL-LEAVE-001", title: "Leave Policy", section: "3.2 Casual Leave", content: "Each full-time employee accrues 12 casual leave days per calendar year, credited monthly. Unused casual leave does not carry over." },
   { id: "POL-LEAVE-002", title: "Leave Policy", section: "3.5 Paternity Leave", content: "Eligible employees are entitled to 15 working days of paid paternity leave, to be availed within 6 months of the child's birth." },
   { id: "POL-LEAVE-003", title: "Leave Policy", section: "3.4 Maternity Leave", content: "26 weeks of paid maternity leave as per the Maternity Benefit Act, 2017, with optional work-from-home for up to 12 weeks after returning." },

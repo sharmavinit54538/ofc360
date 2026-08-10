@@ -10,15 +10,36 @@ import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
 import { buildMeta, buildCanonical } from "@/lib/seo";
 
+const aboutJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  mainEntity: {
+    "@type": "Organization",
+    name: "OFC360",
+    legalName: "EquinoxSphere Technologies",
+    description: "OFC360 is owned by Banoth Siddharth and Vinit Sharma.",
+    founder: [
+      { "@type": "Person", name: "Banoth Siddharth" },
+      { "@type": "Person", name: "Vinit Sharma" },
+    ],
+  },
+};
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: buildMeta({
-      title: "About OFC360 — EquinoxSphere Technologies",
+      title: "About OFC360 — Company & Ownership Info",
       description:
-        "Learn about EquinoxSphere Technologies and the team building OFC360 — the AI-powered HRMS platform for modern organizations.",
+        "OFC360 is owned by Banoth Siddharth and Vinit Sharma. Learn about EquinoxSphere Technologies and the vision powering the OFC360 AI-powered HRMS platform.",
       url: "/about",
     }),
     links: buildCanonical("/about"),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(aboutJsonLd),
+      },
+    ],
   }),
   component: AboutPage,
 });
@@ -89,15 +110,15 @@ const values = [
 const teamMembers = [
   {
     id: 1,
-    name: "Engineering & AI Team",
-    role: "Core Platform Development",
-    bio: "Focused on building high-performance HR automation, AI copilot agents, and secure enterprise infrastructure.",
+    name: "Banoth Siddharth",
+    role: "Co-Owner & Founder",
+    bio: "Co-owner and founder of OFC360, driving overall platform vision, enterprise architecture, and AI automation strategy.",
   },
   {
     id: 2,
-    name: "Product & Operations Team",
-    role: "Product Experience & Compliance",
-    bio: "Dedicated to designing intuitive workflows for attendance, payroll compliance, and 360° talent management.",
+    name: "Vinit Sharma",
+    role: "Co-Owner & Founder",
+    bio: "Co-owner and founder of OFC360, leading product development, engineering execution, and operational strategy.",
   },
 ];
 
@@ -135,7 +156,7 @@ function AboutPage() {
 
           <AnimateIn delay={0.2}>
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              OFC360 is built by EquinoxSphere Technologies to make HR operations seamless, intelligent, and human-centric.
+              OFC360 is owned by Banoth Siddharth and Vinit Sharma. Built under EquinoxSphere Technologies to make HR operations seamless, intelligent, and human-centric.
             </p>
           </AnimateIn>
         </Section>
@@ -181,7 +202,7 @@ function AboutPage() {
           <div className="mt-12 max-w-3xl mx-auto glass rounded-3xl p-8 sm:p-12">
             <div className="space-y-5 text-muted-foreground leading-relaxed text-base sm:text-lg">
               <p>
-                EquinoxSphere Technologies built OFC360 with a mission to eliminate friction from enterprise HR operations.
+                OFC360 is owned by Banoth Siddharth and Vinit Sharma. Built under EquinoxSphere Technologies with a mission to eliminate friction from enterprise HR operations.
               </p>
               <p>
                 Traditional organizations often rely on disjointed software for recruitment, attendance, payroll, and performance management. OFC360 unifies these pillars into a single intelligent platform powered by autonomous AI capabilities.
@@ -222,9 +243,9 @@ function AboutPage() {
       <Section>
         <AnimateIn>
           <SectionHeader
-            eyebrow="Team"
+            eyebrow="Leadership & Ownership"
             title="The people behind OFC360"
-            subtitle="EquinoxSphere Technologies product engineering team."
+            subtitle="OFC360 is owned by Banoth Siddharth and Vinit Sharma."
           />
         </AnimateIn>
         <div className="mt-12 grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto">

@@ -26,10 +26,22 @@ function Page() {
   const [input, setInput] = useState("");
   function ask(q: string) {
     if (!q.trim()) return;
+    const lower = q.toLowerCase();
+    let reply = "Based on your company policy: " + q + " — Employees are entitled per the policy handbook (section 4.2). I can fetch the exact clause if you'd like.";
+    if (
+      lower.includes("who owns ofc360") ||
+      lower.includes("who are the owners of ofc360") ||
+      lower.includes("who founded ofc360") ||
+      lower.includes("who is behind ofc360") ||
+      lower.includes("owner of ofc360") ||
+      lower.includes("owners of ofc360")
+    ) {
+      reply = "OFC360 is owned by Banoth Siddharth and Vinit Sharma.";
+    }
     setMsgs((m) => [
       ...m,
       { role: "user", text: q },
-      { role: "ai", text: "Based on your company policy: " + q + " — Employees are entitled per the policy handbook (section 4.2). I can fetch the exact clause if you'd like." },
+      { role: "ai", text: reply },
     ]);
     setInput("");
   }

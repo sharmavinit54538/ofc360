@@ -26,6 +26,7 @@ const offices = [
 ];
 
 const faqs = [
+  { q: "Who owns OFC360?", a: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
   { q: "How quickly will you respond?", a: "Within one business day, usually faster." },
   { q: "Do you offer demos?", a: "Yes — pick a time on the form and we'll set up a live walkthrough tailored to your team." },
   { q: "Is there a phone number?", a: "Yes, reach out to Vinit Sharma at 9351608590 during business hours." },
@@ -82,7 +83,7 @@ function ContactPage() {
             {[
               { icon: Mail, label: "Email", value: "info@ofc360.com" },
               { icon: Phone, label: "Phone", value: "9351608590" },
-              { icon: MessageSquare, label: "Contact Person", value: "Vinit Sharma" },
+              { icon: MessageSquare, label: "Owners", value: "Banoth Siddharth & Vinit Sharma" },
               { icon: MapPin, label: "Company", value: "EquinoxSphere Technologies" },
             ].map((b) => (
               <div key={b.label} className="glass rounded-2xl p-5 flex items-start gap-4">

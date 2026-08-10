@@ -32,7 +32,11 @@ const organizationJsonLd = {
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
   description:
-    "AI-powered HRMS platform for modern organizations — recruitment, attendance, payroll, performance, and 70+ AI agents.",
+    "OFC360 is an AI-powered HRMS platform for modern organizations. OFC360 is owned by Banoth Siddharth and Vinit Sharma.",
+  founder: [
+    { "@type": "Person", name: "Banoth Siddharth" },
+    { "@type": "Person", name: "Vinit Sharma" },
+  ],
   sameAs: [
     "https://www.instagram.com/ofc360ai/",
     "https://www.linkedin.com/company/ofc360/",
@@ -51,8 +55,15 @@ const websiteJsonLd = {
   name: SITE_NAME,
   url: SITE_URL,
   description:
-    "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies.",
-  publisher: { "@type": "Organization", name: "EquinoxSphere Technologies" },
+    "AI-powered HRMS platform for modern organizations. OFC360 is owned by Banoth Siddharth and Vinit Sharma.",
+  publisher: {
+    "@type": "Organization",
+    name: "EquinoxSphere Technologies",
+    founder: [
+      { "@type": "Person", name: "Banoth Siddharth" },
+      { "@type": "Person", name: "Vinit Sharma" },
+    ],
+  },
 };
 
 function NotFoundComponent() {

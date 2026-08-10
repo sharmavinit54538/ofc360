@@ -686,6 +686,7 @@ function AIChatPanel() {
 
 function mockAnswer(q: string) {
   const s = q.toLowerCase();
+  if (s.includes("own") || s.includes("founder") || s.includes("behind")) return "OFC360 is owned by Banoth Siddharth and Vinit Sharma.";
   if (s.includes("leav") || s.includes("attrition")) return "4 employees are flagged at high attrition risk — Aanya Sharma (87), Rohan Mehta (79), Liam Carter (71), Priya Nair (64). Suggested action: schedule retention 1:1s this week.";
   if (s.includes("attendance")) return "This month: 7 frequent late arrivals (mostly Mondays, Engineering) and 4 recurring Friday absences in Support. 2 employees on attendance risk.";
   if (s.includes("promo")) return "Top promotion candidates: Aarav Gupta (96), Lin Wei (94), Noah Bennett (92). All in top quartile for 3 consecutive cycles.";

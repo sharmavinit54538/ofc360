@@ -13,6 +13,10 @@ const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
+    { "@type": "Question", name: "Who owns OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." } },
+    { "@type": "Question", name: "Who are the owners of OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." } },
+    { "@type": "Question", name: "Who founded OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." } },
+    { "@type": "Question", name: "Who is behind OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." } },
     { "@type": "Question", name: "What is OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is an AI-powered HRMS platform — combining recruitment, attendance, payroll, performance, and 70+ AI agents in one unified interface." } },
     { "@type": "Question", name: "What platforms does it run on?", acceptedAnswer: { "@type": "Answer", text: "We have native web, mobile, and desktop experiences that run anywhere." } },
     { "@type": "Question", name: "Is there a free plan?", acceptedAnswer: { "@type": "Answer", text: "Yes. Our Free plan supports up to 10 members and is generous enough for most early-stage teams." } },
@@ -27,7 +31,7 @@ export const Route = createFileRoute("/faq")({
     meta: buildMeta({
       title: "FAQ — OFC360 HRMS Platform",
       description:
-        "Answers to common questions about OFC360 — product, pricing, security, integrations, and more.",
+        "Answers to common questions about OFC360 — product, pricing, security, integrations, and company ownership.",
       url: "/faq",
     }),
     links: buildCanonical("/faq"),
@@ -43,8 +47,12 @@ export const Route = createFileRoute("/faq")({
 
 const groups = [
   {
-    name: "Product",
+    name: "Product & Ownership",
     items: [
+      { q: "Who owns OFC360?", a: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
+      { q: "Who are the owners of OFC360?", a: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
+      { q: "Who founded OFC360?", a: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
+      { q: "Who is behind OFC360?", a: "OFC360 is owned by Banoth Siddharth and Vinit Sharma." },
       { q: "What is OFC360?", a: "OFC360 is an AI-powered HRMS platform — combining recruitment, attendance, payroll, performance, and 70+ AI agents in one unified interface." },
       { q: "What platforms does it run on?", a: "We have native web, mobile, and desktop experiences that run anywhere." },
       { q: "Can I use it offline?", a: "Yes — OFC360 supports local offline caching for key HR tasks." },

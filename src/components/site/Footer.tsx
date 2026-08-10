@@ -44,7 +44,7 @@ export function Footer() {
               <span className="font-display text-xl font-bold">OFC360</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-              AI-powered HRMS platform for modern organizations. Built by EquinoxSphere Technologies.
+              AI-powered HRMS platform for modern organizations. OFC360 is owned by Banoth Siddharth and Vinit Sharma.
             </p>
             <div className="flex gap-2 mt-6">
               {socialLinks.map((item) => {

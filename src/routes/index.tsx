@@ -18,7 +18,7 @@ const homeJsonLd = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
+    "AI-powered HRMS for modern teams. OFC360 is owned by Banoth Siddharth and Vinit Sharma. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
   url: SITE_URL,
   offers: {
     "@type": "Offer",
@@ -26,7 +26,14 @@ const homeJsonLd = {
     priceCurrency: "INR",
     description: "Free plan available",
   },
-  publisher: { "@type": "Organization", name: "EquinoxSphere Technologies" },
+  publisher: {
+    "@type": "Organization",
+    name: "EquinoxSphere Technologies",
+    founder: [
+      { "@type": "Person", name: "Banoth Siddharth" },
+      { "@type": "Person", name: "Vinit Sharma" },
+    ],
+  },
 };
 
 export const Route = createFileRoute("/")({
