@@ -7,6 +7,7 @@ import {
   Key,
   Eye,
   Trash2,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ interface EmployeesTableProps {
   onDeactivate: (id: string) => void;
   onActivate: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewReports?: (managerId: string, managerName: string) => void;
 }
 
 export function EmployeesTable({
@@ -39,6 +41,7 @@ export function EmployeesTable({
   onDeactivate,
   onActivate,
   onDelete,
+  onViewReports,
 }: EmployeesTableProps) {
   return (
     <div className="overflow-x-auto">
@@ -48,6 +51,7 @@ export function EmployeesTable({
             <th className="px-4 py-3">Employee</th>
             <th className="px-4 py-3">Department</th>
             <th className="px-4 py-3">Designation</th>
+            <th className="px-4 py-3">Reports To</th>
             <th className="px-4 py-3">Joined</th>
             <th className="px-4 py-3">Shift</th>
             <th className="px-4 py-3">Status</th>
@@ -59,12 +63,14 @@ export function EmployeesTable({
             <EmployeeRow
               key={employee.id}
               employee={employee}
+              allEmployees={employees}
               onEdit={onEdit}
               onResendInvite={onResendInvite}
               onResetPassword={onResetPassword}
               onDeactivate={onDeactivate}
               onActivate={onActivate}
               onDelete={onDelete}
+              onViewReports={onViewReports}
             />
           ))}
         </tbody>
@@ -75,25 +81,30 @@ export function EmployeesTable({
 
 function EmployeeRow({
   employee,
+  allEmployees,
   onEdit,
   onResendInvite,
   onResetPassword,
   onDeactivate,
   onActivate,
   onDelete,
+  onViewReports,
 }: {
   employee: Employee;
+  allEmployees: Employee[];
   onEdit: (employee: Employee) => void;
   onResendInvite: (id: string) => void;
   onResetPassword: (id: string) => void;
   onDeactivate: (id: string) => void;
   onActivate: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewReports?: (managerId: string, managerName: string) => void;
 }) {
   const status = getEmployeeStatusDetails(employee);
   const isInvited = status.text === "INVITED" || status.text === "EXPIRED";
   const isActive = status.text === "ACTIVE";
   const isDisabled = status.text === "DISABLED";
+  const hasDirectReports = allEmployees.some((e) => e.managerId === employee.id);
 
   function copyInviteLink() {
     const link = window.location.origin + "/onboarding?token=" + (employee.activationToken || "");
@@ -120,6 +131,15 @@ function EmployeeRow({
       </td>
       <td className="px-4 py-3">{employee.department || "—"}</td>
       <td className="px-4 py-3">{employee.designation || "—"}</td>
+      <td className="px-4 py-3">
+        {employee.managerName ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
+            {employee.managerName}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </td>
       <td className="px-4 py-3 text-muted-foreground">{employee.joiningDate || "—"}</td>
       <td className="px-4 py-3">
         <Badge variant="secondary">{employee.shift}</Badge>
@@ -134,11 +154,21 @@ function EmployeeRow({
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-card border border-border">
+          <DropdownMenuContent align="end" className="w-52 bg-card border border-border">
             <DropdownMenuItem onClick={() => onEdit(employee)} className="cursor-pointer gap-2">
               <Eye className="h-4 w-4 text-muted-foreground" />
               <span>View / Edit Profile</span>
             </DropdownMenuItem>
+
+            {hasDirectReports && (
+              <DropdownMenuItem
+                onClick={() => onViewReports?.(employee.id, employee.fullName)}
+                className="cursor-pointer gap-2"
+              >
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>View Direct Reports</span>
+              </DropdownMenuItem>
+            )}
 
             {isInvited && (
               <>

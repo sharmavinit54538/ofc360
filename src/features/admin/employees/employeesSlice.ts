@@ -1,18 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { EmployeesState } from "./employeesTypes";
+import type { Employee, EmployeesState, OrgChartNode } from "./employeesTypes";
 import {
   activateEmployee,
   createEmployee,
   deactivateEmployee,
   deleteEmployee,
   fetchEmployees,
+  fetchOrgChart,
   resendEmployeeInvite,
   resetEmployeePassword,
   updateEmployee,
 } from "./employeesThunk";
 
+function buildOrgTreeFromEmployees(employees: Employee[]): OrgChartNode[] {
+  if (!employees.length) return [];
+  const map = new Map<string, OrgChartNode>();
+  employees.forEach((emp) => {
+    map.set(emp.id, {
+      id: emp.id,
+      fullName: emp.fullName,
+      designation: emp.designation,
+      department: emp.department,
+      email: emp.email,
+      managerId: emp.managerId,
+      directReports: [],
+    });
+  });
+
+  const roots: OrgChartNode[] = [];
+  map.forEach((node) => {
+    if (node.managerId && map.has(node.managerId)) {
+      map.get(node.managerId)!.directReports.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  return roots;
+}
+
 const initialState: EmployeesState = {
   employees: [],
+  orgChart: [],
   loading: false,
   submitting: false,
   error: null,
@@ -39,6 +68,7 @@ const employeesSlice = createSlice({
   reducers: {
     clearEmployees(state) {
       state.employees = [];
+      state.orgChart = [];
       state.error = null;
     },
   },
@@ -51,6 +81,7 @@ const employeesSlice = createSlice({
       .addCase(fetchEmployees.fulfilled, (state, action) => {
         state.loading = false;
         state.employees = action.payload.items;
+        state.orgChart = buildOrgTreeFromEmployees(action.payload.items);
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.limit = action.payload.limit;
@@ -61,14 +92,30 @@ const employeesSlice = createSlice({
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.loading = false;
         const raw = action.payload;
-        state.error = typeof raw === "string" ? raw : (raw && typeof raw === "object" && "message" in raw && typeof (raw as { message: unknown }).message === "string" ? (raw as { message: string }).message : (action.error.message ?? "Something went wrong"));
+        state.error =
+          typeof raw === "string"
+            ? raw
+            : raw && typeof raw === "object" && "message" in raw && typeof (raw as { message: unknown }).message === "string"
+              ? (raw as { message: string }).message
+              : (action.error.message ?? "Something went wrong");
       })
-        .addCase(deleteEmployee.pending, (state) => {
+      .addCase(fetchOrgChart.fulfilled, (state, action) => {
+        if (action.payload && action.payload.length > 0) {
+          state.orgChart = action.payload;
+        } else {
+          state.orgChart = buildOrgTreeFromEmployees(state.employees);
+        }
+      })
+      .addCase(fetchOrgChart.rejected, (state) => {
+        state.orgChart = buildOrgTreeFromEmployees(state.employees);
+      })
+      .addCase(deleteEmployee.pending, (state) => {
         state.submitting = true;
       })
       .addCase(deleteEmployee.fulfilled, (state, action) => {
         state.submitting = false;
         state.employees = state.employees.filter((e) => e.id !== action.payload);
+        state.orgChart = buildOrgTreeFromEmployees(state.employees);
       })
       .addCase(deleteEmployee.rejected, (state) => {
         state.submitting = false;

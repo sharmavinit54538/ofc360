@@ -15,6 +15,7 @@ interface EmployeesListContentProps {
   onDeactivate: (id: string) => void;
   onActivate: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewReports?: (managerId: string, managerName: string) => void;
 }
 
 export function EmployeesListContent({
@@ -29,6 +30,7 @@ export function EmployeesListContent({
   onDeactivate,
   onActivate,
   onDelete,
+  onViewReports,
 }: EmployeesListContentProps) {
   if (loading) {
     return (
@@ -83,6 +85,7 @@ export function EmployeesListContent({
       onDeactivate={onDeactivate}
       onActivate={onActivate}
       onDelete={onDelete}
+      onViewReports={onViewReports}
     />
   );
 }

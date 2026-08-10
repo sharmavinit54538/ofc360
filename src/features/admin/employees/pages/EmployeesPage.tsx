@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, List, Network, X } from "lucide-react";
 import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   activateEmployee,
@@ -9,6 +10,7 @@ import {
   deactivateEmployee,
   deleteEmployee,
   fetchEmployees,
+  fetchOrgChart,
   resendEmployeeInvite,
   resetEmployeePassword,
   updateEmployee,
@@ -18,19 +20,28 @@ import { toast } from "sonner";
 import { EmployeesFilters } from "../components/EmployeesFilters";
 import { EmployeesListContent } from "../components/EmployeesListContent";
 import { EmployeeFormDialog } from "../components/EmployeeFormDialog";
+import { OrgChartView } from "../components/OrgChartView";
 import { createEmptyEmployee, exportEmployeesCsv } from "../utils/employeeStatus";
 
 export function EmployeesPage() {
   const dispatch = useAppDispatch();
-  const { employees, loading, submitting, error } = useAppSelector((state) => state.employees);
+  const { employees, orgChart, loading, submitting, error } = useAppSelector((state) => state.employees);
+  const [activeTab, setActiveTab] = useState<"list" | "org-chart">("list");
   const [q, setQ] = useState("");
   const [dept, setDept] = useState<string>("all");
+  const [managerFilter, setManagerFilter] = useState<{ id: string; name: string } | null>(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Employee | null>(null);
 
   useEffect(() => {
-    dispatch(fetchEmployees({ search: q, department: dept }));
-  }, [dispatch, q, dept]);
+    dispatch(fetchEmployees({ search: q, department: dept, managerId: managerFilter?.id }));
+  }, [dispatch, q, dept, managerFilter]);
+
+  useEffect(() => {
+    if (activeTab === "org-chart") {
+      dispatch(fetchOrgChart());
+    }
+  }, [dispatch, activeTab]);
 
   const departments = useMemo(
     () => Array.from(new Set(employees.map((e) => e.department).filter(Boolean))),
@@ -38,7 +49,7 @@ export function EmployeesPage() {
   );
 
   function refetch() {
-    dispatch(fetchEmployees({ search: q, department: dept }));
+    dispatch(fetchEmployees({ search: q, department: dept, managerId: managerFilter?.id }));
   }
 
   async function resendInvite(id: string) {
@@ -103,29 +114,74 @@ export function EmployeesPage() {
     setOpen(true);
   }
 
+  function handleViewReports(managerId: string, managerName: string) {
+    setManagerFilter({ id: managerId, name: managerName });
+    setActiveTab("list");
+  }
+
+  function buildPayloadFromDraft(emp: Employee) {
+    const names = (emp.fullName || "").trim().split(/\s+/);
+    const first_name = emp.firstName || names[0] || "";
+    const last_name = emp.lastName || names.slice(1).join(" ") || " ";
+
+    return {
+      first_name,
+      last_name,
+      personal_email: emp.email,
+      company_email: emp.companyEmail || emp.email,
+      phone: emp.phone,
+      alternate_phone: emp.alternatePhone || undefined,
+      employee_id: emp.employeeId || `EMP-${Math.floor(100000 + Math.random() * 900000)}`,
+      department: emp.department,
+      designation: emp.designation,
+      employment_type: emp.employmentType || "FULL_TIME",
+      joining_date: emp.joiningDate || new Date().toISOString().split("T")[0],
+      profile_photo_url: emp.profilePhotoUrl || undefined,
+      gender: emp.gender || undefined,
+      date_of_birth: emp.dateOfBirth || undefined,
+      blood_group: emp.bloodGroup || undefined,
+      marital_status: emp.maritalStatus || undefined,
+      team: emp.team || undefined,
+      reporting_manager_id: emp.managerId || undefined,
+      branch: emp.branch || undefined,
+      work_location: emp.workLocation || undefined,
+      probation_period_months: emp.probationPeriodMonths ?? 3,
+      shift: emp.shift || "General",
+      employee_capacity: emp.employeeCapacity ?? 100,
+      cost_center_id: emp.costCenterId || undefined,
+      ctc: emp.ctc ?? 0,
+      basic_salary: emp.basicSalary ?? 0,
+      hra: emp.hra ?? 0,
+      bonus: emp.bonus ?? 0,
+      pf: emp.pf ?? 0,
+      esi: emp.esi ?? 0,
+      professional_tax: emp.professionalTax ?? 0,
+      role: emp.role || "employee",
+      leave_group: emp.leaveGroup || undefined,
+      role_metadata: emp.roleMetadata || {},
+      addresses: emp.addresses || [],
+      documents: emp.documents || [],
+      education: emp.education || [],
+      experience: emp.experience || [],
+      skills: emp.skills || [],
+      emergency_contacts: emp.emergencyContacts || [],
+      bank_accounts: emp.bankAccounts || [],
+      employment_status: "PROBATION",
+    };
+  }
+
   async function save() {
     if (!draft) return;
-    if (!draft.fullName || !draft.email) return toast.error("Name and email required");
+    if (!draft.email) return toast.error("Personal email is required");
 
-    const names = draft.fullName.trim().split(/\s+/);
-    const first_name = names[0] || "";
-    const last_name = names.slice(1).join(" ") || " ";
+    const payload = buildPayloadFromDraft(draft);
     const isEdit = draft.id !== "";
 
     if (isEdit) {
       const result = await dispatch(
         updateEmployee({
           id: draft.id,
-          payload: {
-            first_name,
-            last_name,
-            personal_email: draft.email,
-            phone: draft.phone || undefined,
-            department: draft.department,
-            designation: draft.designation,
-            joining_date: draft.joiningDate || undefined,
-            shift: draft.shift,
-          },
+          payload,
         }),
       );
       if (updateEmployee.fulfilled.match(result)) {
@@ -136,23 +192,7 @@ export function EmployeesPage() {
         toast.error(parseErrorMessage(result.payload, "Failed to update employee"));
       }
     } else {
-      const result = await dispatch(
-        createEmployee({
-          first_name,
-          last_name,
-          personal_email: draft.email,
-          company_email: draft.email,
-          phone: draft.phone || "9876543210",
-          department: draft.department || "Engineering",
-          designation: draft.designation || "Engineer",
-          joining_date: draft.joiningDate,
-          employee_id: draft.employeeId || `EMP-${Math.floor(100000 + Math.random() * 900000)}`,
-          employment_type: "FULL_TIME",
-          employment_status: "PROBATION",
-          role: "employee",
-          shift: draft.shift || "General",
-        }),
-      );
+      const result = await dispatch(createEmployee(payload));
       if (createEmployee.fulfilled.match(result)) {
         toast.success("Employee added successfully");
         setOpen(false);
@@ -191,28 +231,61 @@ export function EmployeesPage() {
         }
       />
 
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-xl">
-        <EmployeesFilters
-          search={q}
-          department={dept}
-          onSearchChange={setQ}
-          onDepartmentChange={setDept}
-        />
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "list" | "org-chart")} className="w-full space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList className="bg-card/80 border border-border p-1 rounded-xl">
+            <TabsTrigger value="list" className="gap-2 rounded-lg text-xs font-semibold">
+              <List className="h-4 w-4" /> List View
+            </TabsTrigger>
+            <TabsTrigger value="org-chart" className="gap-2 rounded-lg text-xs font-semibold">
+              <Network className="h-4 w-4" /> Org Chart View
+            </TabsTrigger>
+          </TabsList>
 
-        <EmployeesListContent
-          loading={loading}
-          error={error}
-          employees={employees}
-          onRetry={refetch}
-          onAdd={openNew}
-          onEdit={openEdit}
-          onResendInvite={resendInvite}
-          onResetPassword={resetPassword}
-          onDeactivate={deactivateEmployeeAction}
-          onActivate={activateEmployeeAction}
-          onDelete={remove}
-        />
-      </div>
+          {managerFilter && (
+            <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs text-primary font-medium">
+              <span>Direct reports of: <strong>{managerFilter.name}</strong></span>
+              <button
+                onClick={() => setManagerFilter(null)}
+                className="rounded p-0.5 hover:bg-primary/20 transition-colors cursor-pointer"
+                aria-label="Clear manager filter"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="list" className="mt-0">
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-xl">
+            <EmployeesFilters
+              search={q}
+              department={dept}
+              onSearchChange={setQ}
+              onDepartmentChange={setDept}
+            />
+
+            <EmployeesListContent
+              loading={loading}
+              error={error}
+              employees={employees}
+              onRetry={refetch}
+              onAdd={openNew}
+              onEdit={openEdit}
+              onResendInvite={resendInvite}
+              onResetPassword={resetPassword}
+              onDeactivate={deactivateEmployeeAction}
+              onActivate={activateEmployeeAction}
+              onDelete={remove}
+              onViewReports={handleViewReports}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="org-chart" className="mt-0">
+          <OrgChartView nodes={orgChart} />
+        </TabsContent>
+      </Tabs>
 
       <EmployeeFormDialog
         open={open}
@@ -221,6 +294,7 @@ export function EmployeesPage() {
         onDraftChange={setDraft}
         submitting={submitting}
         onSave={save}
+        allEmployees={employees}
       />
     </>
   );
