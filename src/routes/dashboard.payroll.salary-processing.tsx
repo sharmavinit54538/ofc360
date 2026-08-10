@@ -133,9 +133,9 @@ function SalaryProcessingPage() {
       } else {
         toast.error(res.message || "Failed to calculate salary.");
       }
-    } catch (err) {
-      toast.success("Salary calculation completed for cycle.");
-      loadData();
+    } catch (err: any) {
+      console.error("Failed to run salary calculation:", err);
+      toast.error(err?.message || "Failed to execute salary calculation.");
     } finally {
       setIsCalculating(false);
     }
@@ -155,10 +155,9 @@ function SalaryProcessingPage() {
       } else {
         toast.error(res.message || "Failed to lock payroll.");
       }
-    } catch (err) {
-      toast.success("Payroll cycle locked successfully!");
-      setLockModalOpen(false);
-      loadData();
+    } catch (err: any) {
+      console.error("Failed to lock payroll:", err);
+      toast.error(err?.message || "Failed to lock payroll cycle.");
     } finally {
       setIsLocking(false);
     }
@@ -222,7 +221,9 @@ function SalaryProcessingPage() {
             </div>
             <div className="mt-3">
               <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                ₹{(hero?.total_net_payroll || 121550).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                {hero?.total_net_payroll != null
+                  ? `₹${hero.total_net_payroll.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+                  : "—"}
               </span>
             </div>
             <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-400">
@@ -242,7 +243,7 @@ function SalaryProcessingPage() {
             </div>
             <div className="mt-3">
               <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {hero?.processed_employees || 19} / {hero?.active_employees_count || 19}
+                {hero?.processed_employees ?? "—"} / {hero?.active_employees_count ?? "—"}
               </span>
             </div>
             <div className="mt-2 text-[11px] text-muted-foreground">
@@ -261,7 +262,7 @@ function SalaryProcessingPage() {
             </div>
             <div className="mt-3">
               <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {kpis?.accuracy_rate || 99.2}%
+                {kpis?.accuracy_rate != null ? `${kpis.accuracy_rate}%` : "—"}
               </span>
             </div>
             <div className="mt-2 text-[11px] text-emerald-400">
@@ -280,7 +281,7 @@ function SalaryProcessingPage() {
             </div>
             <div className="mt-3">
               <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {hero?.pending_approvals || 0}
+                {hero?.pending_approvals ?? 0}
               </span>
             </div>
             <div className="mt-2 text-[11px] text-muted-foreground">
@@ -299,32 +300,33 @@ function SalaryProcessingPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-            {(workflow?.steps || [
-              { step: 1, label: "Attendance Input", status: "COMPLETED" },
-              { step: 2, label: "Salary Calculation", status: "COMPLETED" },
-              { step: 3, label: "Manager Review", status: "COMPLETED" },
-              { step: 4, label: "Finance Approval", status: "COMPLETED" },
-              { step: 5, label: "Bank Transfer", status: "READY" },
-            ]).map((s) => {
-              const isDone = s.status === "COMPLETED";
-              return (
-                <div
-                  key={s.step}
-                  className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${isDone
-                      ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
-                      : "border-border bg-background/40 text-muted-foreground"
+          {!workflow?.steps || workflow.steps.length === 0 ? (
+            <div className="py-6 text-center text-xs text-muted-foreground">
+              No approval workflow steps available for this cycle.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
+              {workflow.steps.map((s) => {
+                const isDone = s.status === "COMPLETED";
+                return (
+                  <div
+                    key={s.step}
+                    className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
+                      isDone
+                        ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
+                        : "border-border bg-background/40 text-muted-foreground"
                     }`}
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-semibold">
-                    {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Clock className="h-4 w-4" />}
-                    <span>Step {s.step}</span>
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-semibold">
+                      {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Clock className="h-4 w-4" />}
+                      <span>Step {s.step}</span>
+                    </div>
+                    <span className="mt-1 text-xs text-foreground font-medium">{s.label}</span>
                   </div>
-                  <span className="mt-1 text-xs text-foreground font-medium">{s.label}</span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -388,29 +390,29 @@ function SalaryProcessingPage() {
                   filteredItems.map((item) => (
                     <tr key={item.id} className="hover:bg-accent/20 transition-colors">
                       <td className="py-3 px-4 font-medium text-foreground">
-                        {item.employee_name || "Employee"}
+                        {item.employee_name || "—"}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
-                        {item.department || "Engineering"}
+                        {item.department || "—"}
                       </td>
                       <td className="py-3 px-4 text-right font-mono">
-                        ₹{(item.basic_salary || 28600).toLocaleString("en-IN")}
+                        {item.basic_salary != null ? `₹${item.basic_salary.toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="py-3 px-4 text-right font-mono">
-                        ₹{(item.gross_salary || 34000).toLocaleString("en-IN")}
+                        {item.gross_salary != null ? `₹${item.gross_salary.toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-rose-400">
-                        -₹{(item.total_deductions || 4200).toLocaleString("en-IN")}
+                        {item.total_deductions != null ? `-₹${item.total_deductions.toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-bold text-emerald-400">
-                        ₹{(item.net_salary || 29800).toLocaleString("en-IN")}
+                        {item.net_salary != null ? `₹${item.net_salary.toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <Badge
                           variant="outline"
                           className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]"
                         >
-                          {item.status || "PROCESSED"}
+                          {item.status || "—"}
                         </Badge>
                       </td>
                     </tr>

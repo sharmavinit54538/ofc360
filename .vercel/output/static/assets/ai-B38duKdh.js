@@ -1,0 +1,1 @@
+import{n as e}from"./DashboardShell-mOnm5NsC.js";var t=e;export{t as component};
