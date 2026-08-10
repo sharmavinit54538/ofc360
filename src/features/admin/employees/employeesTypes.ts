@@ -155,7 +155,7 @@ export interface CreateEmployeePayload {
   employee_id: string;
   department: string;
   designation: string;
-  employment_type: string;
+  employment_type: "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN" | string;
   joining_date: string;
   profile_photo_url?: string;
   gender?: string;

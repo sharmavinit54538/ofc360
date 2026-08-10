@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,12 +72,17 @@ export function EmployeeFormDialog({
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (!draft?.firstName && !draft?.fullName) errs.firstName = "First name is required";
-    if (!draft?.email) errs.email = "Personal email is required";
-    if (!draft?.phone) errs.phone = "Phone number is required";
-    if (!draft?.employeeId) errs.employeeId = "Employee ID is required";
-    if (!draft?.department) errs.department = "Department is required";
-    if (!draft?.designation) errs.designation = "Designation is required";
+    const firstName = draft?.firstName || draft?.fullName?.split(" ")[0] || "";
+    const lastName = draft?.lastName || draft?.fullName?.split(" ").slice(1).join(" ") || "";
+
+    if (!firstName.trim()) errs.firstName = "First name is required";
+    if (!lastName.trim()) errs.lastName = "Last name is required";
+    if (!draft?.employeeId?.trim()) errs.employeeId = "Employee ID is required";
+    if (!draft?.email?.trim()) errs.email = "Personal email is required";
+    if (!draft?.phone?.trim()) errs.phone = "Phone number is required";
+    if (!draft?.department?.trim()) errs.department = "Department is required";
+    if (!draft?.designation?.trim()) errs.designation = "Designation is required";
+    if (!draft?.employmentType) errs.employmentType = "Employment type is required";
     if (!draft?.joiningDate) errs.joiningDate = "Joining date is required";
 
     setErrors(errs);
@@ -88,17 +93,15 @@ export function EmployeeFormDialog({
     if (validate()) {
       onSave();
     } else {
-      // Switch to first tab with errors
-      if (errors.firstName || errors.employeeId) setActiveTab("basic");
+      if (errors.firstName || errors.lastName || errors.employeeId) setActiveTab("basic");
       else if (errors.email || errors.phone) setActiveTab("contact");
-      else if (errors.department || errors.designation || errors.joiningDate) setActiveTab("job");
+      else if (errors.department || errors.designation || errors.employmentType || errors.joiningDate) setActiveTab("job");
     }
   }
 
-  // Check tab error indicators
-  const hasBasicErr = Boolean(errors.firstName || errors.employeeId);
+  const hasBasicErr = Boolean(errors.firstName || errors.lastName || errors.employeeId);
   const hasContactErr = Boolean(errors.email || errors.phone);
-  const hasJobErr = Boolean(errors.department || errors.designation || errors.joiningDate);
+  const hasJobErr = Boolean(errors.department || errors.designation || errors.employmentType || errors.joiningDate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,7 +149,7 @@ export function EmployeeFormDialog({
                     }}
                   />
                 </FormField>
-                <FormField label="Last Name">
+                <FormField label="Last Name *" error={errors.lastName}>
                   <Input
                     value={draft.lastName || draft.fullName?.split(" ").slice(1).join(" ") || ""}
                     onChange={(e) => {
@@ -254,7 +257,7 @@ export function EmployeeFormDialog({
                     onChange={(e) => onDraftChange({ ...draft, designation: e.target.value })}
                   />
                 </FormField>
-                <FormField label="Employment Type *">
+                <FormField label="Employment Type *" error={errors.employmentType}>
                   <Select
                     value={draft.employmentType || "FULL_TIME"}
                     onValueChange={(v) => onDraftChange({ ...draft, employmentType: v })}
@@ -500,7 +503,7 @@ export function EmployeeFormDialog({
                 title="Education"
                 items={draft.education || []}
                 emptyText="No education records added."
-                defaultItem={{ degree: "", institution: "", field_of_study: "", start_year: 2018, end_year: 2022, grade: "" }}
+                defaultItem={{ degree: "", institution: "", field_of_study: "", start_year: 2018, end_year: 2022, grade: "", certificate_url: "" }}
                 onItemsChange={(education) => onDraftChange({ ...draft, education })}
                 renderItem={(edu, _, update) => (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -522,6 +525,9 @@ export function EmployeeFormDialog({
                     <FormField label="End Year">
                       <Input type="number" value={edu.end_year ?? 2022} onChange={(e) => update({ end_year: Number(e.target.value) })} />
                     </FormField>
+                    <FormField label="Certificate URL" wide>
+                      <Input value={edu.certificate_url || ""} onChange={(e) => update({ certificate_url: e.target.value })} placeholder="https://..." />
+                    </FormField>
                   </div>
                 )}
               />
@@ -542,6 +548,16 @@ export function EmployeeFormDialog({
                     </FormField>
                     <FormField label="Designation">
                       <Input value={exp.designation} onChange={(e) => update({ designation: e.target.value })} />
+                    </FormField>
+                    <FormField label="Employment Type">
+                      <Select value={exp.employment_type || "FULL_TIME"} onValueChange={(v) => update({ employment_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {EMPLOYMENT_TYPES.map((et) => (
+                            <SelectItem key={et.value} value={et.value}>{et.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormField>
                     <FormField label="Start Date">
                       <Input type="date" value={exp.start_date || ""} onChange={(e) => update({ start_date: e.target.value })} />
@@ -609,8 +625,14 @@ export function EmployeeFormDialog({
                     <FormField label="Phone Number">
                       <Input value={ec.phone} onChange={(e) => update({ phone: e.target.value })} />
                     </FormField>
+                    <FormField label="Alternate Phone">
+                      <Input value={ec.alternate_phone || ""} onChange={(e) => update({ alternate_phone: e.target.value })} />
+                    </FormField>
                     <FormField label="Email">
                       <Input type="email" value={ec.email || ""} onChange={(e) => update({ email: e.target.value })} />
+                    </FormField>
+                    <FormField label="Address" wide>
+                      <Input value={ec.address || ""} onChange={(e) => update({ address: e.target.value })} />
                     </FormField>
                   </div>
                 )}
@@ -655,7 +677,6 @@ export function EmployeeFormDialog({
                         onCheckedChange={(v) => {
                           const isPri = Boolean(v);
                           if (isPri) {
-                            // Ensure only one primary bank account
                             const updated = (draft.bankAccounts || []).map((b, i) => ({
                               ...b,
                               is_primary: i === index,
