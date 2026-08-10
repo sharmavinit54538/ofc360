@@ -130,13 +130,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "OFC360 — AI-Powered HRMS Platform" },
-      { name: "description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
+      { title: "OFC360 | AI-Powered HRMS for Modern Businesses" },
+      { name: "description", content: "OFC360 is an AI-powered HRMS for recruitment, attendance, payroll, performance and modern employee management." },
       { name: "author", content: "EquinoxSphere Technologies" },
       { name: "theme-color", content: "#7c3aed" },
       // Open Graph defaults (overridden by child routes)
-      { property: "og:title", content: "OFC360 — AI-Powered HRMS Platform" },
-      { property: "og:description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
+      { property: "og:title", content: "OFC360 | AI-Powered HRMS for Modern Businesses" },
+      { property: "og:description", content: "OFC360 is an AI-powered HRMS for recruitment, attendance, payroll, performance and modern employee management." },
       { property: "og:type", content: "website" },
       { property: "og:image", content: DEFAULT_OG_IMAGE },
       { property: "og:image:width", content: "1200" },
@@ -146,11 +146,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Twitter Card defaults
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: TWITTER_HANDLE },
-      { name: "twitter:title", content: "OFC360 — AI-Powered HRMS Platform" },
-      { name: "twitter:description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
+      { name: "twitter:title", content: "OFC360 | AI-Powered HRMS for Modern Businesses" },
+      { name: "twitter:description", content: "OFC360 is an AI-powered HRMS for recruitment, attendance, payroll, performance and modern employee management." },
       { name: "twitter:image", content: DEFAULT_OG_IMAGE },
     ],
     links: [
+      // Web Manifest
+      { rel: "manifest", href: "/site.webmanifest" },
       // Favicon
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       // Fonts

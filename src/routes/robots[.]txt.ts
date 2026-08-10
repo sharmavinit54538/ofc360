@@ -23,6 +23,14 @@ Allow: /ai
 # Private / app routes — do not index
 Disallow: /dashboard
 Disallow: /dashboard/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /super-admin
+Disallow: /super-admin/
+Disallow: /employee
+Disallow: /employee/
+Disallow: /settings
+Disallow: /settings/
 Disallow: /onboarding
 Disallow: /api/
 Disallow: /login

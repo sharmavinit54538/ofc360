@@ -1,0 +1,17 @@
+{
+  "name": "OFC360 — AI-Powered HRMS",
+  "short_name": "OFC360",
+  "description": "AI-powered HRMS platform for recruitment, attendance, payroll, performance, and workforce automation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
