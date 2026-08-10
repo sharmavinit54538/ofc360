@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { Sparkles, KeyRound, Copy } from "lucide-react";
+import { Sparkles, KeyRound, Copy, Sun, Moon } from "lucide-react";
 import { useofc360 } from "@/lib/ofc360-store";
+import { useTheme } from "@/components/site/ThemeProvider";
 import { toast } from "sonner";
 
 interface AuthShellProps {
@@ -14,10 +15,11 @@ interface AuthShellProps {
 
 export function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
   const ws = useofc360();
+  const { theme, toggle: toggleTheme } = useTheme();
   const showOtpPreview = false;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
@@ -29,16 +31,23 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
         style={{ background: "var(--gradient-brand)" }}
       />
 
-      <header className="px-6 py-6 sm:px-10">
+      <header className="flex items-center justify-between px-6 py-6 sm:px-10">
         <Link to="/" className="inline-flex items-center gap-2">
           <span
-            className="grid h-8 w-8 place-items-center rounded-lg text-brand-foreground shadow-glow"
+            className="grid h-8 w-8 place-items-center rounded-xl text-brand-foreground shadow-glow"
             style={{ background: "var(--gradient-brand)" }}
           >
             <Sparkles className="h-4 w-4" />
           </span>
-          <span className="font-display text-lg font-semibold tracking-tight">ofc360</span>
+          <span className="font-display text-lg font-bold tracking-tight">ofc360</span>
         </Link>
+        <button
+          onClick={toggleTheme}
+          className="rounded-lg border border-border/80 bg-card/60 p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
+        </button>
       </header>
 
       <main className="flex min-h-[calc(100vh-120px)] items-center justify-center px-6 pb-16">

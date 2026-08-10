@@ -110,8 +110,9 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-sm ${noPad ? "" : "p-5"
-        } ${className}`}
+      className={`rounded-2xl border border-border bg-card/80 backdrop-blur-xl shadow-xs transition-all ${
+        noPad ? "" : "p-5 sm:p-6"
+      } ${className}`}
     >
       {children}
     </div>

@@ -411,14 +411,16 @@ export function DashboardShell() {
                     <Link
                       key={item.to}
                       to={item.to as any}
-                      className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                        }`}
+                      className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                        active
+                          ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+                          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                      }`}
                     >
-                      {active ? <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-foreground" /> : null}
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
                       {!collapsed ? (
                         <>
-                          <span className="flex-1">{item.label}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
                           {item.badge && <NavBadge kind={item.badge} />}
                           {item.count !== undefined && !item.badge && <NavCount count={item.count} />}
                         </>
@@ -430,17 +432,19 @@ export function DashboardShell() {
             ))}
           </nav>
 
-          <div className="border-t border-border p-3">
+          <div className="border-t border-border/80 p-3 bg-card/40">
             <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground text-sm font-semibold text-background">{initials}</div>
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-xs">
+                {initials}
+              </div>
               {!collapsed ? (
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{ws.user?.fullName}</div>
-                  <div className="truncate text-xs capitalize text-muted-foreground">{ws.user?.role}</div>
+                  <div className="truncate text-sm font-semibold text-foreground">{ws.user?.fullName}</div>
+                  <div className="truncate text-xs capitalize text-muted-foreground">{ws.user?.role?.replace("_", " ")}</div>
                 </div>
               ) : null}
               {!collapsed ? (
-                <button onClick={logout} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Sign out">
+                <button onClick={logout} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer" aria-label="Sign out">
                   <LogOut className="h-4 w-4" />
                 </button>
               ) : null}
@@ -448,20 +452,26 @@ export function DashboardShell() {
           </div>
         </aside>
 
-        {mobileOpen ? <div onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden" /> : null}
+        {mobileOpen ? (
+          <div
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-30 bg-background/80 backdrop-blur-md transition-opacity lg:hidden"
+          />
+        ) : null}
 
         <div
-          className={`flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-200 ${collapsed ? "lg:pl-[68px]" : "lg:pl-64"
-            }`}
+          className={`flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-200 ${
+            collapsed ? "lg:pl-[68px]" : "lg:pl-64"
+          }`}
         >
           {/* Topbar */}
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl sm:px-6">
-            <button onClick={() => setMobileOpen(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden" aria-label="Open menu">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/80 bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+            <button onClick={() => setMobileOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden cursor-pointer" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </button>
             <div className="relative max-w-md flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search employees, departments, requests…" className="h-9 pl-9" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
+              <Input placeholder="Search employees, departments, requests…" className="h-9.5 pl-9 text-sm" />
             </div>
 
             {/* Global Back Button */}
@@ -469,18 +479,18 @@ export function DashboardShell() {
 
             <button
               onClick={toggleTheme}
-              className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
             </button>
-            <button className="relative rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Notifications">
+            <button className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer" aria-label="Notifications">
               <Bell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
             </button>
-            <div className="hidden items-center gap-2 rounded-md border border-border bg-card/40 px-3 py-1.5 text-xs sm:flex">
+            <div className="hidden items-center gap-2 rounded-lg border border-border/80 bg-card/60 px-3 py-1.5 text-xs sm:flex">
               <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="font-medium">{ws.company?.name || "Workspace"}</span>
+              <span className="font-semibold text-foreground">{ws.company?.name || "Workspace"}</span>
             </div>
           </header>
 

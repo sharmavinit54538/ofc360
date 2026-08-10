@@ -141,7 +141,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       // Favicon
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      // Stylesheet
+      // Fonts
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap",
+      },
+      // App Stylesheet
       { rel: "stylesheet", href: appCss },
       // Preconnect — Razorpay CDN (used for payments)
       { rel: "dns-prefetch", href: "https://checkout.razorpay.com" },
