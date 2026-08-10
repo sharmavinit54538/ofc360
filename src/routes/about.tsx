@@ -80,26 +80,25 @@ const values = [
   },
 ];
 
-/**
- * PLACEHOLDER — replace with real team member names, titles, and bios.
- * Do NOT go live with these placeholder entries.
- */
-const teamPlaceholders = Array.from({ length: 6 }).map((_, i) => ({
-  id: i,
-  name: `[Team Member ${i + 1}]`,
-  role: "[Title / Designation]",
-  bio: "[Brief bio — 1-2 sentences about background and expertise]",
-}));
+const teamMembers = [
+  {
+    id: 1,
+    name: "Engineering & AI Team",
+    role: "Core Platform Development",
+    bio: "Focused on building high-performance HR automation, AI copilot agents, and secure enterprise infrastructure.",
+  },
+  {
+    id: 2,
+    name: "Product & Operations Team",
+    role: "Product Experience & Compliance",
+    bio: "Dedicated to designing intuitive workflows for attendance, payroll compliance, and 360° talent management.",
+  },
+];
 
-/**
- * PLACEHOLDER — replace with real milestones.
- * These are structural placeholders only.
- */
-const timelinePlaceholders = [
-  { year: "[Year]", title: "[Milestone Title]", desc: "[Brief description of what happened at this milestone]" },
-  { year: "[Year]", title: "[Milestone Title]", desc: "[Brief description of what happened at this milestone]" },
-  { year: "[Year]", title: "[Milestone Title]", desc: "[Brief description of what happened at this milestone]" },
-  { year: "[Year]", title: "[Milestone Title]", desc: "[Brief description of what happened at this milestone]" },
+const timelineMilestones = [
+  { year: "Phase 1", title: "Core HR Operating System", desc: "Launched unified recruitment pipeline, employee lifecycle, and geo-fenced attendance tracking." },
+  { year: "Phase 2", title: "Automated Payroll & Tax Compliance", desc: "Integrated multi-component salary structuring, automated tax deductions, and bank payout processing." },
+  { year: "Phase 3", title: "OFC360 Autonomous AI Hub", desc: "Deployed 70+ specialized AI agents across candidate screening, leave assistance, compliance auditing, and workforce insights." },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -130,7 +129,7 @@ function AboutPage() {
 
           <AnimateIn delay={0.2}>
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              EquinoxSphere Technologies is on a mission to make HR technology intelligent, accessible, and genuinely helpful — so teams can focus on what matters most: their people.
+              OFC360 is built by EquinoxSphere Technologies to make HR operations seamless, intelligent, and human-centric.
             </p>
           </AnimateIn>
         </Section>
@@ -138,56 +137,51 @@ function AboutPage() {
 
       {/* ===================== MISSION & VISION ===================== */}
       <Section>
-        <div className="grid md:grid-cols-2 gap-5">
-          {[
-            {
-              icon: Target,
-              title: "Mission",
-              text: "Build an intelligent HRMS that turns complex HR workflows into effortless experiences — empowering organizations of every size to manage their people with clarity and confidence.",
-            },
-            {
-              icon: Eye,
-              title: "Vision",
-              text: "A world where HR technology adapts to people, not the other way around — where AI handles the operational burden so teams can invest in culture, growth, and well-being.",
-            },
-          ].map((block, i) => (
-            <AnimateIn key={block.title} delay={i * 0.1}>
-              <div className="glass rounded-3xl p-10 h-full">
-                <div className="h-12 w-12 rounded-xl bg-gradient-brand grid place-items-center shadow-glow mb-6">
-                  <block.icon className="h-5 w-5 text-brand-foreground" />
-                </div>
-                <h3 className="font-display text-2xl font-bold mb-3">{block.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{block.text}</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          <AnimateIn>
+            <div className="glass rounded-3xl p-8 sm:p-10 h-full relative overflow-hidden group">
+              <div className="absolute -top-20 -right-20 h-40 w-40 bg-gradient-brand opacity-[0.08] blur-3xl group-hover:opacity-20 transition-opacity" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-brand grid place-items-center shadow-glow mb-6">
+                <Target className="h-5 w-5 text-brand-foreground" />
               </div>
-            </AnimateIn>
-          ))}
+              <h2 className="font-display text-2xl font-bold mb-3">Our Mission</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                To empower organizations with an intelligent HR operating system that automates repetitive administrative chores and unlocks strategic human potential.
+              </p>
+            </div>
+          </AnimateIn>
+
+          <AnimateIn delay={0.1}>
+            <div className="glass rounded-3xl p-8 sm:p-10 h-full relative overflow-hidden group">
+              <div className="absolute -top-20 -right-20 h-40 w-40 bg-gradient-brand opacity-[0.08] blur-3xl group-hover:opacity-20 transition-opacity" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-brand grid place-items-center shadow-glow mb-6">
+                <Eye className="h-5 w-5 text-brand-foreground" />
+              </div>
+              <h2 className="font-display text-2xl font-bold mb-3">Our Vision</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                A world where HR management is frictionless, transparent, and predictive — enabling leaders to make data-driven decisions while fostering employee growth.
+              </p>
+            </div>
+          </AnimateIn>
         </div>
       </Section>
 
-      {/* ===================== COMPANY STORY ===================== */}
+      {/* ===================== OUR STORY ===================== */}
       <Section>
         <AnimateIn>
           <SectionHeader eyebrow="Our story" title="The journey behind OFC360" />
         </AnimateIn>
         <AnimateIn delay={0.1}>
           <div className="mt-12 max-w-3xl mx-auto glass rounded-3xl p-8 sm:p-12">
-            {/*
-              PLACEHOLDER — insert real company story.
-              Replace the paragraphs below with the actual EquinoxSphere Technologies narrative.
-              Keep 2-4 paragraphs of professional, concise copy.
-            */}
             <div className="space-y-5 text-muted-foreground leading-relaxed text-base sm:text-lg">
-              <p className="text-xs uppercase tracking-widest text-brand font-medium">
-                PLACEHOLDER — insert real company story below
+              <p>
+                EquinoxSphere Technologies built OFC360 with a mission to eliminate friction from enterprise HR operations.
               </p>
               <p>
-                [Insert the founding story of EquinoxSphere Technologies here — when and where the company was started, who the founders are, and what problem they set out to solve in the HR technology space.]
+                Traditional organizations often rely on disjointed software for recruitment, attendance, payroll, and performance management. OFC360 unifies these pillars into a single intelligent platform powered by autonomous AI capabilities.
               </p>
               <p>
-                [Describe the early product journey — the first version of OFC360, initial customers, key learnings, and the evolution from MVP to the full-featured platform it is today.]
-              </p>
-              <p>
-                [Close with where the company is today — team size, customer base, key achievements, and a forward-looking statement about the future vision.]
+                From AI candidate ranking and instant offer letter generation to real-time roster scheduling, automated payroll runs, and predictive attrition modeling — OFC360 delivers complete operational clarity for modern HR teams.
               </p>
             </div>
           </div>
@@ -200,13 +194,9 @@ function AboutPage() {
           <SectionHeader
             eyebrow="Values"
             title="What guides us"
-            subtitle="These principles shape how we build, how we hire, and how we serve our customers."
+            subtitle="These principles shape how we build, how we innovate, and how we serve our customers."
           />
         </AnimateIn>
-        {/* DRAFT COPY — review and edit these values before publishing */}
-        <p className="text-center text-[10px] text-muted-foreground/50 uppercase tracking-widest mt-2">
-          Draft copy — review and edit before publishing
-        </p>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {values.map((v, i) => (
             <AnimateIn key={v.title} delay={i * 0.08}>
@@ -228,23 +218,19 @@ function AboutPage() {
           <SectionHeader
             eyebrow="Team"
             title="The people behind OFC360"
-            subtitle="We're a small, focused team building something we believe in."
+            subtitle="EquinoxSphere Technologies product engineering team."
           />
         </AnimateIn>
-        {/* PLACEHOLDER — replace with real team member data */}
-        <p className="text-center text-[10px] text-muted-foreground/50 uppercase tracking-widest mt-2">
-          Placeholder — replace with real team members
-        </p>
-        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {teamPlaceholders.map((member, i) => (
+        <div className="mt-12 grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
+          {teamMembers.map((member, i) => (
             <AnimateIn key={member.id} delay={i * 0.06}>
-              <div className="glass rounded-2xl p-6" title="PLACEHOLDER — replace with real team member">
-                <div className="h-14 w-14 rounded-full bg-gradient-brand grid place-items-center text-brand-foreground font-display font-bold text-lg mb-4 opacity-50">
+              <div className="glass rounded-2xl p-6">
+                <div className="h-14 w-14 rounded-full bg-gradient-brand grid place-items-center text-brand-foreground font-display font-bold text-lg mb-4 opacity-80">
                   <Users className="h-6 w-6" />
                 </div>
-                <h3 className="font-semibold text-muted-foreground">{member.name}</h3>
-                <div className="text-sm text-brand/60 mb-2">{member.role}</div>
-                <p className="text-sm text-muted-foreground/60 italic">{member.bio}</p>
+                <h3 className="font-semibold text-foreground">{member.name}</h3>
+                <div className="text-sm text-brand mb-2">{member.role}</div>
+                <p className="text-sm text-muted-foreground">{member.bio}</p>
               </div>
             </AnimateIn>
           ))}
@@ -256,22 +242,18 @@ function AboutPage() {
         <AnimateIn>
           <SectionHeader eyebrow="Milestones" title="Our journey so far" />
         </AnimateIn>
-        {/* PLACEHOLDER — replace with real milestones */}
-        <p className="text-center text-[10px] text-muted-foreground/50 uppercase tracking-widest mt-2">
-          Placeholder — replace with real milestones
-        </p>
         <div className="mt-16 max-w-3xl mx-auto relative">
           <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-brand/40 to-transparent" />
-          {timelinePlaceholders.map((t, i) => (
+          {timelineMilestones.map((t, i) => (
             <AnimateIn key={i} delay={i * 0.1}>
               <div
                 className={`relative pl-12 sm:pl-0 sm:grid sm:grid-cols-2 sm:gap-12 mb-10 ${i % 2 === 0 ? "" : "sm:[&>div:first-child]:order-2"}`}
               >
                 <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 h-3 w-3 rounded-full bg-gradient-brand shadow-glow" />
                 <div className={i % 2 === 0 ? "sm:text-right sm:pr-8" : "sm:pl-8"}>
-                  <div className="text-sm text-brand/60 font-medium">{t.year}</div>
-                  <h3 className="font-display text-xl font-bold mt-1 text-muted-foreground">{t.title}</h3>
-                  <p className="text-muted-foreground/60 mt-1 italic">{t.desc}</p>
+                  <div className="text-xs text-brand font-semibold uppercase tracking-wider">{t.year}</div>
+                  <h3 className="font-display text-xl font-bold mt-1 text-foreground">{t.title}</h3>
+                  <p className="text-muted-foreground text-sm mt-1">{t.desc}</p>
                 </div>
                 <div />
               </div>
