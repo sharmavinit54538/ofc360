@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Twitter, Github, Linkedin, Instagram } from "lucide-react";
+import { Linkedin, Instagram } from "lucide-react";
 
 const socialLinks = [
   { icon: Instagram, href: "https://www.instagram.com/ofc360ai/", label: "Instagram" },
   { icon: Linkedin, href: "https://www.linkedin.com/company/ofc360/?viewAsMember=true", label: "LinkedIn" },
-  { icon: Twitter, href: "https://x.com", label: "Twitter" },
-  { icon: Github, href: "https://github.com", label: "GitHub" },
 ];
 
 const cols = [
