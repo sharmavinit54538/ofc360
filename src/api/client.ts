@@ -22,6 +22,13 @@ function toApiError(error: unknown): ApiError {
 
   const axiosErr = error as AxiosError;
   if (axios.isAxiosError(error)) {
+    if (axiosErr.message === "Network Error" || axiosErr.code === "ERR_NETWORK" || !axiosErr.response) {
+      return new ApiError(
+        "Network Error: Cannot connect to backend server. Please check if backend API is running or restart dev server.",
+        0,
+        null,
+      );
+    }
     const data = axiosErr.response?.data;
     const message =
       data && typeof data === "object" && "message" in data && "message" in (data as Record<string, unknown>) && typeof (data as Record<string, unknown>).message === "string"
@@ -34,7 +41,7 @@ function toApiError(error: unknown): ApiError {
     return new ApiError(error.message, 500, null);
   }
 
-  return new ApiError("Network error", 500, null);
+  return new ApiError("Network Error: Cannot connect to backend server.", 500, null);
 }
 
 export interface RequestOptions {
