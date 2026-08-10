@@ -73,6 +73,8 @@ export async function bootstrapAuth(): Promise<void> {
 
     // If no tokens or already cached valid user session, finish immediately
     if (!tokens?.accessToken) {
+      setTokens(null);
+      ofc360.set({ user: null, company: null });
       return;
     }
 
@@ -85,15 +87,13 @@ export async function bootstrapAuth(): Promise<void> {
       const res = await api.get<AuthMeResponse>("auth/me");
       if (res.success && res.data) {
         ofc360.set(mapAuthUser(res.data));
-      } else if (!hasValidAccessToken()) {
+      } else {
         setTokens(null);
         ofc360.set({ user: null, company: null });
       }
     } catch {
-      if (!hasValidAccessToken()) {
-        setTokens(null);
-        ofc360.set({ user: null, company: null });
-      }
+      setTokens(null);
+      ofc360.set({ user: null, company: null });
     }
   })();
 

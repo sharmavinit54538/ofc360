@@ -198,11 +198,10 @@ export function DashboardShell() {
   useEffect(() => {
     if (!authReady || ws.isRestoring) return;
 
-    if (!ws.user && !hasValidAccessToken()) {
+    if (!ws.user) {
       navigate({ to: "/login" });
       return;
     }
-    if (!ws.user) return;
     if (!ws.user.emailVerified) {
       navigate({ to: "/verify-email" });
       return;

@@ -1,0 +1,1 @@
+import{t as e}from"./EmployeePayslips-WSRT4NIm.js";var t=e;export{t as component};
