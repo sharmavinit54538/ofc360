@@ -1,5 +1,5 @@
 export { default as apiInstance } from "./apiInstance";
-export { BASE_URL } from "./apiInstance";
+export { BASE_URL, API_HOST_URL } from "./apiInstance";
 export { api, apiRequest, ApiError } from "./client";
 export type { RequestOptions } from "./client";
 export { getTokens, setTokens } from "./tokens";

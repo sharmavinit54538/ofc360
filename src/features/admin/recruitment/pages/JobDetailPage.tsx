@@ -24,7 +24,7 @@ import { CandidateAvatar, fmtDate, fmtMoney } from "@/features/admin/recruitment
 import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
 import { useofc360 } from "@/lib/ofc360-store";
-import { api } from "@/api/client";
+import { api, API_HOST_URL, BASE_URL } from "@/api";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -312,7 +312,7 @@ export function JobDetailPage() {
           </head>
           <body>
             <h1>${job?.title}</h1>
-            <img src="http://localhost:8001${qrData.qr_png_url}" onload="window.print(); window.close();" />
+            <img src="${API_HOST_URL}${qrData.qr_png_url}" onload="window.print(); window.close();" />
             <p>Scan to apply</p>
           </body>
         </html>
@@ -325,7 +325,7 @@ export function JobDetailPage() {
     setExporting(true);
     try {
       const token = localStorage.getItem("access_token") || "";
-      const url = `http://localhost:8001/api/v1/jobs/${jobId}/applicants/export?format=${exportFormat}&filter=${exportFilter}`;
+      const url = `${BASE_URL}/jobs/${jobId}/applicants/export?format=${exportFormat}&filter=${exportFilter}`;
 
       const response = await fetch(url, {
         headers: {
@@ -1205,7 +1205,7 @@ export function JobDetailPage() {
             <div className="flex flex-col items-center justify-center py-4 space-y-4">
               <div className="rounded-2xl border border-border bg-white p-3 shadow-inner">
                 <img
-                  src={`http://localhost:8001${qrData.qr_png_url}`}
+                  src={`${API_HOST_URL}${qrData.qr_png_url}`}
                   alt="Job Apply QR Code"
                   className="w-48 h-48 rounded-lg"
                 />
@@ -1217,7 +1217,7 @@ export function JobDetailPage() {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs"
-                    onClick={() => window.open(`http://localhost:8001${qrData.qr_png_url}`, "_blank")}
+                    onClick={() => window.open(`${API_HOST_URL}${qrData.qr_png_url}`, "_blank")}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />PNG
                   </Button>
@@ -1225,7 +1225,7 @@ export function JobDetailPage() {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs"
-                    onClick={() => window.open(`http://localhost:8001${qrData.qr_svg_url}`, "_blank")}
+                    onClick={() => window.open(`${API_HOST_URL}${qrData.qr_svg_url}`, "_blank")}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />SVG
                   </Button>
