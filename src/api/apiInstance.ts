@@ -3,7 +3,11 @@ import { ofc360 } from "@/lib/ofc360-store";
 import { isAccessTokenExpired } from "./token-utils";
 import { getTokens, setTokens } from "./tokens";
 
-export const API_HOST_URL = ((import.meta.env.VITE_API_URL as string) || "https://api.ofc360.com").replace(/\/$/, "");
+export const API_HOST_URL = (
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  (import.meta.env.VITE_API_URL as string) ||
+  "https://api.ofc360.com"
+).replace(/\/$/, "");
 export const BASE_URL = `${API_HOST_URL}/api/v1`;
 
 const apiInstance = axios.create({
