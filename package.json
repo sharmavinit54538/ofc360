@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node -e \"const fs=require('fs'); if (fs.existsSync('.vercel/output/static')) fs.cpSync('.vercel/output/static', 'dist', {recursive:true});\"",
+    "build": "vite build && node -e \"const fs=require('fs'), path=require('path'); if (fs.existsSync('.vercel/output/static')) fs.cpSync('.vercel/output/static', 'dist', {recursive:true}); const src='dist/client/assets'; if (fs.existsSync(src)) { ['.vercel/output/static/assets', 'dist/assets'].forEach(t => { fs.mkdirSync(t, {recursive:true}); fs.readdirSync(src).forEach(f => fs.copyFileSync(path.join(src, f), path.join(t, f))); }); }\"",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

@@ -16,6 +16,7 @@ import { bootstrapAuth } from "../lib/auth-bootstrap";
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE, TWITTER_HANDLE } from "../lib/seo";
 import { trackPageView } from "../lib/analytics";
 
+import "../styles.css";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../components/site/ThemeProvider";
