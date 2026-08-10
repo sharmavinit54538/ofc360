@@ -12,7 +12,7 @@
 
 export const SITE_URL = "https://www.ofc360.com";
 export const SITE_NAME = "OFC360";
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/logo.png`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 export const TWITTER_HANDLE = "@OFC360";
 
 /* ------------------------------------------------------------------ */
@@ -42,7 +42,8 @@ export function buildMeta({
   ogImage = DEFAULT_OG_IMAGE,
   noindex = false,
 }: MetaOptions) {
-  const fullUrl = url.startsWith("http") ? url : `${SITE_URL}${url}`;
+  const fullUrl = url.startsWith("http") ? url : `${SITE_URL}${url.startsWith("/") ? url : `/${url}`}`;
+  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage.startsWith("/") ? ogImage : `/${ogImage}`}`;
 
   const tags: Record<string, string>[] = [
     { title },
@@ -52,14 +53,16 @@ export function buildMeta({
     { property: "og:description", content: description },
     { property: "og:url", content: fullUrl },
     { property: "og:type", content: ogType },
-    { property: "og:image", content: ogImage },
+    { property: "og:image", content: fullOgImage },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
     { property: "og:site_name", content: SITE_NAME },
     // Twitter Card
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:site", content: TWITTER_HANDLE },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
-    { name: "twitter:image", content: ogImage },
+    { name: "twitter:image", content: fullOgImage },
   ];
 
   if (noindex) {
@@ -74,6 +77,6 @@ export function buildMeta({
 /* ------------------------------------------------------------------ */
 
 export function buildCanonical(path: string) {
-  const href = path.startsWith("http") ? path : `${SITE_URL}${path}`;
+  const href = path.startsWith("http") ? path : `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
   return [{ rel: "canonical" as const, href }];
 }

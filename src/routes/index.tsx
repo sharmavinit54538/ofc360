@@ -187,31 +187,28 @@ function HomePage() {
         </Section>
       </section>
 
-      {/* ===================== SOCIAL PROOF ===================== */}
+      {/* ===================== TRUSTED HR CAPABILITIES ===================== */}
       <Section>
         <AnimateIn>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              {/* PLACEHOLDER STAT — confirm real number */}
-              Trusted by <span className="font-semibold text-foreground">[PLACEHOLDER STAT — confirm real number]</span> organizations worldwide
+            <p className="text-sm font-medium text-muted-foreground">
+              Built for modern organizations seeking intelligent, end-to-end HR automation
             </p>
-            <div className="mt-8 grid grid-cols-3 sm:grid-cols-6 gap-6 items-center justify-items-center opacity-40">
-              {/* PLACEHOLDER — replace with real client logos */}
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 items-center justify-center max-w-3xl mx-auto">
+              {[
+                "AI Recruitment & Screening",
+                "Geo-Fenced Attendance",
+                "Compliant Payroll Run",
+                "360° Performance & OKRs",
+              ].map((capability) => (
                 <div
-                  key={i}
-                  className="flex items-center justify-center"
-                  title="PLACEHOLDER — replace with real client logo"
+                  key={capability}
+                  className="px-4 py-3 rounded-xl glass border border-border/60 text-xs font-semibold text-foreground/90 shadow-sm"
                 >
-                  <div className="h-8 w-20 sm:w-24 rounded-lg bg-muted-foreground/20 flex items-center justify-center">
-                    <Building2 className="h-4 w-4 text-muted-foreground/50" />
-                  </div>
+                  {capability}
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-[10px] text-muted-foreground/50 uppercase tracking-widest">
-              PLACEHOLDER — replace with real client logos
-            </p>
           </div>
         </AnimateIn>
       </Section>

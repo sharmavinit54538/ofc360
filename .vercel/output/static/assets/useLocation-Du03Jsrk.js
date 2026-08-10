@@ -1,1 +1,0 @@
-import{i as e,r as t}from"./ClientOnly-DulnNesY.js";import{n}from"./useMatch-D5Euy2jN.js";function r(r){let i=e();return t(i.stores.location,n(r,i))}export{r as t};

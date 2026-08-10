@@ -7,12 +7,14 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { bootstrapAuth } from "../lib/auth-bootstrap";
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE, TWITTER_HANDLE } from "../lib/seo";
+import { trackPageView } from "../lib/analytics";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -125,6 +127,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "AI-powered HRMS platform for modern organizations by EquinoxSphere Technologies." },
       { property: "og:type", content: "website" },
       { property: "og:image", content: DEFAULT_OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { property: "og:site_name", content: SITE_NAME },
       { property: "og:url", content: SITE_URL },
       // Twitter Card defaults
@@ -182,6 +186,19 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackPageView(location.pathname, document.title);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -193,6 +210,7 @@ function RootComponent() {
     <ThemeProvider>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
+          <AnalyticsTracker />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster richColors position="top-right" />
