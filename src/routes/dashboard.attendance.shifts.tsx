@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/attendance/shifts")({
-  head: () => ({ meta: [{ title: "Shifts — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Shifts — OFC360" }] }),
   component: ShiftsPage,
 });
 

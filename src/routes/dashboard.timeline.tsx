@@ -11,7 +11,7 @@ import type { TimelineEvent, TimelineEventKind } from "@/lib/hrms/types";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/timeline")({
-  head: () => ({ meta: [{ title: "Employee Timeline — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Employee Timeline — OFC360" }] }),
   component: TimelinePage,
 });
 

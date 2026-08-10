@@ -7,6 +7,6 @@ const Page = lazyFeaturePage(
 );
 
 export const Route = createFileRoute("/dashboard/recruitment/")({
-  head: () => ({ meta: [{ title: "Recruitment Workspace — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Recruitment Workspace — OFC360" }] }),
   component: Page,
 });

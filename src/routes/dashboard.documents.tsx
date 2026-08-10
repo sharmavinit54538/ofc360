@@ -26,7 +26,7 @@ import apiInstance, { BASE_URL } from "@/api/apiInstance";
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/documents")({
-  head: () => ({ meta: [{ title: "Documents — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Documents — OFC360" }] }),
   component: DocumentsPage,
 });
 

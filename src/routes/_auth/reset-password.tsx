@@ -7,6 +7,6 @@ export const Route = createFileRoute("/_auth/reset-password")({
     email: z.string().optional(),
     resetToken: z.string().optional(),
   }),
-  head: () => ({ meta: [{ title: "Set new password — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Set new password — OFC360" }] }),
   component: ResetPasswordPage,
 });

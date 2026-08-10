@@ -5,17 +5,16 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { posts, categories } from "@/lib/blog-data";
 import { cn } from "@/lib/utils";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
-    meta: [
-      { title: "Blog — OFC360" },
-      { name: "description", content: "Stories, product updates, and ideas from the OFC360 team." },
-      { property: "og:title", content: "Blog — OFC360" },
-      { property: "og:description", content: "Stories and ideas from the team building OFC360." },
-      { property: "og:url", content: "/blog" },
-    ],
-    links: [{ rel: "canonical", href: "/blog" }],
+    meta: buildMeta({
+      title: "Blog — OFC360 HRMS Insights",
+      description: "Stories, product updates, and HR technology insights from the OFC360 team.",
+      url: "/blog",
+    }),
+    links: buildCanonical("/blog"),
   }),
   component: BlogIndex,
 });

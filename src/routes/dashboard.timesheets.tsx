@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/dashboard/timesheets")({
-  head: () => ({ meta: [{ title: "Timesheets — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Timesheets — OFC360" }] }),
   component: TimesheetsPage,
 });
 

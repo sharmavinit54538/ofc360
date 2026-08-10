@@ -29,7 +29,7 @@ import { api } from "@/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/payroll/salary-processing")({
-  head: () => ({ meta: [{ title: "Salary Processing — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Salary Processing — OFC360" }] }),
   component: SalaryProcessingPage,
 });
 

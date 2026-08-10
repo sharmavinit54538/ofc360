@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/ai/document-generator")({
-  head: () => ({ meta: [{ title: "AI Document Generator — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Document Generator — OFC360" }] }),
   component: Page,
 });
 
@@ -37,7 +37,7 @@ We are pleased to inform you regarding your ${t.title.toLowerCase()} as ${role} 
 This letter confirms the terms and conditions of your engagement, effective from the joining date discussed.
 
 Sincerely,
-HR Team — ofc360 Inc.`
+HR Team — OFC360 Inc.`
     );
   }
   return (

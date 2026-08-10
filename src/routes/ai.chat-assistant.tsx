@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { apiInstance } from "@/api";
 
 export const Route = createFileRoute("/ai/chat-assistant")({
-  head: () => ({ meta: [{ title: "AI Chat Assistant — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Chat Assistant — OFC360" }] }),
   component: Page,
 });
 

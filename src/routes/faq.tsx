@@ -6,17 +6,37 @@ import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { buildMeta, buildCanonical } from "@/lib/seo";
+
+/* FAQPage structured data for Google rich snippets */
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    { "@type": "Question", name: "What is OFC360?", acceptedAnswer: { "@type": "Answer", text: "OFC360 is an AI-powered HRMS platform — combining recruitment, attendance, payroll, performance, and 70+ AI agents in one unified interface." } },
+    { "@type": "Question", name: "What platforms does it run on?", acceptedAnswer: { "@type": "Answer", text: "We have native web, mobile, and desktop experiences that run anywhere." } },
+    { "@type": "Question", name: "Is there a free plan?", acceptedAnswer: { "@type": "Answer", text: "Yes. Our Free plan supports up to 10 members and is generous enough for most early-stage teams." } },
+    { "@type": "Question", name: "Is OFC360 SOC 2 certified?", acceptedAnswer: { "@type": "Answer", text: "We are SOC 2 Type II compliant and undergo regular security audits." } },
+    { "@type": "Question", name: "Does OFC360 integrate with existing tools?", acceptedAnswer: { "@type": "Answer", text: "Yes — bi-directional sync with popular calendar, payroll, and identity providers." } },
+    { "@type": "Question", name: "Do you have a public API?", acceptedAnswer: { "@type": "Answer", text: "Yes — fully documented REST and GraphQL APIs, plus webhooks for every event." } },
+  ],
+};
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
-    meta: [
-      { title: "FAQ — OFC360" },
-      { name: "description", content: "Answers to common questions about OFC360 — product, pricing, security, and more." },
-      { property: "og:title", content: "FAQ — OFC360" },
-      { property: "og:description", content: "Everything you need to know about OFC360." },
-      { property: "og:url", content: "/faq" },
+    meta: buildMeta({
+      title: "FAQ — OFC360 HRMS Platform",
+      description:
+        "Answers to common questions about OFC360 — product, pricing, security, integrations, and more.",
+      url: "/faq",
+    }),
+    links: buildCanonical("/faq"),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(faqJsonLd),
+      },
     ],
-    links: [{ rel: "canonical", href: "/faq" }],
   }),
   component: FAQPage,
 });

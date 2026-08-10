@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/onboarding-checklist")({
-  head: () => ({ meta: [{ title: "Onboarding Checklist — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Onboarding Checklist — OFC360" }] }),
   component: OnboardingPage,
 });
 

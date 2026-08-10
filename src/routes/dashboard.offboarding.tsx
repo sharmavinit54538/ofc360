@@ -6,7 +6,7 @@ import { hrms, useHrms } from "@/lib/hrms/store";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/offboarding")({
-  head: () => ({ meta: [{ title: "Offboarding Automation — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Offboarding Automation — OFC360" }] }),
   component: OffboardingPage,
 });
 

@@ -26,7 +26,7 @@ import { useofc360 } from "@/lib/ofc360-store";
 import { EmployeePayslipsPage } from "@/components/payroll/EmployeePayslips";
 
 export const Route = createFileRoute("/dashboard/payroll/")({
-  head: () => ({ meta: [{ title: "Payroll Hub — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Payroll Hub — OFC360" }] }),
   component: PayrollDashboardPage,
 });
 

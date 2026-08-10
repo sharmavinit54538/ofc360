@@ -7,21 +7,17 @@ import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
 import { FAQ } from "@/components/site/FAQ";
 import { cn } from "@/lib/utils";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
-    meta: [
-      { title: "Pricing — OFC360" },
-      {
-        name: "description",
-        content:
-          "Simple, transparent pricing for OFC360 HRMS. Choose the plan that fits your team. Start with a free trial.",
-      },
-      { property: "og:title", content: "Pricing — OFC360" },
-      { property: "og:description", content: "Simple, transparent HRMS pricing for every team size." },
-      { property: "og:url", content: "/pricing" },
-    ],
-    links: [{ rel: "canonical", href: "/pricing" }],
+    meta: buildMeta({
+      title: "Pricing — OFC360 HRMS Plans",
+      description:
+        "Simple, transparent pricing for OFC360 HRMS. Choose the plan that fits your team. Start with a free trial.",
+      url: "/pricing",
+    }),
+    links: buildCanonical("/pricing"),
   }),
   component: PricingPage,
 });

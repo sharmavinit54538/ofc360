@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/people")({
-  head: () => ({ meta: [{ title: "People Hub — ofc360" }] }),
+  head: () => ({ meta: [{ title: "People Hub — OFC360" }] }),
   component: PeopleHubPage,
 });
 

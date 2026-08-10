@@ -3,7 +3,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/settings")({
-  head: () => ({ meta: [{ title: "Payroll Settings — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Payroll Settings — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Payroll Settings" description="Configure pay cycles, components, and policies." />

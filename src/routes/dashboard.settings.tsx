@@ -38,7 +38,7 @@ import { api } from "@/api/client";
 import apiInstance from "@/api/apiInstance";
 
 export const Route = createFileRoute("/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Settings — OFC360" }] }),
   component: SettingsPage,
 });
 

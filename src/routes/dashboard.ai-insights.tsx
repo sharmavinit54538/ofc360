@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/dashboard/ai-insights")({
   head: () => ({
     meta: [
-      { title: "AI Insights — ofc360" },
+      { title: "AI Insights — OFC360" },
       { name: "description", content: "AI-powered workforce intelligence and automation for your organization." },
     ],
   }),

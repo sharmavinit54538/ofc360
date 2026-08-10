@@ -32,6 +32,6 @@ export const Route = createFileRoute("/dashboard/employees")({
       order: (search.order === "asc" || search.order === "desc") ? search.order : undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Employees — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Employees — OFC360" }] }),
   component: EmployeesPage,
 });

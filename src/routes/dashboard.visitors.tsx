@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/visitors")({
-  head: () => ({ meta: [{ title: "Visitor Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Visitor Management — OFC360" }] }),
   component: VisitorsPage,
 });
 

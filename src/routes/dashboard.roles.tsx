@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { useofc360 } from "@/lib/ofc360-store";
 
 export const Route = createFileRoute("/dashboard/roles")({
-  head: () => ({ meta: [{ title: "Roles & Permissions — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Roles & Permissions — OFC360" }] }),
   component: RolesPage,
 });
 

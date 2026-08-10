@@ -34,13 +34,13 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-border mt-32">
+    <footer className="relative border-t border-border mt-32" role="contentinfo">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="OFC360 logo" className="h-8 w-auto object-contain" />
+              <img src="/logo.png" alt="OFC360 — AI-Powered HRMS Platform" className="h-8 w-auto object-contain" width="32" height="32" />
               <span className="font-display text-xl font-bold">OFC360</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
@@ -68,7 +68,7 @@ export function Footer() {
           {cols.map((col) => (
             <div key={col.title}>
               <h4 className="text-sm font-semibold mb-4">{col.title}</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-3" aria-label={`${col.title} links`}>
                 {col.links.map((l) => (
                   <li key={l.to}>
                     <Link to={l.to} className="text-sm text-muted-foreground hover:text-foreground transition-colors">

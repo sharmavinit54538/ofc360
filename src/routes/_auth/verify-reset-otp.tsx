@@ -6,6 +6,6 @@ export const Route = createFileRoute("/_auth/verify-reset-otp")({
   validateSearch: z.object({
     email: z.string().optional(),
   }),
-  head: () => ({ meta: [{ title: "Verify OTP — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Verify OTP — OFC360" }] }),
   component: VerifyResetOtpPage,
 });

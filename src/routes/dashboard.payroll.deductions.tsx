@@ -3,7 +3,7 @@ import { MinusCircle } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/deductions")({
-  head: () => ({ meta: [{ title: "Deductions — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Deductions — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Deductions" description="Manage statutory and voluntary salary deductions." />

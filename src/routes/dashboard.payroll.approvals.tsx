@@ -3,7 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/approvals")({
-  head: () => ({ meta: [{ title: "Payroll Approvals — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Payroll Approvals — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Payroll Approvals" description="Review and approve payroll runs before disbursement." />

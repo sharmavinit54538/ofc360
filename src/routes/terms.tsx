@@ -1,16 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section } from "@/components/site/Section";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
-    meta: [
-      { title: "Terms & Conditions — OFC360" },
-      { name: "description", content: "The terms that govern your use of OFC360 by EquinoxSphere Technologies." },
-      { property: "og:title", content: "Terms & Conditions — OFC360" },
-      { property: "og:url", content: "/terms" },
-    ],
-    links: [{ rel: "canonical", href: "/terms" }],
+    meta: buildMeta({
+      title: "Terms & Conditions — OFC360",
+      description:
+        "The terms that govern your use of OFC360 by EquinoxSphere Technologies.",
+      url: "/terms",
+    }),
+    links: buildCanonical("/terms"),
   }),
   component: TermsPage,
 });

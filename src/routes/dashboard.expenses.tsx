@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/dashboard/expenses")({
-  head: () => ({ meta: [{ title: "Expense Claims — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Expense Claims — OFC360" }] }),
   component: ExpensesPage,
 });
 

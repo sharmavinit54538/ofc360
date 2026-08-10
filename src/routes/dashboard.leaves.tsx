@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/dashboard/leaves")({
-  head: () => ({ meta: [{ title: "Leaves — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Leaves — OFC360" }] }),
   component: LeavesPage,
 });
 

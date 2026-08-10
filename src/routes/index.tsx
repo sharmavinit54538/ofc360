@@ -9,25 +9,41 @@ import { motion, useInView } from "framer-motion";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
+import { buildMeta, buildCanonical, SITE_URL, SITE_NAME } from "@/lib/seo";
+
+const homeJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: SITE_NAME,
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description:
+    "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
+  url: SITE_URL,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "INR",
+    description: "Free plan available",
+  },
+  publisher: { "@type": "Organization", name: "EquinoxSphere Technologies" },
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title: "OFC360 — AI-Powered HRMS Platform by EquinoxSphere Technologies" },
+    meta: buildMeta({
+      title: "OFC360 — AI-Powered HRMS Platform",
+      description:
+        "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
+      url: "/",
+    }),
+    links: buildCanonical("/"),
+    scripts: [
       {
-        name: "description",
-        content:
-          "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance management, and 70+ AI agents — all in one platform.",
+        type: "application/ld+json",
+        children: JSON.stringify(homeJsonLd),
       },
-      { property: "og:title", content: "OFC360 — AI-Powered HRMS Platform" },
-      {
-        property: "og:description",
-        content:
-          "AI-powered HRMS for modern teams. Recruitment, attendance, payroll, performance, and 70+ AI agents — all in one platform.",
-      },
-      { property: "og:url", content: "/" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
   }),
   component: HomePage,
 });
@@ -361,7 +377,7 @@ function HeroInteractiveMockup() {
             {/* Desktop Interactive Sidebar */}
             <div className="col-span-3 border-r border-border p-3 sm:p-4 hidden md:flex flex-col gap-1">
               <div className="flex items-center gap-2 mb-4 px-2">
-                <img src="/logo.png" alt="OFC360 logo" className="h-6 w-auto object-contain" />
+                <img src="/logo.png" alt="OFC360 HRMS dashboard logo" className="h-6 w-auto object-contain" width="24" height="24" />
                 <span className="text-sm font-semibold">OFC360</span>
               </div>
               <div className="text-[10px] uppercase font-semibold text-muted-foreground px-2 mb-1 tracking-wider">

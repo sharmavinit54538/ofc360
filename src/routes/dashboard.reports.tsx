@@ -50,7 +50,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/reports")({
-  head: () => ({ meta: [{ title: "Reports Dashboard — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Reports Dashboard — OFC360" }] }),
   component: ReportsPage,
 });
 

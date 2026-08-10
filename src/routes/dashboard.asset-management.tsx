@@ -17,7 +17,7 @@ export const Route = createFileRoute("/dashboard/asset-management")({
   beforeLoad: () => {
     throw redirect({ to: "/dashboard/assets", replace: true });
   },
-  head: () => ({ meta: [{ title: "Asset Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Asset Management — OFC360" }] }),
   component: AssetManagementPage,
 });
 

@@ -3,7 +3,7 @@ import { Percent } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/tax")({
-  head: () => ({ meta: [{ title: "Tax Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Tax Management — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Tax Management" description="Manage TDS, declarations, and tax filings." />

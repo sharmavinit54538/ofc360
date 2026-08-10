@@ -44,7 +44,7 @@ import { api } from "@/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/communication")({
-  head: () => ({ meta: [{ title: "Communication & Help Desk — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Communication & Help Desk — OFC360" }] }),
   component: CommunicationPage,
 });
 

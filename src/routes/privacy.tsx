@@ -1,16 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section } from "@/components/site/Section";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
-    meta: [
-      { title: "Privacy Policy — OFC360" },
-      { name: "description", content: "How EquinoxSphere Technologies collects, uses, and protects your data on OFC360." },
-      { property: "og:title", content: "Privacy Policy — OFC360" },
-      { property: "og:url", content: "/privacy" },
-    ],
-    links: [{ rel: "canonical", href: "/privacy" }],
+    meta: buildMeta({
+      title: "Privacy Policy — OFC360",
+      description:
+        "How EquinoxSphere Technologies collects, uses, and protects your data on OFC360.",
+      url: "/privacy",
+    }),
+    links: buildCanonical("/privacy"),
   }),
   component: PrivacyPage,
 });

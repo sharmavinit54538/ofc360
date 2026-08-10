@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/payroll/copilot")({
-  head: () => ({ meta: [{ title: "AI Payroll Copilot — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Payroll Copilot — OFC360" }] }),
   component: PayrollCopilotPage,
 });
 

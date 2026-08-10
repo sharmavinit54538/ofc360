@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/travel")({
-  head: () => ({ meta: [{ title: "Travel Requests — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Travel Requests — OFC360" }] }),
   component: TravelPage,
 });
 

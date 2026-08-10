@@ -9,7 +9,7 @@ const EmployeePage = lazyFeaturePage(
 export const Route = createFileRoute("/dashboard/employee")({
   head: () => ({
     meta: [
-      { title: "My Dashboard — ofc360 HR" },
+      { title: "My Dashboard — OFC360 HR" },
       {
         name: "description",
         content:

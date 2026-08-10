@@ -10,7 +10,7 @@ import { ofc360, uid, useofc360, type HR } from "@/lib/ofc360-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/hr")({
-  head: () => ({ meta: [{ title: "HR Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "HR Management — OFC360" }] }),
   component: HRPage,
 });
 

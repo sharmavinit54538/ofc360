@@ -4,7 +4,7 @@ import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 import { useofc360 } from "@/lib/ofc360-store";
 
 export const Route = createFileRoute("/dashboard/audit-logs")({
-  head: () => ({ meta: [{ title: "Audit Logs — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Audit Logs — OFC360" }] }),
   component: AuditLogsPage,
 });
 

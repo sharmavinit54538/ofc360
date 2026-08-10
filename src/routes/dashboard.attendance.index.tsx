@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useofc360 } from "@/lib/ofc360-store";
 
 export const Route = createFileRoute("/dashboard/attendance/")({
-  head: () => ({ meta: [{ title: "Attendance — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Attendance — OFC360" }] }),
   component: AttendancePage,
 });
 

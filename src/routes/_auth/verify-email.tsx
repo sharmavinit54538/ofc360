@@ -2,6 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { VerifyEmailPage } from "@/features/auth/pages/VerifyEmailPage";
 
 export const Route = createFileRoute("/_auth/verify-email")({
-  head: () => ({ meta: [{ title: "Verify your email — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Verify your email — OFC360" }] }),
   component: VerifyEmailPage,
 });

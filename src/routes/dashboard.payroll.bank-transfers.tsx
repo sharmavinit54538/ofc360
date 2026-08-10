@@ -3,7 +3,7 @@ import { Banknote } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/bank-transfers")({
-  head: () => ({ meta: [{ title: "Bank Transfers — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Bank Transfers — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Bank Transfers" description="Generate bank advice files and track disbursements." />

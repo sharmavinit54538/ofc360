@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useHrms } from "@/lib/hrms/store";
 
 export const Route = createFileRoute("/dashboard/lifecycle")({
-  head: () => ({ meta: [{ title: "Employee Lifecycle — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Employee Lifecycle — OFC360" }] }),
   component: EmployeeLifecyclePage,
 });
 

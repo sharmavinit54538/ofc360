@@ -8,21 +8,17 @@ import { motion, useInView } from "framer-motion";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
-    meta: [
-      { title: "About OFC360 — EquinoxSphere Technologies" },
-      {
-        name: "description",
-        content:
-          "Learn about EquinoxSphere Technologies and the team building OFC360 — the AI-powered HRMS platform for modern organizations.",
-      },
-      { property: "og:title", content: "About OFC360 — EquinoxSphere Technologies" },
-      { property: "og:description", content: "Our mission, our story, and the team building OFC360." },
-      { property: "og:url", content: "/about" },
-    ],
-    links: [{ rel: "canonical", href: "/about" }],
+    meta: buildMeta({
+      title: "About OFC360 — EquinoxSphere Technologies",
+      description:
+        "Learn about EquinoxSphere Technologies and the team building OFC360 — the AI-powered HRMS platform for modern organizations.",
+      url: "/about",
+    }),
+    links: buildCanonical("/about"),
   }),
   component: AboutPage,
 });

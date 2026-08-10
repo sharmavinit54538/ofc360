@@ -5,7 +5,7 @@ import {
 import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/leave-assistant")({
-  head: () => ({ meta: [{ title: "AI Leave Assistant — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Leave Assistant — OFC360" }] }),
   component: Page,
 });
 

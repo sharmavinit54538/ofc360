@@ -3,7 +3,7 @@ import { HandCoins } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/advances")({
-  head: () => ({ meta: [{ title: "Advances & Loans — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Advances & Loans — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Advances & Loans" description="Issue salary advances and manage repayment schedules." />

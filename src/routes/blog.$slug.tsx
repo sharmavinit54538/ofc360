@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
 import { posts } from "@/lib/blog-data";
+import { buildMeta, buildCanonical, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -11,19 +12,39 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!post) throw notFound();
     return { post };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-        { title: `${loaderData.post.title} — ofc360 Blog` },
-        { name: "description", content: loaderData.post.excerpt },
-        { property: "og:title", content: loaderData.post.title },
-        { property: "og:description", content: loaderData.post.excerpt },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: `/blog/${loaderData.post.slug}` },
-      ]
-      : [],
-    links: loaderData ? [{ rel: "canonical", href: `/blog/${loaderData.post.slug}` }] : [],
-  }),
+  head: ({ loaderData }) => {
+    if (!loaderData) return { meta: [], links: [] };
+    const { post } = loaderData;
+    const articleJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: post.title,
+      description: post.excerpt,
+      author: { "@type": "Person", name: post.author },
+      datePublished: post.date,
+      publisher: {
+        "@type": "Organization",
+        name: "EquinoxSphere Technologies",
+        logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+      },
+      url: `${SITE_URL}/blog/${post.slug}`,
+    };
+    return {
+      meta: buildMeta({
+        title: `${post.title} — OFC360 Blog`,
+        description: post.excerpt,
+        url: `/blog/${post.slug}`,
+        ogType: "article",
+      }),
+      links: buildCanonical(`/blog/${post.slug}`),
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(articleJsonLd),
+        },
+      ],
+    };
+  },
   notFoundComponent: () => (
     <SiteLayout>
       <Section className="text-center">

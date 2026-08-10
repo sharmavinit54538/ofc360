@@ -5,7 +5,7 @@ import {
 import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/compliance-monitor")({
-  head: () => ({ meta: [{ title: "AI Compliance Monitor — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Compliance Monitor — OFC360" }] }),
   component: Page,
 });
 

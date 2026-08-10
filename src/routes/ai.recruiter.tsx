@@ -5,7 +5,7 @@ import {
 import { AIModulePage } from "@/components/ofc360/AIModule";
 
 export const Route = createFileRoute("/ai/recruiter")({
-  head: () => ({ meta: [{ title: "AI Recruiter — ofc360" }] }),
+  head: () => ({ meta: [{ title: "AI Recruiter — OFC360" }] }),
   component: Page,
 });
 

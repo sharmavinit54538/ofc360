@@ -9,7 +9,7 @@ const AdminPerformancePage = lazyFeaturePage(
 );
 
 export const Route = createFileRoute("/dashboard/performance")({
-  head: () => ({ meta: [{ title: "Performance — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Performance — OFC360" }] }),
   component: PerformanceRouteComponent,
 });
 

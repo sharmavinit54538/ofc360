@@ -35,7 +35,7 @@ import { api } from "@/api";
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/assets")({
-  head: () => ({ meta: [{ title: "Asset Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Asset Management — OFC360" }] }),
   component: AssetsPage,
 });
 

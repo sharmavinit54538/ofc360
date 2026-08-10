@@ -3,7 +3,7 @@ import { Receipt } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/reimbursements")({
-  head: () => ({ meta: [{ title: "Reimbursements — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Reimbursements — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Reimbursements" description="Manage employee expense claims and reimbursements." />

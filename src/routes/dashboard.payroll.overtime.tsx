@@ -3,7 +3,7 @@ import { Timer } from "lucide-react";
 import { ComingSoon, PageHeader } from "@/components/ofc360/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/payroll/overtime")({
-  head: () => ({ meta: [{ title: "Overtime Payments — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Overtime Payments — OFC360" }] }),
   component: () => (
     <>
       <PageHeader title="Overtime Payments" description="Calculate and pay overtime based on attendance." />

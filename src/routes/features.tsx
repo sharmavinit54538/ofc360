@@ -6,17 +6,17 @@ import {
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { CTA } from "@/components/site/CTA";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/features")({
   head: () => ({
-    meta: [
-      { title: "Features — OFC360" },
-      { name: "description", content: "Explore everything OFC360 can do — planning, AI, analytics, integrations, and more." },
-      { property: "og:title", content: "Features — OFC360" },
-      { property: "og:description", content: "Every capability OFC360 offers, in detail." },
-      { property: "og:url", content: "/features" },
-    ],
-    links: [{ rel: "canonical", href: "/features" }],
+    meta: buildMeta({
+      title: "Features — OFC360 AI-Powered HRMS",
+      description:
+        "Explore OFC360 features — recruitment AI, attendance, payroll, performance management, analytics, integrations, and 70+ AI agents.",
+      url: "/features",
+    }),
+    links: buildCanonical("/features"),
   }),
   component: FeaturesPage,
 });

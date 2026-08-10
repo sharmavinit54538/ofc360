@@ -41,11 +41,11 @@ export function Navbar() {
           )}
         >
           <Link to="/" className="flex items-center gap-2 group">
-            <img src="/logo.png" alt="OFC360 logo" className="h-8 w-auto object-contain" />
+            <img src="/logo.png" alt="OFC360 — AI-Powered HRMS Platform" className="h-8 w-auto object-contain" width="32" height="32" />
             <span className="font-display text-xl font-bold tracking-tight">OFC360</span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
             {links.map((l) => (
               <Link
                 key={l.to}
@@ -92,7 +92,7 @@ export function Navbar() {
 
         {open && (
           <div className="lg:hidden mt-2 glass rounded-2xl p-3 animate-fade-up">
-            <nav className="flex flex-col">
+            <nav className="flex flex-col" aria-label="Mobile navigation">
               {links.map((l) => (
                 <Link
                   key={l.to}

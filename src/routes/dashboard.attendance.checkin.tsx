@@ -16,7 +16,7 @@ import { GlassCard, StatCard } from "@/components/hrms/Shared";
 
 // ── Route ─────────────────────────────────────────────────────
 export const Route = createFileRoute("/dashboard/attendance/checkin")({
-  head: () => ({ meta: [{ title: "Check In / Check Out — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Check In / Check Out — OFC360" }] }),
   component: CheckInPage,
 });
 

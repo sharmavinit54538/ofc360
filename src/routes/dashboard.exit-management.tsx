@@ -32,7 +32,7 @@ import {
 // ROUTE DEFINITION
 // ----------------------------------------------------
 export const Route = createFileRoute("/dashboard/exit-management")({
-  head: () => ({ meta: [{ title: "Exit Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Exit Management — OFC360" }] }),
   component: ExitManagementPage,
 });
 

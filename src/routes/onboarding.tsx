@@ -26,7 +26,12 @@ export const Route = createFileRoute("/onboarding")({
   validateSearch: z.object({
     token: z.string().optional(),
   }),
-  head: () => ({ meta: [{ title: "Onboarding — ofc360" }] }),
+  head: () => ({
+    meta: [
+      { title: "Onboarding — OFC360" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: OnboardingPage,
 });
 

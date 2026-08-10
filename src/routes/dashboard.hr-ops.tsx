@@ -30,7 +30,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/hr-ops")({
-  head: () => ({ meta: [{ title: "Operations — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Operations — OFC360" }] }),
   component: OperationsHubPage,
 });
 

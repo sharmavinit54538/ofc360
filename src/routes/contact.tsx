@@ -6,17 +6,17 @@ import { Section, SectionHeader } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
 import { CTA } from "@/components/site/CTA";
 import { toast } from "sonner";
+import { buildMeta, buildCanonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
-    meta: [
-      { title: "Contact — OFC360" },
-      { name: "description", content: "Get in touch with the OFC360 team. We respond within one business day." },
-      { property: "og:title", content: "Contact — OFC360" },
-      { property: "og:description", content: "Talk to the OFC360 team." },
-      { property: "og:url", content: "/contact" },
-    ],
-    links: [{ rel: "canonical", href: "/contact" }],
+    meta: buildMeta({
+      title: "Contact OFC360 — Get in Touch",
+      description:
+        "Get in touch with the OFC360 team. Book a demo, request pricing, or ask a question. We respond within one business day.",
+      url: "/contact",
+    }),
+    links: buildCanonical("/contact"),
   }),
   component: ContactPage,
 });

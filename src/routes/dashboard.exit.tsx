@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/dashboard/exit")({
-  head: () => ({ meta: [{ title: "Exit Management — ofc360" }] }),
+  head: () => ({ meta: [{ title: "Exit Management — OFC360" }] }),
   component: ExitPage,
 });
 
