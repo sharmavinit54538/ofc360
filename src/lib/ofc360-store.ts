@@ -128,20 +128,24 @@ const defaultState: Workspace = {
 
 let state: Workspace = defaultState;
 const listeners = new Set<() => void>();
+let hasLoaded = false;
 
-function load() {
-  if (typeof window === "undefined") return;
+export function loadOfc360Store() {
+  if (typeof window === "undefined" || hasLoaded) return;
+  hasLoaded = true;
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       state = { ...defaultState, ...parsed };
     }
-
     state.isRestoring = false;
-  } catch { }
+    emit();
+  } catch {
+    state.isRestoring = false;
+    emit();
+  }
 }
-load();
 
 function persist() {
   if (typeof window === "undefined") return;

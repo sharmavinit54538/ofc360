@@ -48,10 +48,14 @@ export function RecruitmentCRMPage() {
   const candidates = useRecruitment((s) => s.candidates);
   const [search, setSearch] = useState("");
   const [activeId, setActiveId] = useState(candidates[0]?.id ?? "");
-  const [watchSet, setWatchSet] = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem("crm.watch") ?? "[]")); }
-    catch { return new Set(); }
-  });
+  const [watchSet, setWatchSet] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("crm.watch");
+      if (raw) setWatchSet(new Set(JSON.parse(raw)));
+    } catch {}
+  }, []);
   const [filterWatch, setFilterWatch] = useState(false);
 
   // Form state

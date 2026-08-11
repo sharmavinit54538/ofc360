@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { api, getTokens, hasValidAccessToken, isAccessTokenExpired, setTokens } from "@/api";
 import type { AuthMeResponse, AuthUserPayload } from "@/api";
-import { ofc360 } from "./ofc360-store";
+import { loadOfc360Store, ofc360 } from "./ofc360-store";
 
 type AuthStatus = "loading" | "ready";
 
@@ -64,6 +64,9 @@ export function getPostLoginRoute(user: AuthUserPayload): string {
 export async function bootstrapAuth(): Promise<void> {
   if (typeof window === "undefined") return;
 
+  // Hydrate store from localStorage after mount
+  loadOfc360Store();
+
   // Unblock UI immediately so pages render in 0ms without hanging
   ofc360.set({ isRestoring: false });
   setStatus("ready");
@@ -92,10 +95,6 @@ export async function bootstrapAuth(): Promise<void> {
   } catch {
     // Keep local session if background revalidation fails due to network/server errors
   }
-}
-
-if (typeof window !== "undefined") {
-  void bootstrapAuth();
 }
 
 export function useAuthReady(): boolean {

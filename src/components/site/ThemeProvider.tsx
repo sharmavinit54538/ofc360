@@ -39,8 +39,8 @@ function resolveTheme(mode: ThemeMode): Theme {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(getSavedMode);
-  const [theme, setThemeState] = useState<Theme>(() => resolveTheme(getSavedMode()));
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [theme, setThemeState] = useState<Theme>("light");
 
   const applyTheme = (mode: ThemeMode) => {
     const activeTheme = resolveTheme(mode);

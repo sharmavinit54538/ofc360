@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, Mail, Plus, Sparkles, Trash2, Check } from "lucide-react";
 import { PageHeader } from "@/components/ofc360/DashboardShell";
 import { Button } from "@/components/ui/button";
@@ -72,19 +72,16 @@ const CAT_TONE: Record<Template["category"], string> = {
 };
 
 export function RecruitmentTemplatesPage() {
-  const [items, setItems] = useState<Template[]>(() => {
-    if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("ofc360.recruitment.templates");
-      if (raw) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          // ignore
-        }
+  const [items, setItems] = useState<Template[]>(seed);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const raw = window.localStorage.getItem("ofc360.recruitment.templates");
+        if (raw) setItems(JSON.parse(raw));
       }
-    }
-    return seed;
-  });
+    } catch {}
+  }, []);
 
   const [active, setActive] = useState<string>("t_outreach_1");
   const current = items.find((t) => t.id === active) ?? items[0] ?? null;

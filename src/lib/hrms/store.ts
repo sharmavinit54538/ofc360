@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   seedAssets, seedExits, seedExpenses, seedOffboarding, seedOnboarding, seedTimeline, seedTravel, seedVisitors,
 } from "./seed";
@@ -30,19 +30,23 @@ const initial: HrmsState = {
   offboarding: seedOffboarding,
 };
 
-function load(): HrmsState {
-  if (typeof window === "undefined") return initial;
+let hasLoadedHrms = false;
+
+export function loadHrmsStore() {
+  if (typeof window === "undefined" || hasLoadedHrms) return;
+  hasLoadedHrms = true;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return initial;
+    if (!raw) return;
     const parsed = JSON.parse(raw) as Partial<HrmsState>;
-    return { ...initial, ...parsed };
+    state = { ...initial, ...parsed };
+    listeners.forEach((l) => l());
   } catch {
-    return initial;
+    /* ignore */
   }
 }
 
-let state: HrmsState = load();
+let state: HrmsState = initial;
 const listeners = new Set<() => void>();
 
 function persist() {
@@ -201,6 +205,10 @@ export const hrms = {
 };
 
 export function useHrms<T>(selector: (s: HrmsState) => T): T {
+  useEffect(() => {
+    loadHrmsStore();
+  }, []);
+
   return useSyncExternalStore(
     hrms.subscribe,
     () => selector(state),

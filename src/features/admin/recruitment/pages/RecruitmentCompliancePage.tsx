@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CheckCircle2, FileLock2, ShieldCheck, UserX } from "lucide-react";
 import { PageHeader } from "@/components/ofc360/DashboardShell";
@@ -14,49 +14,37 @@ const COLORS = ["oklch(0.65 0.22 285)", "oklch(0.7 0.18 200)", "oklch(0.74 0.16 
 export function RecruitmentCompliancePage() {
   const candidates = useRecruitment((s) => s.candidates);
 
-  // Persistent privacy controls state
-  const [controls, setControls] = useState(() => {
-    if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("ofc360.compliance.controls");
-      if (raw) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          // ignore
-        }
-      }
-    }
-    return {
-      gdprConsent: true,
-      eeoSelfId: true,
-      ofccp: true,
-      anonymize: true,
-      blindReview: false,
-      dsar: true,
-    };
-  });
+  const defaultControls = {
+    gdprConsent: true,
+    eeoSelfId: true,
+    ofccp: true,
+    anonymize: true,
+    blindReview: false,
+    dsar: true,
+  };
 
-  // Persistent compliance checklist state
-  const [checklist, setChecklist] = useState(() => {
-    if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("ofc360.compliance.checklist");
-      if (raw) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          // ignore
-        }
+  const defaultChecklist = {
+    eeo1: true,
+    dpa: true,
+    retention: true,
+    ccpa: true,
+    pentest: false,
+    soc2: true,
+  };
+
+  const [controls, setControls] = useState(defaultControls);
+  const [checklist, setChecklist] = useState(defaultChecklist);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const rawC = window.localStorage.getItem("ofc360.compliance.controls");
+        if (rawC) setControls(JSON.parse(rawC));
+        const rawCl = window.localStorage.getItem("ofc360.compliance.checklist");
+        if (rawCl) setChecklist(JSON.parse(rawCl));
       }
-    }
-    return {
-      eeo1: true,
-      dpa: true,
-      retention: true,
-      ccpa: true,
-      pentest: false,
-      soc2: true,
-    };
-  });
+    } catch {}
+  }, []);
 
   const updateControl = (key: keyof typeof controls, val: boolean) => {
     const next = { ...controls, [key]: val };
