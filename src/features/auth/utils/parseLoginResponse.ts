@@ -24,8 +24,20 @@ function normalizeUser(raw: unknown): AuthUserPayload | null {
     email: user.email,
     phone: typeof user.phone === "string" ? user.phone : undefined,
     role: (user.role ?? "employee") as AuthUserPayload["role"],
-    is_verified: Boolean(user.is_verified ?? user.isVerified ?? user.email_verified),
-    onboarding_completed: Boolean(user.onboarding_completed ?? user.onboardingCompleted),
+    is_verified:
+      user.is_verified !== undefined
+        ? Boolean(user.is_verified)
+        : user.isVerified !== undefined
+          ? Boolean(user.isVerified)
+          : user.email_verified !== undefined
+            ? Boolean(user.email_verified)
+            : true,
+    onboarding_completed:
+      user.onboarding_completed !== undefined
+        ? Boolean(user.onboarding_completed)
+        : user.onboardingCompleted !== undefined
+          ? Boolean(user.onboardingCompleted)
+          : true,
     created_at: typeof user.created_at === "string" ? user.created_at : undefined,
     company_id:
       typeof user.company_id === "string" || typeof user.company_id === "number"
@@ -68,11 +80,14 @@ export function parseLoginResponse(res: unknown): ParsedLoginResult | null {
 
   const user = normalizeUser(userCandidate);
 
-  if (typeof accessToken !== "string" || typeof refreshToken !== "string" || !user) {
+  const finalAccessToken = typeof accessToken === "string" ? accessToken : "";
+  const finalRefreshToken = typeof refreshToken === "string" ? refreshToken : finalAccessToken;
+
+  if (!finalAccessToken || !user) {
     return null;
   }
 
-  return { accessToken, refreshToken, user };
+  return { accessToken: finalAccessToken, refreshToken: finalRefreshToken, user };
 }
 
 export function getApiResponseMessage(res: unknown, fallback = "Server error"): string {

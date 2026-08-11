@@ -30,8 +30,8 @@ function mapAuthUser(data: AuthUserPayload) {
       phone: data.phone || "",
       role: data.role,
       companyId,
-      emailVerified: data.is_verified,
-      onboardingComplete: data.onboarding_completed ?? false,
+      emailVerified: data.is_verified ?? true,
+      onboardingComplete: data.onboarding_completed ?? true,
       createdAt: data.created_at ?? new Date().toISOString(),
     },
     company: {
@@ -47,57 +47,51 @@ export function persistAuthSession(
 ) {
   setTokens(tokens);
   ofc360.set(mapAuthUser(user));
+  setStatus("ready");
 }
 
 export function getPostLoginRoute(user: AuthUserPayload): string {
-  if (!user.is_verified) return "/verify-email";
+  if (user.is_verified === false) return "/verify-email";
+  if (user.onboarding_completed === false) return "/onboarding";
+
   const r = (user.role as string)?.toLowerCase();
   if (r === "super_admin") return "/dashboard/super-admin";
-  if (!user.onboarding_completed) return "/onboarding";
-  if (user.role === "manager") return "/dashboard/manager";
-  if (user.role === "employee") return "/dashboard/employee";
+  if (r === "manager") return "/dashboard/manager";
+  if (r === "employee") return "/dashboard/employee";
   return "/dashboard";
 }
 
 export async function bootstrapAuth(): Promise<void> {
   if (typeof window === "undefined") return;
-  if (bootstrapPromise) return bootstrapPromise;
 
   // Unblock UI immediately so pages render in 0ms without hanging
   ofc360.set({ isRestoring: false });
   setStatus("ready");
 
-  bootstrapPromise = (async () => {
-    const tokens = getTokens();
-    const ws = ofc360.get();
+  const tokens = getTokens();
+  const ws = ofc360.get();
 
-    // If no tokens or already cached valid user session, finish immediately
-    if (!tokens?.accessToken) {
-      setTokens(null);
-      ofc360.set({ user: null, company: null });
-      return;
-    }
-
-    if (ws.user && !isAccessTokenExpired(tokens.accessToken)) {
-      return;
-    }
-
-    // Silent background revalidation (never blocks UI rendering)
-    try {
-      const res = await api.get<AuthMeResponse>("auth/me");
-      if (res.success && res.data) {
-        ofc360.set(mapAuthUser(res.data));
-      } else {
-        setTokens(null);
-        ofc360.set({ user: null, company: null });
-      }
-    } catch {
-      setTokens(null);
+  // If no tokens present at all, clear user state
+  if (!tokens?.accessToken) {
+    if (ws.user) {
       ofc360.set({ user: null, company: null });
     }
-  })();
+    return;
+  }
 
-  return bootstrapPromise;
+  if (ws.user && !isAccessTokenExpired(tokens.accessToken)) {
+    return;
+  }
+
+  // Silent background revalidation (never blocks UI rendering)
+  try {
+    const res = await api.get<AuthMeResponse>("auth/me");
+    if (res.success && res.data) {
+      ofc360.set(mapAuthUser(res.data));
+    }
+  } catch {
+    // Keep local session if background revalidation fails due to network/server errors
+  }
 }
 
 if (typeof window !== "undefined") {

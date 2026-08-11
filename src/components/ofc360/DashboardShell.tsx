@@ -202,11 +202,11 @@ export function DashboardShell() {
       navigate({ to: "/login" });
       return;
     }
-    if (!ws.user.emailVerified) {
+    if (ws.user.emailVerified === false) {
       navigate({ to: "/verify-email" });
       return;
     }
-    if (!ws.user.onboardingComplete) {
+    if (ws.user.onboardingComplete === false) {
       navigate({ to: "/onboarding" });
       return;
     }

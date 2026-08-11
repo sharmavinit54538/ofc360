@@ -133,7 +133,7 @@ function OnboardingPage() {
       navigate({ to: "/register" });
       return;
     }
-    if (!ws.user.emailVerified) {
+    if (ws.user.emailVerified === false) {
       navigate({ to: "/verify-email" });
       return;
     }
