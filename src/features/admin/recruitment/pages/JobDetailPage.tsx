@@ -24,7 +24,7 @@ import { CandidateAvatar, fmtDate, fmtMoney } from "@/features/admin/recruitment
 import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
 import { useofc360 } from "@/lib/ofc360-store";
-import { getPublicJobApplicationUrl } from "@/lib/public-url";
+import { getPublicAppUrl, getPublicJobApplicationUrl } from "@/lib/public-url";
 import { api, API_HOST_URL, BASE_URL } from "@/api";
 import { toast } from "sonner";
 import {
@@ -147,7 +147,10 @@ export function JobDetailPage() {
   const handleFetchQr = async () => {
     setLoadingQr(true);
     try {
-      const res = await api.get<any>(`/jobs/${jobId}/qr`);
+      // Send the production-safe frontend URL so the backend encodes the
+      // correct public apply link into the QR image.
+      const frontendUrl = getPublicAppUrl();
+      const res = await api.get<any>(`/jobs/${jobId}/qr?frontend_url=${encodeURIComponent(frontendUrl)}`);
       if (res) {
         setQrData(res);
       }
@@ -157,6 +160,7 @@ export function JobDetailPage() {
       setLoadingQr(false);
     }
   };
+
 
   useEffect(() => {
     if (showPublishModal) {
@@ -282,7 +286,8 @@ export function JobDetailPage() {
     try {
       let rawUrl = "";
       try {
-        const res = await api.get<any>(`/jobs/${jobId}/sourcing-link`);
+        const frontendUrl = getPublicAppUrl();
+        const res = await api.get<any>(`/jobs/${jobId}/sourcing-link?frontend_url=${encodeURIComponent(frontendUrl)}`);
         rawUrl = res?.url || res?.data?.url || res?.data?.sourcing_link || "";
       } catch {
         // Fallback to jobId if endpoint fails or is mock

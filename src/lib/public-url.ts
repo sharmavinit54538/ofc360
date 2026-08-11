@@ -1,29 +1,35 @@
+/** Production domain – single source of truth for public-facing URLs. */
+const PRODUCTION_URL = "https://www.ofc360.com";
+
+/** Regex that matches localhost, 127.0.0.1, or any 192.168.x.x address. */
+const LOCAL_URL_RE = /localhost|127\.0\.0\.1|192\.168\.\d+\.\d+/i;
+
 /**
  * Helper to get the public application base URL.
- * Environment-aware: uses VITE_PUBLIC_APP_URL when present, or window.location.origin.
- * Ensures localhost is never used in production.
+ *
+ * Uses VITE_PUBLIC_APP_URL when present, but **always** validates the result
+ * and replaces any local-development URL with the production domain.
+ * This guarantees that QR codes, sourcing links, and any other public-facing
+ * URLs never contain localhost or local-network addresses — regardless of
+ * build mode or runtime context.
  */
 export function getPublicAppUrl(): string {
-  let baseUrl =
-    (import.meta.env.VITE_PUBLIC_APP_URL as string) ||
-    (typeof window !== "undefined" ? window.location.origin : "https://www.ofc360.com");
+  const envUrl = (import.meta.env.VITE_PUBLIC_APP_URL as string) || "";
 
-  const isProdHost =
-    typeof window !== "undefined" && window.location.hostname.includes("ofc360.com");
-
-  if (import.meta.env.PROD || isProdHost) {
-    if (baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1")) {
-      baseUrl = "https://www.ofc360.com";
-    }
+  // If the env var is set AND is not a local address, use it.
+  if (envUrl && !LOCAL_URL_RE.test(envUrl)) {
+    return envUrl.replace(/\/$/, "");
   }
 
-  return baseUrl.replace(/\/$/, "");
+  // Fallback: always return the production URL.
+  return PRODUCTION_URL;
 }
 
 /**
  * Centralized function to generate production-safe public job application URLs.
- * Example production output: https://www.ofc360.com/jobs/apply/c24e0c96
- * Example development output: http://localhost:8080/jobs/apply/c24e0c96
+ *
+ * Always produces URLs rooted at the production domain.
+ * Example output: https://www.ofc360.com/jobs/apply/c24e0c96
  */
 export function getPublicJobApplicationUrl(codeOrUrl: string): string {
   if (!codeOrUrl) return getPublicAppUrl() + "/jobs/apply/";
@@ -46,10 +52,10 @@ export function getPublicJobApplicationUrl(codeOrUrl: string): string {
   const baseUrl = getPublicAppUrl();
   const fullUrl = `${baseUrl}/jobs/apply/${code}`;
 
-  // Production safety check: prevent accidental localhost links
-  if (import.meta.env.PROD && fullUrl.includes("localhost")) {
-    console.error("Production secure job link cannot contain localhost:", fullUrl);
-    return `https://www.ofc360.com/jobs/apply/${code}`;
+  // Final safety net: if a local address somehow slipped through, force production.
+  if (LOCAL_URL_RE.test(fullUrl)) {
+    console.error("[public-url] Local address detected in job link — forcing production URL:", fullUrl);
+    return `${PRODUCTION_URL}/jobs/apply/${code}`;
   }
 
   return fullUrl;
