@@ -162,6 +162,7 @@ export function ImportDialog({
         // Required
         if (!draft.name) rowErrors.push("Department name is required");
         if (!draft.code) rowErrors.push("Department code is required");
+        if (!draft.status) rowErrors.push("Department status is required");
         if (!draft.office) rowErrors.push("Office location is required");
         if (!draft.departmentHeadName) rowErrors.push("Department head is required");
 

@@ -130,6 +130,10 @@ export function DepartmentsTable({
           </TableHeader>
           <TableBody>
             {departments.map((d) => {
+              if (!d || !d.name || !d.name.trim() || !d.code || !d.code.trim() || !d.status) {
+                return null;
+              }
+
               const isSelected = selectedIds.includes(d.id);
               const statusOpt = STATUS_OPTIONS.find((s) => s.value === d.status);
               

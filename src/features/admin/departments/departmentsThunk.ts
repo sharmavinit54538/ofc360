@@ -28,7 +28,18 @@ export const fetchDepartments = createAsyncThunk<Department[], void, { rejectVal
       const response = await apiInstance.get("/departments");
       const items = response.data?.data?.items ?? response.data?.data ?? response.data ?? [];
       const list = Array.isArray(items) ? items : [];
-      return syncWithEmployees(list);
+      // Data-cleanup: filter out incomplete/corrupt records where name, code or status is missing
+      const validList = list.filter(
+        (d: any) =>
+          d &&
+          typeof d === "object" &&
+          d.name &&
+          d.name.trim() !== "" &&
+          d.code &&
+          d.code.trim() !== "" &&
+          d.status,
+      );
+      return syncWithEmployees(validList);
     } catch (err: any) {
       return rejectWithValue(
         err?.response?.data?.message || err?.message || "Failed to fetch departments",
@@ -39,7 +50,10 @@ export const fetchDepartments = createAsyncThunk<Department[], void, { rejectVal
 
 export const createDepartment = createAsyncThunk<Department, Department, { rejectValue: string }>(
   "departments/createDepartment",
-  async (department) => {
+  async (department, { rejectWithValue }) => {
+    if (!department.name?.trim() || !department.code?.trim() || !department.status) {
+      return rejectWithValue("Department requires name, code, and status.");
+    }
     await tryApi(() => apiInstance.post("/departments", department), undefined);
     return department;
   },
@@ -47,7 +61,10 @@ export const createDepartment = createAsyncThunk<Department, Department, { rejec
 
 export const updateDepartment = createAsyncThunk<Department, Department, { rejectValue: string }>(
   "departments/updateDepartment",
-  async (department) => {
+  async (department, { rejectWithValue }) => {
+    if (!department.name?.trim() || !department.code?.trim() || !department.status) {
+      return rejectWithValue("Department requires name, code, and status.");
+    }
     await tryApi(() => apiInstance.put(`/departments/${department.id}`, department), undefined);
     return department;
   },
@@ -89,9 +106,15 @@ export const bulkAssignDepartmentManager = createAsyncThunk<
 
 export const importDepartments = createAsyncThunk<Department[], Department[], { rejectValue: string }>(
   "departments/importDepartments",
-  async (departments) => {
-    await tryApi(() => apiInstance.post("/departments/import", { departments }), undefined);
-    return departments;
+  async (departments, { rejectWithValue }) => {
+    const validDepts = departments.filter(
+      (d) => d && d.name?.trim() && d.code?.trim() && d.status,
+    );
+    if (validDepts.length === 0) {
+      return rejectWithValue("No valid departments to import.");
+    }
+    await tryApi(() => apiInstance.post("/departments/import", { departments: validDepts }), undefined);
+    return validDepts;
   },
 );
 

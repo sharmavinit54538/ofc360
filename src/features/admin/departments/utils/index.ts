@@ -16,6 +16,7 @@ export function validateDepartmentForm(
   if (!draft.name?.trim()) errors.name = "Department name is required";
   if (!draft.code?.trim()) errors.code = "Department code is required";
   else if (draft.code.trim().length < 2) errors.code = "Code must be at least 2 characters";
+  if (!draft.status) errors.status = "Department status is required";
 
   if (!draft.office?.trim()) errors.office = "Office location is required";
   if (!draft.departmentHeadId) errors.departmentHeadId = "Department Head is required";
