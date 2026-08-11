@@ -25,7 +25,8 @@ import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
 import { useofc360 } from "@/lib/ofc360-store";
 import { getPublicAppUrl, getPublicJobApplicationUrl } from "@/lib/public-url";
-import { api, API_HOST_URL, BASE_URL } from "@/api";
+import { api } from "@/api";
+import QRCode from "qrcode";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -109,8 +110,9 @@ export function JobDetailPage() {
   const [publishChannels, setPublishChannels] = useState<any[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(false);
 
-  // QR Modal state
-  const [qrData, setQrData] = useState<any>(null);
+  // QR Modal state – generated client-side with production URL
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrSvgMarkup, setQrSvgMarkup] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
 
   // Export Applicants state
@@ -144,23 +146,23 @@ export function JobDetailPage() {
     }
   };
 
-  const handleFetchQr = async () => {
+  /** Generate QR code entirely on the frontend with the production-safe URL. */
+  const handleGenerateQr = async () => {
     setLoadingQr(true);
     try {
-      // Send the production-safe frontend URL so the backend encodes the
-      // correct public apply link into the QR image.
-      const frontendUrl = getPublicAppUrl();
-      const res = await api.get<any>(`/jobs/${jobId}/qr?frontend_url=${encodeURIComponent(frontendUrl)}`);
-      if (res) {
-        setQrData(res);
-      }
+      const applyUrl = getPublicJobApplicationUrl(jobId);
+      const [pngDataUrl, svgString] = await Promise.all([
+        QRCode.toDataURL(applyUrl, { width: 512, margin: 2, errorCorrectionLevel: "H" }),
+        QRCode.toString(applyUrl, { type: "svg", width: 512, margin: 2, errorCorrectionLevel: "H" }),
+      ]);
+      setQrDataUrl(pngDataUrl);
+      setQrSvgMarkup(svgString);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load QR code.");
+      toast.error(err.message || "Failed to generate QR code.");
     } finally {
       setLoadingQr(false);
     }
   };
-
 
   useEffect(() => {
     if (showPublishModal) {
@@ -170,7 +172,7 @@ export function JobDetailPage() {
 
   useEffect(() => {
     if (showQrModal) {
-      handleFetchQr();
+      handleGenerateQr();
     }
   }, [showQrModal]);
 
@@ -306,7 +308,7 @@ export function JobDetailPage() {
 
 
   const handlePrintQr = () => {
-    if (!qrData) return;
+    if (!qrDataUrl) return;
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -322,13 +324,38 @@ export function JobDetailPage() {
           </head>
           <body>
             <h1>${job?.title}</h1>
-            <img src="${API_HOST_URL}${qrData.qr_png_url}" onload="window.print(); window.close();" />
+            <img src="${qrDataUrl}" onload="window.print(); window.close();" />
             <p>Scan to apply</p>
           </body>
         </html>
       `);
       printWindow.document.close();
     }
+  };
+
+  /** Download the QR code as a PNG file. */
+  const handleDownloadPng = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `qr-${job?.title?.replace(/\s+/g, "-").toLowerCase() || jobId}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  /** Download the QR code as an SVG file. */
+  const handleDownloadSvg = () => {
+    if (!qrSvgMarkup) return;
+    const blob = new Blob([qrSvgMarkup], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qr-${job?.title?.replace(/\s+/g, "-").toLowerCase() || jobId}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleExportApplicants = async () => {
@@ -1212,15 +1239,18 @@ export function JobDetailPage() {
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <p className="text-xs text-muted-foreground">Generating QR assets...</p>
             </div>
-          ) : qrData ? (
+          ) : qrDataUrl ? (
             <div className="flex flex-col items-center justify-center py-4 space-y-4">
               <div className="rounded-2xl border border-border bg-white p-3 shadow-inner">
                 <img
-                  src={`${API_HOST_URL}${qrData.qr_png_url}`}
+                  src={qrDataUrl}
                   alt="Job Apply QR Code"
                   className="w-48 h-48 rounded-lg"
                 />
               </div>
+              <p className="text-[10px] text-muted-foreground text-center break-all px-2">
+                {getPublicJobApplicationUrl(jobId)}
+              </p>
 
               <div className="w-full flex flex-col gap-2">
                 <div className="flex gap-2 w-full">
@@ -1228,7 +1258,7 @@ export function JobDetailPage() {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs"
-                    onClick={() => window.open(`${API_HOST_URL}${qrData.qr_png_url}`, "_blank")}
+                    onClick={handleDownloadPng}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />PNG
                   </Button>
@@ -1236,7 +1266,7 @@ export function JobDetailPage() {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs"
-                    onClick={() => window.open(`${API_HOST_URL}${qrData.qr_svg_url}`, "_blank")}
+                    onClick={handleDownloadSvg}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />SVG
                   </Button>
@@ -1247,7 +1277,7 @@ export function JobDetailPage() {
                   variant="outline"
                   className="w-full text-xs"
                   onClick={() => {
-                    const url = getPublicJobApplicationUrl(qrData.apply_url || jobId);
+                    const url = getPublicJobApplicationUrl(jobId);
                     navigator.clipboard.writeText(url);
                     toast.success("Apply URL copied!");
                   }}
@@ -1267,7 +1297,7 @@ export function JobDetailPage() {
             </div>
           ) : (
             <div className="text-center p-4 text-xs text-muted-foreground">
-              Failed to load QR asset.
+              Failed to generate QR code.
             </div>
           )}
         </DialogContent>
