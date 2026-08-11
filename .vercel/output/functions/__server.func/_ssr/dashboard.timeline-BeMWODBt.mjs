@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { At as LogOut, Cr as Briefcase, I as Sparkles, Mr as Award, S as TrendingUp, V as ShieldAlert, _ as UserCog, bn as FilePenLine, c as Wallet, rn as GraduationCap, st as Plane, v as UserCheck, yr as CalendarCheck } from "../_libs/lucide-react.mjs";
+import { At as LogOut, I as Sparkles, Nr as Award, S as TrendingUp, V as ShieldAlert, _ as UserCog, bn as FilePenLine, br as CalendarCheck, c as Wallet, rn as GraduationCap, st as Plane, v as UserCheck, wr as Briefcase } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { c as Skeleton, d as useDelayedReady, i as PrintButton, r as GlassCard, s as SearchBox, u as StatusBadge } from "./Shared-BY5JB4sY.mjs";

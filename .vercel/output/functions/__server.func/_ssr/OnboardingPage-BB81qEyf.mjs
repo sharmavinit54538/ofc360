@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Gt as Laptop, Qn as CircleCheck, at as Plus, gn as FileText, m as UserPlus, v as UserCheck } from "../_libs/lucide-react.mjs";
+import { $n as CircleCheck, Gt as Laptop, at as Plus, gn as FileText, m as UserPlus, v as UserCheck } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";

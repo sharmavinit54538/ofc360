@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { G as Send, Hn as Clock, or as Check, r as X } from "../_libs/lucide-react.mjs";
+import { G as Send, Un as Clock, r as X, sr as Check } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { w as apiInstance } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Ar as Banknote, G as Send, I as Sparkles, Nt as LoaderCircle, fr as ChartColumn, gn as FileText, u as Users, wt as MessageSquare } from "../_libs/lucide-react.mjs";
+import { G as Send, I as Sparkles, Nt as LoaderCircle, gn as FileText, jr as Banknote, pr as ChartColumn, u as Users, wt as MessageSquare } from "../_libs/lucide-react.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as AIHero } from "./AIModule-C8yWFy-D.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.chat-assistant-DvqG2xzU.js

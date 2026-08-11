@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { E as Timer, L as Smile, Vr as Activity, en as HeartPulse, pn as Flame, x as TriangleAlert } from "../_libs/lucide-react.mjs";
+import { E as Timer, Hr as Activity, L as Smile, en as HeartPulse, pn as Flame, x as TriangleAlert } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C8yWFy-D.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.employee-health-Cv1KMVTf.js
 var import_jsx_runtime = require_jsx_runtime();

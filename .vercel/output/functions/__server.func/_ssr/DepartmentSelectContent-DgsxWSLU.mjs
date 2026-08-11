@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { Mt as resolveDepartmentValue, ct as getDepartmentLabel, o as DEPARTMENT_GROUPS, s as DEPARTMENT_VALUES, ut as getExpandedGroupsForValue, vt as isParentGroupValue } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { ar as ChevronDown, rr as ChevronRight } from "../_libs/lucide-react.mjs";
+import { ir as ChevronRight, or as ChevronDown } from "../_libs/lucide-react.mjs";
 import { n as SelectContent, r as SelectItem } from "./select-DCMcI36W.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/DepartmentSelectContent-DgsxWSLU.js
 var import_react = /* @__PURE__ */ __toESM(require_react());

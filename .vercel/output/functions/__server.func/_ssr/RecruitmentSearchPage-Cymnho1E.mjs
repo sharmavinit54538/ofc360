@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Cr as Briefcase, Er as Bookmark, I as Sparkles, K as Search, X as Save, gn as FileText, mr as Calendar, sn as Gift, u as Users } from "../_libs/lucide-react.mjs";
+import { Dr as Bookmark, I as Sparkles, K as Search, X as Save, gn as FileText, hr as Calendar, sn as Gift, u as Users, wr as Briefcase } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

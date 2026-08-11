@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { At as LogOut, Br as Archive, Hn as Clock, I as Sparkles, Ir as ArrowRight, Qn as CircleCheck, V as ShieldAlert, v as UserCheck } from "../_libs/lucide-react.mjs";
+import { $n as CircleCheck, At as LogOut, I as Sparkles, Lr as ArrowRight, Un as Clock, V as ShieldAlert, Vr as Archive, v as UserCheck } from "../_libs/lucide-react.mjs";
 import { v as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

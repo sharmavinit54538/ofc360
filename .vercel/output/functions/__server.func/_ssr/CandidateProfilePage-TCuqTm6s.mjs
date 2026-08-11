@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { t as api } from "./client-YdrXBLNs.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { A as Tag, An as Earth, Cr as Briefcase, G as Send, I as Sparkles, Mr as Award, N as Star, Ot as MapPin, Qn as CircleCheck, Rr as ArrowLeft, Vr as Activity, gn as FileText, jn as Download, kt as Mail, lt as Phone, mr as Calendar, r as X, rn as GraduationCap, wt as MessageSquare } from "../_libs/lucide-react.mjs";
+import { $n as CircleCheck, A as Tag, An as Earth, G as Send, Hr as Activity, I as Sparkles, N as Star, Nr as Award, Ot as MapPin, gn as FileText, hr as Calendar, jn as Download, kt as Mail, lt as Phone, r as X, rn as GraduationCap, wr as Briefcase, wt as MessageSquare, zr as ArrowLeft } from "../_libs/lucide-react.mjs";
 import { _ as Link, b as useParams } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

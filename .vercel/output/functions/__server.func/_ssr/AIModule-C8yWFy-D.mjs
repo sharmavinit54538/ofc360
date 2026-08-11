@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { I as Sparkles, Pr as ArrowUpRight, jn as Download, zr as ArrowDownRight } from "../_libs/lucide-react.mjs";
+import { Br as ArrowDownRight, Fr as ArrowUpRight, I as Sparkles, jn as Download } from "../_libs/lucide-react.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";
 import { t as Progress } from "./progress-BaJBfUMd.mjs";

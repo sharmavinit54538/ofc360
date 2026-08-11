@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { w as apiInstance } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { A as Tag, Er as Bookmark, I as Sparkles, K as Search, N as Star, jn as Download, ln as Funnel, m as UserPlus, y as Upload } from "../_libs/lucide-react.mjs";
+import { A as Tag, Dr as Bookmark, I as Sparkles, K as Search, N as Star, jn as Download, ln as Funnel, m as UserPlus, y as Upload } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

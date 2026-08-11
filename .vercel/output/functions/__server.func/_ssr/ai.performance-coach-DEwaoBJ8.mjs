@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Mr as Award, S as TrendingUp, cn as Gauge, k as Target, rn as GraduationCap, zt as Lightbulb } from "../_libs/lucide-react.mjs";
+import { Nr as Award, S as TrendingUp, cn as Gauge, k as Target, rn as GraduationCap, zt as Lightbulb } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C8yWFy-D.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.performance-coach-DEwaoBJ8.js
 var import_jsx_runtime = require_jsx_runtime();

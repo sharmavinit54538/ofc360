@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Cr as Briefcase, D as ThumbsUp, N as Star, an as GitCompareArrows, b as Trophy, fr as ChartColumn, vn as FileSearch, wt as MessageSquare } from "../_libs/lucide-react.mjs";
+import { D as ThumbsUp, N as Star, an as GitCompareArrows, b as Trophy, pr as ChartColumn, vn as FileSearch, wr as Briefcase, wt as MessageSquare } from "../_libs/lucide-react.mjs";
 import { n as AIModulePage } from "./AIModule-C8yWFy-D.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.recruiter-fjOXIuPf.js
 var import_jsx_runtime = require_jsx_runtime();

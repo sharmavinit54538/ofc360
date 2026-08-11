@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Ar as Banknote } from "../_libs/lucide-react.mjs";
+import { jr as Banknote } from "../_libs/lucide-react.mjs";
 import { r as PageHeader, t as ComingSoon } from "./DashboardShell-DJnL0VlY.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/dashboard.payroll.bank-transfers-Brc5qD-9.js
 var import_jsx_runtime = require_jsx_runtime();

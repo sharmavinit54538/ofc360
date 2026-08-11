@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Zn as CircleMinus } from "../_libs/lucide-react.mjs";
+import { Qn as CircleMinus } from "../_libs/lucide-react.mjs";
 import { r as PageHeader, t as ComingSoon } from "./DashboardShell-DJnL0VlY.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/dashboard.payroll.deductions-9mGBUD0q.js
 var import_jsx_runtime = require_jsx_runtime();

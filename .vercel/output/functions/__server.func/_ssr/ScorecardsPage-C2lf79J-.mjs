@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { T as Trash2, Wn as ClipboardCheck, at as Plus } from "../_libs/lucide-react.mjs";
+import { Gn as ClipboardCheck, T as Trash2, at as Plus } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";

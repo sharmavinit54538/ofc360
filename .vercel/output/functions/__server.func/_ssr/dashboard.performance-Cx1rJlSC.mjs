@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { nn as useofc360 } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Hn as Clock, N as Star, Qn as CircleCheck, S as TrendingUp, at as Plus, b as Trophy, cn as Gauge, k as Target, or as Check, pt as PenLine, rn as GraduationCap, wt as MessageSquare } from "../_libs/lucide-react.mjs";
+import { $n as CircleCheck, N as Star, S as TrendingUp, Un as Clock, at as Plus, b as Trophy, cn as Gauge, k as Target, pt as PenLine, rn as GraduationCap, sr as Check, wt as MessageSquare } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";

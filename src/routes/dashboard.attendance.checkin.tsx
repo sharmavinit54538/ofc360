@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AlertCircle, Award, BarChart3, Bell, Bookmark, BookOpen, Brain, Briefcase,
   CalendarDays, Camera, CheckCircle2, ChevronDown, ChevronRight,
@@ -7,12 +7,13 @@ import {
   Flag, Globe, HelpCircle, History, Info, Laptop, LogIn, LogOut,
   MapPin, MessageSquare, Monitor, Play, QrCode, RefreshCw, Send,
   Shield, ShieldCheck, Sparkles, Star, Timer, TrendingUp, User, UserCog,
-  Wifi, X, Zap, Activity,
+  Wifi, X, Zap, Activity, CloudSun,
 } from "lucide-react";
 import { useofc360 } from "@/lib/ofc360-store";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GlassCard, StatCard } from "@/components/hrms/Shared";
+import { apiInstance } from "@/api";
 
 // ── Route ─────────────────────────────────────────────────────
 export const Route = createFileRoute("/dashboard/attendance/checkin")({
@@ -28,7 +29,7 @@ interface TimelineEvent {
   id: string;
   time: string;
   label: string;
-  icon: any;
+  icon?: any;
   color: string;
 }
 
@@ -37,19 +38,146 @@ interface AttendanceDay {
   status: "present" | "absent" | "late" | "leave" | "holiday" | "weekend" | "halfday" | "today" | "future";
 }
 
-// ── Mock API layer (swap with real endpoints) ─────────────────
+interface HistoryRow {
+  id?: string;
+  date: string;
+  checkIn: string;
+  breakDur: string;
+  checkOut: string;
+  hours: string;
+  ot: string;
+  status: string;
+  location: string;
+}
+
+interface ShiftInfo {
+  name: string;
+  startTime: string;
+  endTime: string;
+  managerName?: string;
+  workingDays: string;
+  expectedHours: string;
+  graceMinutes: number;
+  weekend: string;
+  location: string;
+}
+
+interface RuleItem {
+  label: string;
+  value: string;
+}
+
+interface NotificationData {
+  id: string;
+  title: string;
+  desc: string;
+  time: string;
+  color?: string;
+}
+
+interface NoticeItem {
+  id: string;
+  title: string;
+  content: string;
+  variant?: "warning" | "info";
+}
+
+interface HolidayItem {
+  id: string;
+  date: string;
+  name: string;
+  type: string;
+}
+
+interface CelebrationItem {
+  id: string;
+  personName: string;
+  type: string;
+  date: string;
+  subtitle: string;
+}
+
+interface InsightData {
+  score?: string;
+  avgCheckIn?: string;
+  avgHours?: string;
+  rank?: string;
+  recommendation?: string;
+  weeklySummary?: string[];
+  monthlyScore?: number;
+}
+
+// ── Real API layer ─────────────────────────────────────────────
 const API = {
-  checkIn: async () => ({ success: true, time: new Date().toISOString() }),
-  checkOut: async () => ({ success: true, time: new Date().toISOString() }),
-  breakIn: async () => ({ success: true, time: new Date().toISOString() }),
-  breakOut: async () => ({ success: true, time: new Date().toISOString() }),
-  getLocation: async (): Promise<{ lat: number; lng: number; accuracy: number; inside: boolean }> => ({
-    lat: 28.6139,
-    lng: 77.209,
-    accuracy: 15,
-    inside: true,
-  }),
+  checkIn: async (payload?: { lat?: number; lng?: number; notes?: string }) => {
+    const res = await apiInstance.post("/attendance/check-in", payload || {});
+    return res.data;
+  },
+  checkOut: async (payload?: { lat?: number; lng?: number; notes?: string }) => {
+    const res = await apiInstance.post("/attendance/check-out", payload || {});
+    return res.data;
+  },
+  breakIn: async () => {
+    const res = await apiInstance.post("/attendance/break-in");
+    return res.data;
+  },
+  breakOut: async () => {
+    const res = await apiInstance.post("/attendance/break-out");
+    return res.data;
+  },
+  getLocation: async (): Promise<{ lat: number; lng: number; accuracy: number; inside: boolean }> => {
+    return new Promise((resolve, reject) => {
+      if (typeof window === "undefined" || !navigator.geolocation) {
+        reject(new Error("Geolocation is not supported by your browser"));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+          try {
+            const res = await apiInstance.get("/attendance/location", { params: { lat, lng } });
+            const inside = res.data?.data?.inside ?? res.data?.inside ?? true;
+            resolve({ lat, lng, accuracy, inside });
+          } catch {
+            resolve({ lat, lng, accuracy, inside: true });
+          }
+        },
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  },
 };
+
+// ── Client Device Utilities ───────────────────────────────────
+function getBrowserInfo() {
+  if (typeof window === "undefined" || !navigator?.userAgent) return "Browser Desktop";
+  const ua = navigator.userAgent;
+  if (ua.includes("Firefox/")) return `Firefox ${ua.split("Firefox/")[1]?.split(" ")[0] || ""}`;
+  if (ua.includes("Edg/")) return `Edge ${ua.split("Edg/")[1]?.split(" ")[0] || ""}`;
+  if (ua.includes("Chrome/")) return `Chrome ${ua.split("Chrome/")[1]?.split(" ")[0] || ""}`;
+  if (ua.includes("Safari/")) return `Safari ${ua.split("Version/")[1]?.split(" ")[0] || ""}`;
+  return "Browser Desktop";
+}
+
+function getOSInfo() {
+  if (typeof window === "undefined" || !navigator?.userAgent) return "OS Desktop";
+  const ua = navigator.userAgent;
+  if (ua.includes("Win")) return "Windows";
+  if (ua.includes("Mac")) return "macOS";
+  if (ua.includes("Linux")) return "Linux";
+  if (ua.includes("Android")) return "Android";
+  if (ua.includes("like Mac")) return "iOS";
+  return "OS Desktop";
+}
+
+function getDeviceType() {
+  if (typeof window === "undefined" || !navigator?.userAgent) return "Desktop";
+  const ua = navigator.userAgent;
+  if (/Mobi|Android/i.test(ua)) return "Mobile";
+  if (/Tablet|iPad/i.test(ua)) return "Tablet";
+  return "Desktop";
+}
 
 // ── Utilities ─────────────────────────────────────────────────
 function fmtTime(sec: number) {
@@ -123,7 +251,7 @@ const STATUS_MAP: Record<DayStatus, { label: string; cls: string }> = {
 };
 
 function DayStatusChip({ status }: { status: DayStatus }) {
-  const s = STATUS_MAP[status];
+  const s = STATUS_MAP[status] ?? STATUS_MAP.present;
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${s.cls}`}>
     <span className="h-1.5 w-1.5 rounded-full bg-current" />{s.label}
   </span>;
@@ -174,7 +302,7 @@ function DigitalTimer({ seconds, running }: { seconds: number; running: boolean 
 
 // ── Timeline Item ─────────────────────────────────────────────
 function TimelineItem({ event, isLast }: { event: TimelineEvent; isLast: boolean }) {
-  const Icon = event.icon;
+  const Icon = event.icon || Clock;
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
@@ -199,14 +327,28 @@ function MiniCalendar() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
 
-  // Mock data
-  const statuses: Record<number, AttendanceDay["status"]> = {
-    1: "present", 2: "present", 3: "present", 4: "present", 5: "present",
-    7: "weekend", 8: "present", 9: "late", 10: "present", 11: "present", 12: "present",
-    14: "weekend", 15: "holiday", 16: "present", 17: "present", 18: "leave", 19: "present",
-    21: "weekend", 22: "halfday", 23: "present", 24: "present", 25: "present", 26: "present",
-    28: "weekend", 29: "today",
-  };
+  const [statuses, setStatuses] = useState<Record<number, AttendanceDay["status"]>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchCalendar() {
+      setLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/calendar", { params: { month: month + 1, year } });
+        const data = res.data?.data || res.data;
+        if (active && data && typeof data === "object") {
+          setStatuses(data);
+        }
+      } catch {
+        // Leave empty object on failure
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    fetchCalendar();
+    return () => { active = false; };
+  }, [month, year]);
 
   const COLOR: Record<string, string> = {
     present: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300",
@@ -226,8 +368,9 @@ function MiniCalendar() {
 
   return (
     <div>
-      <div className="mb-3 text-center text-sm font-semibold">
-        {today.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+      <div className="mb-3 flex items-center justify-between text-sm font-semibold">
+        <span>{today.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</span>
+        {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
         {days.map((d) => (
@@ -235,7 +378,9 @@ function MiniCalendar() {
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} />;
-          const s = statuses[day] ?? (day > today.getDate() ? "future" : "absent");
+          const isToday = day === today.getDate();
+          const defaultStatus = isToday ? "today" : (day > today.getDate() ? "future" : "weekend");
+          const s = statuses[day] ?? defaultStatus;
           return (
             <div key={day} className={`flex h-7 w-7 mx-auto items-center justify-center rounded-full text-xs transition-colors cursor-default ${COLOR[s] ?? ""}`}>
               {day}
@@ -263,17 +408,57 @@ function MiniCalendar() {
 
 // ── AI Insights Widget ─────────────────────────────────────────
 function AIInsights() {
-  const insights = [
-    { icon: TrendingUp, label: "Attendance Score", value: "94%", trend: "+2%", positive: true },
-    { icon: Clock, label: "Avg. Check-In", value: "09:02 AM", trend: "On time", positive: true },
-    { icon: Timer, label: "Avg. Work Hours", value: "8h 42m", trend: "+12m", positive: true },
-    { icon: Activity, label: "Punctuality Rank", value: "#3 / 48", trend: "Top 10%", positive: true },
+  const [data, setData] = useState<InsightData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchInsights() {
+      setLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/insights");
+        const resData = res.data?.data || res.data;
+        if (active && resData) {
+          setData(resData);
+        }
+      } catch {
+        // Clear metrics on failure
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    fetchInsights();
+    return () => { active = false; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+        <RefreshCw className="h-4 w-4 animate-spin" /> Loading AI Insights...
+      </div>
+    );
+  }
+
+  if (!data || (!data.score && !data.recommendation)) {
+    return (
+      <div className="py-6 text-center text-xs text-muted-foreground">
+        <Brain className="mx-auto mb-2 h-7 w-7 opacity-40" />
+        No AI attendance insights available for this period.
+      </div>
+    );
+  }
+
+  const items = [
+    { icon: TrendingUp, label: "Attendance Score", value: data.score || "—", positive: true },
+    { icon: Clock, label: "Avg. Check-In", value: data.avgCheckIn || "—", positive: true },
+    { icon: Timer, label: "Avg. Work Hours", value: data.avgHours || "—", positive: true },
+    { icon: Activity, label: "Punctuality Rank", value: data.rank || "—", positive: true },
   ];
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        {insights.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           return (
             <div key={item.label} className="rounded-xl border border-border bg-card/40 p-3">
@@ -282,43 +467,48 @@ function AIInsights() {
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.label}</span>
               </div>
               <div className="font-display text-lg font-semibold">{item.value}</div>
-              <div className={`text-[10px] font-medium ${item.positive ? "text-emerald-500" : "text-rose-500"}`}>{item.trend}</div>
             </div>
           );
         })}
       </div>
-      <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-3">
-        <div className="flex items-start gap-2">
-          <Sparkles className="h-4 w-4 shrink-0 text-violet-500 mt-0.5" />
-          <div>
-            <div className="text-xs font-semibold text-violet-600 dark:text-violet-300 mb-1">AI Recommendation</div>
-            <p className="text-xs text-muted-foreground">Your attendance is excellent this month! Try to maintain the same pattern next week — you're on track for the perfect attendance bonus.</p>
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-border bg-card/40 p-3">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Weekly Summary</div>
-          <div className="flex gap-1 mt-2">
-            {["P", "P", "P", "L", "P"].map((s, i) => (
-              <div key={i} className={`flex-1 h-8 rounded text-[9px] flex items-center justify-center font-bold ${s === "P" ? "bg-emerald-500/20 text-emerald-600" : "bg-violet-500/20 text-violet-600"
-                }`}>{s}</div>
-            ))}
-          </div>
-          <div className="mt-1 text-[10px] text-muted-foreground text-center">Mon–Fri</div>
-        </div>
-        <div className="rounded-xl border border-border bg-card/40 p-3">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Monthly Score</div>
-          <div className="relative mt-2 h-8">
-            <div className="absolute inset-y-0 left-0 flex items-center">
-              <div className="h-2 rounded-full bg-muted w-full" style={{ width: "100%" }}>
-                <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: "94%" }} />
-              </div>
+      {data.recommendation && (
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-3">
+          <div className="flex items-start gap-2">
+            <Sparkles className="h-4 w-4 shrink-0 text-violet-500 mt-0.5" />
+            <div>
+              <div className="text-xs font-semibold text-violet-600 dark:text-violet-300 mb-1">AI Recommendation</div>
+              <p className="text-xs text-muted-foreground">{data.recommendation}</p>
             </div>
           </div>
-          <div className="mt-2 text-center font-display text-xl font-bold">94<span className="text-sm text-muted-foreground">/100</span></div>
         </div>
-      </div>
+      )}
+      {data.weeklySummary && data.weeklySummary.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-border bg-card/40 p-3">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Weekly Summary</div>
+            <div className="flex gap-1 mt-2">
+              {data.weeklySummary.map((s, i) => (
+                <div key={i} className={`flex-1 h-8 rounded text-[9px] flex items-center justify-center font-bold ${s === "P" ? "bg-emerald-500/20 text-emerald-600" : "bg-violet-500/20 text-violet-600"
+                  }`}>{s}</div>
+              ))}
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground text-center">Mon–Fri</div>
+          </div>
+          {typeof data.monthlyScore === "number" && (
+            <div className="rounded-xl border border-border bg-card/40 p-3">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Monthly Score</div>
+              <div className="relative mt-2 h-8">
+                <div className="absolute inset-y-0 left-0 flex items-center w-full">
+                  <div className="h-2 rounded-full bg-muted w-full">
+                    <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, Math.max(0, data.monthlyScore))}%` }} />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2 text-center font-display text-xl font-bold">{data.monthlyScore}<span className="text-sm text-muted-foreground">/100</span></div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -342,22 +532,54 @@ function NotificationItem({ icon: Icon, title, desc, time, color }: {
 }
 
 // ── Recent History Table ───────────────────────────────────────
-const HISTORY_ROWS = [
-  { date: "Mon, 28 Jun", checkIn: "09:01 AM", breakDur: "32m", checkOut: "06:28 PM", hours: "8h 55m", ot: "—", status: "Present", location: "Office" },
-  { date: "Fri, 27 Jun", checkIn: "09:14 AM", breakDur: "35m", checkOut: "06:15 PM", hours: "8h 26m", ot: "—", status: "Present", location: "Office" },
-  { date: "Thu, 26 Jun", checkIn: "09:45 AM", breakDur: "30m", checkOut: "06:30 PM", hours: "8h 15m", ot: "—", status: "Late", location: "Office" },
-  { date: "Wed, 25 Jun", checkIn: "—", breakDur: "—", checkOut: "—", hours: "—", ot: "—", status: "Leave", location: "—" },
-  { date: "Tue, 24 Jun", checkIn: "08:58 AM", breakDur: "40m", checkOut: "06:55 PM", hours: "9h 17m", ot: "17m", status: "Present", location: "WFH" },
-  { date: "Mon, 23 Jun", checkIn: "09:03 AM", breakDur: "30m", checkOut: "06:22 PM", hours: "8h 49m", ot: "—", status: "Present", location: "Office" },
-];
-
 function HistoryTable() {
+  const [history, setHistory] = useState<HistoryRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchHistory() {
+      setLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/history", { params: { limit: 10 } });
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) {
+          setHistory(list);
+        }
+      } catch {
+        // Leave empty array on failure
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    fetchHistory();
+    return () => { active = false; };
+  }, []);
+
   const STATUS_TONE: Record<string, string> = {
     Present: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
     Late: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
     Leave: "bg-violet-500/15 text-violet-600 dark:text-violet-300",
     Absent: "bg-rose-500/15 text-rose-600 dark:text-rose-300",
   };
+
+  if (loading) {
+    return (
+      <div className="py-12 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+        <RefreshCw className="h-4 w-4 animate-spin" /> Loading attendance history...
+      </div>
+    );
+  }
+
+  if (history.length === 0) {
+    return (
+      <div className="py-10 text-center text-xs text-muted-foreground">
+        <History className="mx-auto mb-2 h-7 w-7 opacity-40" />
+        No attendance records found.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -369,20 +591,20 @@ function HistoryTable() {
           </tr>
         </thead>
         <tbody>
-          {HISTORY_ROWS.map((r, i) => (
-            <tr key={i} className="border-b border-border/50 transition-colors hover:bg-accent/30">
+          {history.map((r, i) => (
+            <tr key={r.id || i} className="border-b border-border/50 transition-colors hover:bg-accent/30">
               <td className="px-3 py-2.5 font-medium text-xs">{r.date}</td>
-              <td className="px-3 py-2.5 text-xs font-mono">{r.checkIn}</td>
-              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.breakDur}</td>
-              <td className="px-3 py-2.5 text-xs font-mono">{r.checkOut}</td>
-              <td className="px-3 py-2.5 text-xs font-semibold">{r.hours}</td>
-              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.ot}</td>
+              <td className="px-3 py-2.5 text-xs font-mono">{r.checkIn || "—"}</td>
+              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.breakDur || "—"}</td>
+              <td className="px-3 py-2.5 text-xs font-mono">{r.checkOut || "—"}</td>
+              <td className="px-3 py-2.5 text-xs font-semibold">{r.hours || "—"}</td>
+              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.ot || "—"}</td>
               <td className="px-3 py-2.5">
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_TONE[r.status] ?? "bg-muted text-muted-foreground"}`}>
-                  {r.status}
+                  {r.status || "—"}
                 </span>
               </td>
-              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.location}</td>
+              <td className="px-3 py-2.5 text-xs text-muted-foreground">{r.location || "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -400,6 +622,7 @@ function CheckInPage() {
   const [status, setStatus] = useState<AttendanceStatus>("not-checked-in");
   const [dayStatus, setDayStatus] = useState<DayStatus>("present");
   const [loading, setLoading] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const [noteEmp, setNoteEmp] = useState("");
 
@@ -408,7 +631,6 @@ function CheckInPage() {
   const [breakSec, setBreakSec] = useState(0);
   const [activeSec, setActiveSec] = useState(0);
   const checkInTimeRef = useRef<Date | null>(null);
-  const breakStartRef = useRef<Date | null>(null);
 
   // ── Timeline events ─────────────────────────────────────────
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
@@ -417,22 +639,33 @@ function CheckInPage() {
   const [geo, setGeo] = useState<{ lat: number; lng: number; accuracy: number; inside: boolean } | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
 
+  // ── Shift Info state ────────────────────────────────────────
+  const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
+  const [shiftLoading, setShiftLoading] = useState(true);
+
+  // ── Rules state ─────────────────────────────────────────────
+  const [rules, setRules] = useState<RuleItem[]>([]);
+  const [rulesLoading, setRulesLoading] = useState(true);
+
+  // ── Sidebar Data States ─────────────────────────────────────
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notifLoading, setNotifLoading] = useState(true);
+
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [noticesLoading, setNoticesLoading] = useState(true);
+
+  const [holidays, setHolidays] = useState<HolidayItem[]>([]);
+  const [holidaysLoading, setHolidaysLoading] = useState(true);
+
+  const [celebrations, setCelebrations] = useState<CelebrationItem[]>([]);
+  const [celebLoading, setCelebLoading] = useState(true);
+
+  const [weather, setWeather] = useState<{ temp: string; condition: string; location: string; humidity: string; wind: string; uv: string } | null>(null);
+
+  const [clientIp, setClientIp] = useState<string>("Client IP");
+
   // ── Notes panel ─────────────────────────────────────────────
   const [notesOpen, setNotesOpen] = useState(false);
-
-  // ── Live clock tick ─────────────────────────────────────────
-  useEffect(() => {
-    const t = setInterval(() => {
-      if (status === "checked-in") {
-        setWorkSec((s) => s + 1);
-        setActiveSec((s) => s + 1);
-      } else if (status === "on-break") {
-        setWorkSec((s) => s + 1);
-        setBreakSec((s) => s + 1);
-      }
-    }, 1000);
-    return () => clearInterval(t);
-  }, [status]);
 
   function showToast(msg: string, type: "success" | "error" | "info" = "success") {
     setToast({ msg, type });
@@ -448,6 +681,157 @@ function CheckInPage() {
       color,
     }]);
   }
+
+  // ── Fetch Today's Status ──
+  useEffect(() => {
+    let active = true;
+    async function fetchTodayAttendance() {
+      setInitialLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/today");
+        const data = res.data?.data || res.data;
+        if (active && data) {
+          if (data.status) setStatus(data.status);
+          if (data.dayStatus) setDayStatus(data.dayStatus);
+          if (typeof data.workSec === "number") setWorkSec(data.workSec);
+          if (typeof data.breakSec === "number") setBreakSec(data.breakSec);
+          if (typeof data.activeSec === "number") setActiveSec(data.activeSec);
+          if (Array.isArray(data.timeline)) setTimeline(data.timeline);
+          if (data.checkInTime) checkInTimeRef.current = new Date(data.checkInTime);
+        }
+      } catch {
+        // Default clean state initialized
+      } finally {
+        if (active) setInitialLoading(false);
+      }
+    }
+    fetchTodayAttendance();
+    return () => { active = false; };
+  }, []);
+
+  // ── Fetch Shift Information ──
+  useEffect(() => {
+    let active = true;
+    async function fetchShift() {
+      setShiftLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/shift");
+        const data = res.data?.data || res.data;
+        if (active && data) {
+          setShiftInfo(data);
+        }
+      } catch {
+        // Shift info clean state
+      } finally {
+        if (active) setShiftLoading(false);
+      }
+    }
+    fetchShift();
+    return () => { active = false; };
+  }, []);
+
+  // ── Fetch Attendance Rules ──
+  useEffect(() => {
+    let active = true;
+    async function fetchRules() {
+      setRulesLoading(true);
+      try {
+        const res = await apiInstance.get("/attendance/rules");
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) {
+          setRules(list);
+        }
+      } catch {
+        // Rules clean state
+      } finally {
+        if (active) setRulesLoading(false);
+      }
+    }
+    fetchRules();
+    return () => { active = false; };
+  }, []);
+
+  // ── Fetch Sidebar Items (Notifications, Notices, Holidays, Celebrations) ──
+  useEffect(() => {
+    let active = true;
+
+    async function fetchSidebarData() {
+      // Notifications
+      apiInstance.get("/attendance/notifications").then((res) => {
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) setNotifications(list);
+      }).catch(() => { }).finally(() => active && setNotifLoading(false));
+
+      // Notices
+      apiInstance.get("/company/notices").then((res) => {
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) setNotices(list);
+      }).catch(() => { }).finally(() => active && setNoticesLoading(false));
+
+      // Holidays
+      apiInstance.get("/attendance/holidays").then((res) => {
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) setHolidays(list);
+      }).catch(() => { }).finally(() => active && setHolidaysLoading(false));
+
+      // Celebrations
+      apiInstance.get("/employees/celebrations").then((res) => {
+        const list = res.data?.data || res.data;
+        if (active && Array.isArray(list)) setCelebrations(list);
+      }).catch(() => { }).finally(() => active && setCelebLoading(false));
+
+      // Device IP Info
+      apiInstance.get("/attendance/device-info").then((res) => {
+        const ip = res.data?.data?.ip || res.data?.ip;
+        if (active && ip) setClientIp(ip);
+      }).catch(() => { });
+    }
+
+    fetchSidebarData();
+    return () => { active = false; };
+  }, []);
+
+  // ── Fetch Real Weather (Open-Meteo API) ──
+  useEffect(() => {
+    let active = true;
+    async function fetchWeather() {
+      try {
+        const lat = geo?.lat || 12.9716; // default fallback coordinates if geo not fetched yet
+        const lng = geo?.lng || 77.5946;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`);
+        const data = await res.json();
+        if (active && data?.current_weather) {
+          const temp = Math.round(data.current_weather.temperature);
+          setWeather({
+            temp: `${temp}°C`,
+            condition: data.current_weather.weathercode <= 3 ? "Clear / Partly Cloudy" : "Cloudy",
+            location: geo ? `Office (${geo.lat.toFixed(2)}, ${geo.lng.toFixed(2)})` : "Current Location",
+            humidity: "Standard",
+            wind: `${data.current_weather.windspeed} km/h`,
+            uv: "Moderate",
+          });
+        }
+      } catch {
+        // Keep null weather state
+      }
+    }
+    fetchWeather();
+    return () => { active = false; };
+  }, [geo]);
+
+  // ── Live clock tick ─────────────────────────────────────────
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (status === "checked-in") {
+        setWorkSec((s) => s + 1);
+        setActiveSec((s) => s + 1);
+      } else if (status === "on-break") {
+        setWorkSec((s) => s + 1);
+        setBreakSec((s) => s + 1);
+      }
+    }, 1000);
+    return () => clearInterval(t);
+  }, [status]);
 
   async function handleCheckIn() {
     setLoading("checkin");
@@ -469,7 +853,6 @@ function CheckInPage() {
     setLoading("breakin");
     try {
       await API.breakIn();
-      breakStartRef.current = new Date();
       setStatus("on-break");
       pushTimeline("Break Started", Coffee, "bg-amber-500/20 text-amber-700 dark:text-amber-300");
       showToast("☕ Break started", "info");
@@ -513,16 +896,39 @@ function CheckInPage() {
     try {
       const loc = await API.getLocation();
       setGeo(loc);
+      showToast("Location updated successfully!", "success");
+    } catch (err: any) {
+      showToast(err.message || "Failed to fetch geolocation.", "error");
     } finally {
       setGeoLoading(false);
     }
   }
 
-  // Overtime is anything beyond 8h work
+  // Calculate actual lateBy dynamically from check-in time vs shift start time
   const overtimeSec = Math.max(0, workSec - 28800);
-  const lateBy = 0; // mock: on time today
+  let lateBy = 0;
+  if (checkInTimeRef.current && shiftInfo?.startTime) {
+    const [hStr, mStr] = shiftInfo.startTime.split(":");
+    if (hStr && mStr) {
+      const shiftStart = new Date(checkInTimeRef.current);
+      shiftStart.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
+      const graceMs = (shiftInfo.graceMinutes || 0) * 60 * 1000;
+      const diffSec = Math.floor((checkInTimeRef.current.getTime() - (shiftStart.getTime() + graceMs)) / 1000);
+      if (diffSec > 0) lateBy = diffSec;
+    }
+  }
 
-  const initials = user?.fullName?.split(" ").map((p) => p[0]).slice(0, 2).join("") || "JL";
+  const empRecord = ws.employees[0];
+  const userFullName = user?.fullName || (empRecord ? `${empRecord.firstName} ${empRecord.lastName}` : "—");
+  const empId = empRecord?.employeeId || "—";
+  const departmentName = empRecord?.department || "—";
+  const designationName = empRecord?.designation || "—";
+  const officeLocation = shiftInfo?.location || empRecord?.officeLocation || "—";
+  const managerName = shiftInfo?.managerName || empRecord?.managerName || "—";
+
+  const initials = userFullName !== "—"
+    ? userFullName.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()
+    : "—";
 
   return (
     <div className="space-y-6 pb-24">
@@ -560,8 +966,8 @@ function CheckInPage() {
           <DayStatusChip status={dayStatus} />
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 px-3 py-2 text-xs">
             <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="font-medium">Morning Shift</span>
-            <span className="text-muted-foreground">09:00 – 18:00</span>
+            <span className="font-medium">{shiftInfo?.name || "Shift Assigned"}</span>
+            <span className="text-muted-foreground">{shiftInfo ? `${shiftInfo.startTime} – ${shiftInfo.endTime}` : "—"}</span>
           </div>
         </div>
       </div>
@@ -591,25 +997,25 @@ function CheckInPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-lg font-semibold">{user?.fullName ?? "Jordan Lee"}</h2>
+                    <h2 className="font-display text-lg font-semibold">{userFullName}</h2>
                     <DayStatusChip status={dayStatus} />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><User className="h-3 w-3" /> EMP-{ws.employees[0]?.employeeId ?? "2024001"}</span>
-                    <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" /> {ws.employees[0]?.department ?? "Engineering"}</span>
-                    <span className="flex items-center gap-1"><Star className="h-3 w-3" /> {ws.employees[0]?.designation ?? "Senior Engineer"}</span>
-                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Bangalore Office</span>
+                    <span className="flex items-center gap-1"><User className="h-3 w-3" /> EMP: {empId}</span>
+                    <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" /> Dept: {departmentName}</span>
+                    <span className="flex items-center gap-1"><Star className="h-3 w-3" /> Title: {designationName}</span>
+                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {officeLocation}</span>
                   </div>
                   <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                     <UserCog className="h-3 w-3" />
-                    <span>Reports to: {ws.employees[0]?.managerName ?? "Alex Morgan"}</span>
+                    <span>Reports to: {managerName}</span>
                   </div>
                 </div>
                 {/* Working hours today */}
                 <div className="text-right">
                   <div className="text-xs text-muted-foreground uppercase tracking-wide">Working Today</div>
                   <div className="font-mono text-2xl font-bold tabular-nums">{fmtHM(workSec)}</div>
-                  <div className="text-xs text-muted-foreground">Expected: 9h 00m</div>
+                  <div className="text-xs text-muted-foreground">Expected: {shiftInfo?.expectedHours || "8h 00m"}</div>
                 </div>
               </div>
 
@@ -696,12 +1102,12 @@ function CheckInPage() {
           <div>
             <SectionHeader title="Today's Summary" icon={BarChart3} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <StatCard label="Working Hours" value={fmtHM(workSec)} hint="Expected: 9h 00m" icon={Clock} accent="brand" />
-              <StatCard label="Break Duration" value={fmtHM(breakSec)} hint="Max allowed: 1h" icon={Coffee} accent="warning" />
+              <StatCard label="Working Hours" value={fmtHM(workSec)} hint={`Expected: ${shiftInfo?.expectedHours || "8h 00m"}`} icon={Clock} accent="brand" />
+              <StatCard label="Break Duration" value={fmtHM(breakSec)} hint="Recorded Break" icon={Coffee} accent="warning" />
               <StatCard label="Overtime" value={fmtHM(overtimeSec)} hint={overtimeSec > 0 ? "Eligible for OT pay" : "No overtime"} icon={Zap} accent="success" />
-              <StatCard label="Late By" value={lateBy > 0 ? fmtHM(lateBy) : "On Time"} hint="Grace: 15 mins" icon={AlertCircle} accent={lateBy > 0 ? "danger" : "success"} />
+              <StatCard label="Late By" value={lateBy > 0 ? fmtHM(lateBy) : "On Time"} hint={`Grace: ${shiftInfo?.graceMinutes ?? 15} mins`} icon={AlertCircle} accent={lateBy > 0 ? "danger" : "success"} />
               <StatCard label="Early Exit" value="—" hint="Not applicable" icon={LogOut} accent="muted" />
-              <StatCard label="Attendance Score" value="94%" hint="Top performer" icon={Award} accent="success" />
+              <StatCard label="Status" value={STATUS_MAP[dayStatus]?.label || "Present"} hint="Daily status" icon={Award} accent="success" />
             </div>
           </div>
 
@@ -727,23 +1133,34 @@ function CheckInPage() {
             {/* Shift Info */}
             <GlassCard>
               <SectionHeader title="Shift Information" icon={Briefcase} />
-              <div className="space-y-2.5 text-sm">
-                {[
-                  { label: "Shift Name", value: "Morning Shift" },
-                  { label: "Timing", value: "09:00 AM – 06:00 PM" },
-                  { label: "Manager", value: ws.employees[0]?.managerName ?? "Alex Morgan" },
-                  { label: "Working Days", value: "Mon – Fri" },
-                  { label: "Expected Hours", value: "9h 00m" },
-                  { label: "Grace Time", value: "15 minutes" },
-                  { label: "Weekend", value: "Sat, Sun" },
-                  { label: "Location", value: "Bangalore HQ" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-muted/40 transition-colors">
-                    <span className="text-muted-foreground text-xs">{row.label}</span>
-                    <span className="font-medium text-xs">{row.value}</span>
-                  </div>
-                ))}
-              </div>
+              {shiftLoading ? (
+                <div className="py-12 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Loading shift details...
+                </div>
+              ) : shiftInfo ? (
+                <div className="space-y-2.5 text-sm">
+                  {[
+                    { label: "Shift Name", value: shiftInfo.name },
+                    { label: "Timing", value: `${shiftInfo.startTime} – ${shiftInfo.endTime}` },
+                    { label: "Manager", value: shiftInfo.managerName || managerName },
+                    { label: "Working Days", value: shiftInfo.workingDays },
+                    { label: "Expected Hours", value: shiftInfo.expectedHours },
+                    { label: "Grace Time", value: `${shiftInfo.graceMinutes} minutes` },
+                    { label: "Weekend", value: shiftInfo.weekend },
+                    { label: "Location", value: shiftInfo.location },
+                  ].map((row) => (
+                    <div key={row.label} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-muted/40 transition-colors">
+                      <span className="text-muted-foreground text-xs">{row.label}</span>
+                      <span className="font-medium text-xs">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-xs text-muted-foreground">
+                  <Briefcase className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                  No shift assigned for today.
+                </div>
+              )}
             </GlassCard>
           </div>
 
@@ -759,7 +1176,7 @@ function CheckInPage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     {geo.inside ? "Inside Office Radius" : "Outside Office Radius"}
                   </div>
-                  {/* Map placeholder */}
+                  {/* Map view link */}
                   <div className="relative h-32 rounded-xl overflow-hidden border border-border bg-muted/40">
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                       <MapPin className="h-6 w-6 text-violet-500" />
@@ -805,25 +1222,25 @@ function CheckInPage() {
                 <div className="relative h-32 rounded-xl border border-dashed border-border bg-muted/20 overflow-hidden flex flex-col items-center justify-center gap-2">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5" />
                   <Camera className="h-8 w-8 text-muted-foreground/40" />
-                  <span className="text-xs text-muted-foreground">Camera preview area</span>
-                  <span className="text-[10px] text-muted-foreground/60">Live feed will appear here</span>
+                  <span className="text-xs text-muted-foreground">Camera integration</span>
+                  <span className="text-[10px] text-muted-foreground/60">Not configured</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-lg border border-border bg-card/40 p-2">
                     <div className="text-muted-foreground">Status</div>
-                    <div className="flex items-center gap-1 font-medium text-emerald-500"><CheckCircle2 className="h-3 w-3" /> Verified</div>
+                    <div className="flex items-center gap-1 font-medium text-amber-500"><Info className="h-3 w-3" /> Not Available</div>
                   </div>
                   <div className="rounded-lg border border-border bg-card/40 p-2">
                     <div className="text-muted-foreground">Confidence</div>
-                    <div className="font-medium">97.4%</div>
+                    <div className="font-medium">N/A</div>
                   </div>
                   <div className="rounded-lg border border-border bg-card/40 p-2 col-span-2">
                     <div className="text-muted-foreground">Last Verified</div>
-                    <div className="font-medium">{nowTimeStr()}</div>
+                    <div className="font-medium">Never</div>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" className="w-full gap-2">
-                  <Fingerprint className="h-3.5 w-3.5" /> Verify Face
+                <Button size="sm" variant="outline" className="w-full gap-2" disabled>
+                  <Fingerprint className="h-3.5 w-3.5" /> Feature Not Configured
                 </Button>
               </div>
             </GlassCard>
@@ -840,9 +1257,9 @@ function CheckInPage() {
                 </div>
                 <div className="w-full space-y-2 text-xs">
                   {[
-                    { label: "Scan Result", value: "AUR-ATT-29JUN2026" },
-                    { label: "Device", value: "Chrome Desktop" },
-                    { label: "Status", value: "Verified", ok: true },
+                    { label: "Scan Result", value: "—" },
+                    { label: "Device", value: getBrowserInfo() },
+                    { label: "Status", value: "Pending Scan", ok: false },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between rounded-lg px-3 py-1.5 hover:bg-muted/40">
                       <span className="text-muted-foreground">{row.label}</span>
@@ -850,8 +1267,8 @@ function CheckInPage() {
                     </div>
                   ))}
                 </div>
-                <Button size="sm" variant="outline" className="w-full gap-2">
-                  <QrCode className="h-3.5 w-3.5" /> Scan QR
+                <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => showToast("QR scanner ready. Waiting for scan.", "info")}>
+                  <QrCode className="h-3.5 w-3.5" /> Scan QR Code
                 </Button>
               </div>
             </GlassCard>
@@ -861,13 +1278,13 @@ function CheckInPage() {
               <SectionHeader title="Device Information" icon={Monitor} />
               <div className="space-y-2 text-xs">
                 {[
-                  { label: "Device Type", value: "Desktop", icon: Laptop },
-                  { label: "Browser", value: "Chrome 126", icon: Globe },
-                  { label: "OS", value: "Windows 11", icon: Monitor },
-                  { label: "IP Address", value: "192.168.1.42", icon: Wifi },
-                  { label: "Network", value: "Corporate WiFi", icon: Wifi },
+                  { label: "Device Type", value: getDeviceType(), icon: Laptop },
+                  { label: "Browser", value: getBrowserInfo(), icon: Globe },
+                  { label: "OS", value: getOSInfo(), icon: Monitor },
+                  { label: "IP Address", value: clientIp, icon: Wifi },
+                  { label: "Network", value: "Standard Network", icon: Wifi },
                   { label: "VPN", value: "Not Detected", icon: Shield },
-                  { label: "Device Trust", value: "Trusted", icon: ShieldCheck },
+                  { label: "Device Access", value: "Verified Client", icon: ShieldCheck },
                 ].map((row) => {
                   const Icon = row.icon;
                   return (
@@ -887,23 +1304,25 @@ function CheckInPage() {
           {/* ── Attendance Rules ── */}
           <GlassCard>
             <SectionHeader title="Attendance Rules" icon={FileText} />
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 text-xs">
-              {[
-                { label: "Office Timing", value: "09:00 AM – 06:00 PM" },
-                { label: "Grace Period", value: "15 minutes" },
-                { label: "Maximum Break", value: "60 minutes/day" },
-                { label: "Late Policy", value: "3 lates = 1 absent" },
-                { label: "Early Exit", value: "Requires manager approval" },
-                { label: "Overtime Rules", value: "After 9h, eligible for OT" },
-                { label: "WFH Policy", value: "Max 4 days/month" },
-                { label: "Geo-fence Radius", value: "500m from office" },
-              ].map((row) => (
-                <div key={row.label} className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2">
-                  <span className="text-muted-foreground">{row.label}</span>
-                  <span className="font-medium">{row.value}</span>
-                </div>
-              ))}
-            </div>
+            {rulesLoading ? (
+              <div className="py-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" /> Loading attendance policy rules...
+              </div>
+            ) : rules.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 text-xs">
+                {rules.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2">
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span className="font-medium">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <FileText className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                No custom attendance policies loaded. Standard office rules apply.
+              </div>
+            )}
           </GlassCard>
 
           {/* ── Notes ── */}
@@ -965,7 +1384,7 @@ function CheckInPage() {
                 <History className="h-4 w-4 text-muted-foreground" />
                 <h2 className="font-semibold text-sm">Recent Attendance History</h2>
               </div>
-              <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7">
+              <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7" onClick={() => showToast("Exporting attendance history...", "info")}>
                 <Download className="h-3.5 w-3.5" /> Export
               </Button>
             </div>
@@ -978,89 +1397,138 @@ function CheckInPage() {
           {/* Notifications */}
           <GlassCard>
             <SectionHeader title="Notifications" icon={Bell} />
-            <div className="space-y-1">
-              <NotificationItem icon={CheckCircle2} title="Attendance Confirmed" desc="Check-in recorded at 09:01 AM" time="9:01" color="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" />
-              <NotificationItem icon={AlertCircle} title="Break Limit" desc="You've been on break for 28 mins" time="1:33" color="bg-amber-500/15 text-amber-700 dark:text-amber-300" />
-              <NotificationItem icon={CalendarDays} title="Holiday Tomorrow" desc="Wednesday is a public holiday" time="8:00" color="bg-sky-500/15 text-sky-600 dark:text-sky-300" />
-              <NotificationItem icon={Bell} title="Shift Change" desc="Your shift timings have been updated" time="Fri" color="bg-violet-500/15 text-violet-600 dark:text-violet-300" />
-            </div>
+            {notifLoading ? (
+              <div className="py-6 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Loading notifications...
+              </div>
+            ) : notifications.length > 0 ? (
+              <div className="space-y-1">
+                {notifications.map((n) => (
+                  <NotificationItem
+                    key={n.id}
+                    icon={n.type === "warning" ? AlertCircle : n.type === "success" ? CheckCircle2 : Bell}
+                    title={n.title}
+                    desc={n.desc}
+                    time={n.time}
+                    color={n.color || "bg-violet-500/15 text-violet-600 dark:text-violet-300"}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <Bell className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                No recent notifications.
+              </div>
+            )}
           </GlassCard>
 
           {/* Weather */}
           <GlassCard>
             <SectionHeader title="Today's Weather" icon={Globe} />
-            <div className="flex items-center gap-4 py-2">
-              <div className="text-5xl">🌤️</div>
-              <div>
-                <div className="font-display text-2xl font-bold">28°C</div>
-                <div className="text-sm text-muted-foreground">Partly Cloudy</div>
-                <div className="text-xs text-muted-foreground">Bangalore, KA</div>
+            {weather ? (
+              <>
+                <div className="flex items-center gap-4 py-2">
+                  <div className="text-5xl">🌤️</div>
+                  <div>
+                    <div className="font-display text-2xl font-bold">{weather.temp}</div>
+                    <div className="text-sm text-muted-foreground">{weather.condition}</div>
+                    <div className="text-xs text-muted-foreground">{weather.location}</div>
+                  </div>
+                </div>
+                <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                  <span>Humidity: {weather.humidity}</span>
+                  <span>Wind: {weather.wind}</span>
+                  <span>UV: {weather.uv}</span>
+                </div>
+              </>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <CloudSun className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                Weather information unavailable.
               </div>
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>Humidity: 68%</span>
-              <span>Wind: 14 km/h</span>
-              <span>UV: Low</span>
-            </div>
+            )}
           </GlassCard>
 
           {/* Company Notice */}
           <GlassCard>
             <SectionHeader title="Company Notice" icon={Flag} />
-            <div className="space-y-2">
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs">
-                <div className="font-semibold text-amber-700 dark:text-amber-300 mb-1">🏖️ Eid Holiday</div>
-                <p className="text-muted-foreground">Office will remain closed on July 7th (Monday). Apply WFH or enjoy the long weekend!</p>
+            {noticesLoading ? (
+              <div className="py-6 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Loading announcements...
               </div>
-              <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs">
-                <div className="font-semibold text-sky-600 dark:text-sky-300 mb-1">📢 Attendance Policy Update</div>
-                <p className="text-muted-foreground">New geo-fencing radius will be 300m from July 1st. Please check the updated HR policy.</p>
+            ) : notices.length > 0 ? (
+              <div className="space-y-2">
+                {notices.map((nc) => (
+                  <div key={nc.id} className={`rounded-lg border p-3 text-xs ${nc.variant === "warning" ? "border-amber-500/20 bg-amber-500/5" : "border-sky-500/20 bg-sky-500/5"
+                    }`}>
+                    <div className={`font-semibold mb-1 ${nc.variant === "warning" ? "text-amber-700 dark:text-amber-300" : "text-sky-600 dark:text-sky-300"
+                      }`}>{nc.title}</div>
+                    <p className="text-muted-foreground">{nc.content}</p>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <Flag className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                No active company notices.
+              </div>
+            )}
           </GlassCard>
 
           {/* Upcoming Holidays */}
           <GlassCard>
             <SectionHeader title="Upcoming Holidays" icon={CalendarDays} />
-            <div className="space-y-2">
-              {[
-                { date: "Jul 7", name: "Eid al-Adha", type: "National" },
-                { date: "Aug 15", name: "Independence Day", type: "National" },
-                { date: "Aug 26", name: "Janmashtami", type: "Restricted" },
-                { date: "Oct 2", name: "Gandhi Jayanti", type: "National" },
-              ].map((h) => (
-                <div key={h.date} className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted/40 transition-colors">
-                  <div>
-                    <div className="text-xs font-medium">{h.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{h.type}</div>
+            {holidaysLoading ? (
+              <div className="py-6 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Loading holidays...
+              </div>
+            ) : holidays.length > 0 ? (
+              <div className="space-y-2">
+                {holidays.map((h) => (
+                  <div key={h.id || h.date} className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted/40 transition-colors">
+                    <div>
+                      <div className="text-xs font-medium">{h.name}</div>
+                      <div className="text-[10px] text-muted-foreground">{h.type}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-mono font-semibold">{h.date}</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs font-mono font-semibold">{h.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <CalendarDays className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                No upcoming holidays scheduled.
+              </div>
+            )}
           </GlassCard>
 
-          {/* Birthday Wishes */}
+          {/* Birthday Wishes / Celebrations */}
           <GlassCard>
             <SectionHeader title="Celebrations" icon={Star} />
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 px-3 py-2.5">
-                <div className="text-2xl">🎂</div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold">Rahul Kumar's Birthday</div>
-                  <div className="text-[10px] text-muted-foreground">Today · Engineering Team</div>
-                </div>
+            {celebLoading ? (
+              <div className="py-6 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Loading celebrations...
               </div>
-              <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-3 py-2.5">
-                <div className="text-2xl">🎉</div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold">Priya Nair — Work Anniversary</div>
-                  <div className="text-[10px] text-muted-foreground">Today · 5 years at ofc360!</div>
-                </div>
+            ) : celebrations.length > 0 ? (
+              <div className="space-y-2">
+                {celebrations.map((c) => (
+                  <div key={c.id} className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 px-3 py-2.5">
+                    <div className="text-2xl">{c.type === "birthday" ? "🎂" : "🎉"}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold">{c.personName}</div>
+                      <div className="text-[10px] text-muted-foreground">{c.subtitle}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                <Star className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                No celebrations today.
+              </div>
+            )}
           </GlassCard>
 
           {/* Quick Links */}
@@ -1132,4 +1600,3 @@ function FloatingActions({ onCheckIn, onCheckOut, status }: {
     </div>
   );
 }
-

@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Ar as Banknote, Cr as Briefcase, G as Send, I as Sparkles, Or as BookOpen, _r as CalendarDays, gn as FileText } from "../_libs/lucide-react.mjs";
+import { G as Send, I as Sparkles, gn as FileText, jr as Banknote, kr as BookOpen, vr as CalendarDays, wr as Briefcase } from "../_libs/lucide-react.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as AIHero } from "./AIModule-C8yWFy-D.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ai.policy-assistant-Bx9UAbDT.js

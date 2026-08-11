@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { I as Sparkles, In as Cpu, K as Search, Mt as Lock, Wt as Layers, a as Workflow, fr as ChartColumn, in as Globe, kr as Bell, mr as Calendar, n as Zap, on as GitBranch, wt as MessageSquare } from "../_libs/lucide-react.mjs";
+import { Ar as Bell, I as Sparkles, In as Cpu, K as Search, Mt as Lock, Wt as Layers, a as Workflow, hr as Calendar, in as Globe, n as Zap, on as GitBranch, pr as ChartColumn, wt as MessageSquare } from "../_libs/lucide-react.mjs";
 import { n as SectionHeader, r as SiteLayout, t as Section } from "./Section-Y3jkzoME.mjs";
 import { t as CTA } from "./CTA-B3uJBKE1.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/features-BmzdTcVK.js

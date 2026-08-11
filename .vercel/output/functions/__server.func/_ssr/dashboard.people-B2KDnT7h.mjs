@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Ir as ArrowRight, Sr as Building2, m as UserPlus, u as Users, v as UserCheck } from "../_libs/lucide-react.mjs";
+import { Cr as Building2, Lr as ArrowRight, m as UserPlus, u as Users, v as UserCheck } from "../_libs/lucide-react.mjs";
 import { v as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

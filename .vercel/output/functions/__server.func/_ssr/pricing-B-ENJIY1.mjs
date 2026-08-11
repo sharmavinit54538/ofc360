@@ -2,7 +2,7 @@ import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { t as cn } from "./utils-C_uf36nf.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { I as Sparkles, Ir as ArrowRight, St as Minus, or as Check } from "../_libs/lucide-react.mjs";
+import { I as Sparkles, Lr as ArrowRight, St as Minus, sr as Check } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as motion, t as useInView } from "../_libs/framer-motion.mjs";
 import { n as SectionHeader, r as SiteLayout, t as Section } from "./Section-Y3jkzoME.mjs";

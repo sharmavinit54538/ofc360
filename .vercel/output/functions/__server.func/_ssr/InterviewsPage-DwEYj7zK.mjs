@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { w as apiInstance } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Hn as Clock, N as Star, Qn as CircleCheck, f as User, l as Video, mr as Calendar } from "../_libs/lucide-react.mjs";
+import { $n as CircleCheck, N as Star, Un as Clock, f as User, hr as Calendar, l as Video } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";

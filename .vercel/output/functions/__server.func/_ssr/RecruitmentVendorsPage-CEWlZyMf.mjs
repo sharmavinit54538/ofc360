@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { w as apiInstance } from "./ofc360-store-BR2yEBkC.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { F as SquarePen, N as Star, Sr as Building2, T as Trash2, at as Plus, kt as Mail, lt as Phone } from "../_libs/lucide-react.mjs";
+import { Cr as Building2, F as SquarePen, N as Star, T as Trash2, at as Plus, kt as Mail, lt as Phone } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";

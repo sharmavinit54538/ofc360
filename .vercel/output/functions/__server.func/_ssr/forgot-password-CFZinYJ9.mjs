@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { t as api } from "./client-YdrXBLNs.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Input } from "./input-B8HDFcHP.mjs";
-import { Nt as LoaderCircle, Rr as ArrowLeft, kt as Mail } from "../_libs/lucide-react.mjs";
+import { Nt as LoaderCircle, kt as Mail, zr as ArrowLeft } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { n as toast } from "../_libs/sonner.mjs";

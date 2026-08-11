@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { $ as RefreshCw, Bn as Cloud, Fn as CreditCard, In as Cpu, Nn as Database, Vr as Activity, W as Server, kt as Mail } from "../_libs/lucide-react.mjs";
+import { $ as RefreshCw, Bn as Cloud, Fn as CreditCard, Hr as Activity, In as Cpu, Nn as Database, W as Server, kt as Mail } from "../_libs/lucide-react.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";
 import { t as Card } from "./card-BcHXPpmN.mjs";

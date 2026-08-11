@@ -1,7 +1,7 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { $t as Heart, Mt as Lock, Q as Rocket, Tn as Eye, k as Target, u as Users, wr as Brain } from "../_libs/lucide-react.mjs";
+import { $t as Heart, Mt as Lock, Q as Rocket, Tn as Eye, Tr as Brain, k as Target, u as Users } from "../_libs/lucide-react.mjs";
 import { n as motion, t as useInView } from "../_libs/framer-motion.mjs";
 import { n as SectionHeader, r as SiteLayout, t as Section } from "./Section-Y3jkzoME.mjs";
 import { t as CTA } from "./CTA-B3uJBKE1.mjs";

@@ -1,5 +1,5 @@
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { Cr as Briefcase, I as Sparkles, N as Star, Ot as MapPin, u as Users } from "../_libs/lucide-react.mjs";
+import { I as Sparkles, N as Star, Ot as MapPin, u as Users, wr as Briefcase } from "../_libs/lucide-react.mjs";
 import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Badge } from "./badge-CIlo-S9O.mjs";
 import { n as STAGE_LABEL } from "./types-CxbMeuye.mjs";

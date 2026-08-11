@@ -3,7 +3,7 @@ import { o as require_react } from "../_libs/@ai-sdk/react+[...].mjs";
 import { $t as useGetHistoryQuery, Jt as useClearHistoryMutation, tn as useSendChatMessageMutation } from "./ofc360-store-BR2yEBkC.mjs";
 import { t as api } from "./client-YdrXBLNs.mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { D as ThumbsUp, G as Send, I as Sparkles, Ln as Copy, O as ThumbsDown, T as Trash2, Tr as Bot, Z as RotateCcw, f as User, or as Check } from "../_libs/lucide-react.mjs";
+import { D as ThumbsUp, Er as Bot, G as Send, I as Sparkles, Ln as Copy, O as ThumbsDown, T as Trash2, Z as RotateCcw, f as User, sr as Check } from "../_libs/lucide-react.mjs";
 import { r as PageHeader } from "./DashboardShell-DJnL0VlY.mjs";
 import { t as Button } from "./button-BKVZsq8w.mjs";
 import { t as Textarea } from "./textarea-1llmCJsE.mjs";
