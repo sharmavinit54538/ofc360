@@ -25,7 +25,7 @@ import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
 import { useofc360 } from "@/lib/ofc360-store";
 import { getPublicAppUrl, getPublicJobApplicationUrl } from "@/lib/public-url";
-import { api } from "@/api";
+import { api, BASE_URL } from "@/api";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 import {
