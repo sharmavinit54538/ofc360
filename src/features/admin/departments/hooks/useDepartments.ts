@@ -28,6 +28,7 @@ export function useDepartments() {
     departments,
     loading,
     error,
+    refetch: () => dispatch(fetchDepartments()),
     createDepartment: (dept: Department) => dispatch(createDepartment(dept)),
     updateDepartment: (dept: Department) => dispatch(updateDepartment(dept)),
     deleteDepartment: (id: string) => dispatch(deleteDepartment(id)),

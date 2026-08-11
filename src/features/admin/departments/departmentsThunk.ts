@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiInstance } from "@/api";
 import { tryApi } from "@/api/utils";
 import { ofc360 } from "@/lib/ofc360-store";
-import { SEED_DEPARTMENTS } from "./constants";
 import type { Department } from "./types";
 
 function syncWithEmployees(departments: Department[]): Department[] {
@@ -24,14 +23,16 @@ function syncWithEmployees(departments: Department[]): Department[] {
 
 export const fetchDepartments = createAsyncThunk<Department[], void, { rejectValue: string }>(
   "departments/fetchDepartments",
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await apiInstance.get("/departments");
       const items = response.data?.data?.items ?? response.data?.data ?? response.data ?? [];
-      const list = Array.isArray(items) && items.length > 0 ? items : SEED_DEPARTMENTS;
+      const list = Array.isArray(items) ? items : [];
       return syncWithEmployees(list);
-    } catch {
-      return syncWithEmployees([...SEED_DEPARTMENTS]);
+    } catch (err: any) {
+      return rejectWithValue(
+        err?.response?.data?.message || err?.message || "Failed to fetch departments",
+      );
     }
   },
 );

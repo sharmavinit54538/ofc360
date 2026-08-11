@@ -1,4 +1,4 @@
-import type { Department, DepartmentFilters } from "../types";
+import type { DepartmentFilters } from "../types";
 
 export const OFFICES = [
   "San Francisco HQ",
@@ -66,5 +66,3 @@ export const EMPLOYEE_COUNT_RANGES = [
   { value: "50+", label: "Enterprise (50+)" },
 ];
 
-// Seed Departments (linked with seed managers)
-export const SEED_DEPARTMENTS: Department[] = [];

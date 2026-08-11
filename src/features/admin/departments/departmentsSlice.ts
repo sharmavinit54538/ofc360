@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { SEED_DEPARTMENTS } from "./constants";
 import type { DepartmentsState } from "./departmentsTypes";
 import {
   addEmployeeToDepartment,
@@ -17,7 +16,7 @@ import {
 import type { Department } from "./types";
 
 const initialState: DepartmentsState = {
-  departments: [...SEED_DEPARTMENTS],
+  departments: [],
   loading: false,
   error: null,
 };

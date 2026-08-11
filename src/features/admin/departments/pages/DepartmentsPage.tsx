@@ -56,6 +56,9 @@ import {
   Building,
   BarChart,
   Network,
+  AlertCircle,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { useDepartments } from "../hooks/useDepartments";
 import { DepartmentStatsCards } from "../components/DepartmentStatsCards";
@@ -76,6 +79,9 @@ export function DepartmentsPage() {
   const ws = useofc360();
   const {
     departments,
+    loading,
+    error,
+    refetch,
     createDepartment,
     updateDepartment,
     deleteDepartment,
@@ -704,8 +710,30 @@ export function DepartmentsPage() {
               </div>
             )}
 
-            {/* List Table and Empty states */}
-            {processedDepartments.length === 0 ? (
+            {/* List Table, Loading, Error, and Empty states */}
+            {loading ? (
+              <div className="rounded-2xl border border-border/60 bg-card/10 p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
+                <Loader2 className="h-8 w-8 text-brand animate-spin mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">Loading departments data...</p>
+              </div>
+            ) : error && departments.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-rose-500/40 bg-rose-500/5 p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
+                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-rose-500/10 text-rose-500 shadow-sm">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground">Failed to Load Departments</h4>
+                <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+                  {error}
+                </p>
+                <Button
+                  onClick={refetch}
+                  className="mt-5 rounded-xl bg-brand text-brand-foreground shadow-glow hover:bg-brand/90 font-semibold text-xs h-9 px-4 cursor-pointer gap-2"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Retry
+                </Button>
+              </div>
+            ) : processedDepartments.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border/80 bg-card/10 p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
                 <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-muted/60 text-muted-foreground shadow-sm">
                   <Building className="h-6 w-6" />
@@ -713,7 +741,7 @@ export function DepartmentsPage() {
                 <h4 className="font-semibold text-lg text-foreground">No Departments Found</h4>
                 <p className="mt-1 text-sm text-muted-foreground max-w-sm">
                   {departments.length === 0
-                    ? "Create your first department division to organize your corporate directory hierarchy."
+                    ? "No departments found in the system. Create a department to get started."
                     : "No corporate divisions match your search query. Try clearing filters."}
                 </p>
                 <Button
