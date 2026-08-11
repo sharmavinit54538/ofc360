@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useRecruitment } from "@/features/admin/recruitment/hooks/useRecruitment";
+import { getPublicAppUrl } from "@/lib/public-url";
 import { toast } from "sonner";
 
 export function CareerSitePage() {
@@ -62,21 +63,19 @@ export function CareerSitePage() {
   };
 
   const handleCopyUrl = () => {
-    if (typeof window !== "undefined") {
-      const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      const url = `${window.location.origin}/careers/${slug}`;
-      navigator.clipboard.writeText(url);
-      toast.success(`Copied career site URL: ${url}`);
-    }
+    const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const baseUrl = getPublicAppUrl();
+    const url = `${baseUrl}/careers/${slug}`;
+    navigator.clipboard.writeText(url);
+    toast.success(`Copied career site URL: ${url}`);
   };
 
   const handleOpenLive = () => {
-    if (typeof window !== "undefined") {
-      const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      const url = `${window.location.origin}/careers/${slug}`;
-      window.open(url, "_blank");
-      toast.info("Opening live public job board (simulated)...");
-    }
+    const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const baseUrl = getPublicAppUrl();
+    const url = `${baseUrl}/careers/${slug}`;
+    window.open(url, "_blank");
+    toast.info("Opening live public job board (simulated)...");
   };
 
   return (

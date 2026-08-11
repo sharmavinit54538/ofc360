@@ -24,6 +24,7 @@ import { CandidateAvatar, fmtDate, fmtMoney } from "@/features/admin/recruitment
 import { EmptyState } from "@/components/hrms/Shared";
 import type { Job, Candidate, OfferStatus, JobStatus } from "@/features/admin/recruitment/types";
 import { useofc360 } from "@/lib/ofc360-store";
+import { getPublicJobApplicationUrl } from "@/lib/public-url";
 import { api, API_HOST_URL, BASE_URL } from "@/api";
 import { toast } from "sonner";
 import {
@@ -279,15 +280,19 @@ export function JobDetailPage() {
   const handleCopySourcingLink = async () => {
     setIsCopyingLink(true);
     try {
-      const res = await api.get<any>(`/jobs/${jobId}/sourcing-link`);
-      if (res && res.url) {
-        await navigator.clipboard.writeText(res.url);
-        toast.success("Sourcing link copied successfully!");
-      } else {
-        throw new Error("No link found.");
+      let rawUrl = "";
+      try {
+        const res = await api.get<any>(`/jobs/${jobId}/sourcing-link`);
+        rawUrl = res?.url || res?.data?.url || res?.data?.sourcing_link || "";
+      } catch {
+        // Fallback to jobId if endpoint fails or is mock
       }
+
+      const secureUrl = getPublicJobApplicationUrl(rawUrl || jobId);
+      await navigator.clipboard.writeText(secureUrl);
+      toast.success("Secure application link copied!");
     } catch (err: any) {
-      toast.error(err.message || "Failed to retrieve sourcing link.");
+      toast.error(err.message || "Failed to copy secure link.");
     } finally {
       setIsCopyingLink(false);
     }
@@ -861,9 +866,9 @@ export function JobDetailPage() {
 
               <div className="space-y-4">
                 {[
-                  { label: "Public Career Site URL", url: `https://careers.ofc360.com/jobs/${jobId}` },
-                  { label: "Internal Employee Referral Link", url: `https://ofc360.com/portal/referrals?job=${jobId}` },
-                  { label: "Campus Sourcing URL", url: `https://careers.ofc360.com/campus/sourcing?tag=uni-${jobId}` },
+                  { label: "Public Apply Link", url: getPublicJobApplicationUrl(jobId) },
+                  { label: "Internal Employee Referral Link", url: `${getPublicJobApplicationUrl(jobId)}?ref=employee` },
+                  { label: "Campus Sourcing URL", url: `${getPublicJobApplicationUrl(jobId)}?tag=campus` },
                 ].map((linkItem) => (
                   <div key={linkItem.label} className="rounded-xl border border-border bg-card/40 p-4">
                     <span className="text-xs font-semibold block mb-2">{linkItem.label}</span>
@@ -1145,7 +1150,7 @@ export function JobDetailPage() {
                         {chanObj.url && (
                           <div className="flex items-center justify-between gap-2 mt-1">
                             <span className="truncate max-w-[200px] text-primary underline text-[10px]">
-                              {chanObj.url}
+                              {getPublicJobApplicationUrl(chanObj.url)}
                             </span>
                             <div className="flex items-center gap-1">
                               <Button
@@ -1153,7 +1158,8 @@ export function JobDetailPage() {
                                 variant="ghost"
                                 className="h-6 w-6 text-muted-foreground"
                                 onClick={() => {
-                                  navigator.clipboard.writeText(chanObj.url);
+                                  const url = getPublicJobApplicationUrl(chanObj.url);
+                                  navigator.clipboard.writeText(url);
                                   toast.success("Link copied!");
                                 }}
                               >
@@ -1165,7 +1171,7 @@ export function JobDetailPage() {
                                 className="h-6 text-[10px] px-2"
                                 asChild
                               >
-                                <a href={chanObj.url} target="_blank" rel="noreferrer">Visit</a>
+                                <a href={getPublicJobApplicationUrl(chanObj.url)} target="_blank" rel="noreferrer">Visit</a>
                               </Button>
                             </div>
                           </div>
@@ -1236,7 +1242,8 @@ export function JobDetailPage() {
                   variant="outline"
                   className="w-full text-xs"
                   onClick={() => {
-                    navigator.clipboard.writeText(qrData.apply_url);
+                    const url = getPublicJobApplicationUrl(qrData.apply_url || jobId);
+                    navigator.clipboard.writeText(url);
                     toast.success("Apply URL copied!");
                   }}
                 >
