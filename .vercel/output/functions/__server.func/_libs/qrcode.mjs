@@ -2517,14 +2517,69 @@ var require_browser = /* @__PURE__ */ __commonJSMin(((exports) => {
 //#endregion
 //#region node_modules/qrcode/lib/server.js
 var require_server = /* @__PURE__ */ __commonJSMin(((exports) => {
-	require_can_promise();
+	var canPromise = require_can_promise();
 	var QRCode = require_qrcode();
-	require_png();
-	require_utf8();
-	require_terminal();
-	require_svg();
+	var PngRenderer = require_png();
+	var Utf8Renderer = require_utf8();
+	var TerminalRenderer = require_terminal();
+	var SvgRenderer = require_svg();
+	function checkParams(text, opts, cb) {
+		if (typeof text === "undefined") throw new Error("String required as first argument");
+		if (typeof cb === "undefined") {
+			cb = opts;
+			opts = {};
+		}
+		if (typeof cb !== "function") if (!canPromise()) throw new Error("Callback required as last argument");
+		else {
+			opts = cb || {};
+			cb = null;
+		}
+		return {
+			opts,
+			cb
+		};
+	}
+	function getRendererFromType(type) {
+		switch (type) {
+			case "svg": return SvgRenderer;
+			case "txt":
+			case "utf8": return Utf8Renderer;
+			default: return PngRenderer;
+		}
+	}
+	function getStringRendererFromType(type) {
+		switch (type) {
+			case "svg": return SvgRenderer;
+			case "terminal": return TerminalRenderer;
+			default: return Utf8Renderer;
+		}
+	}
+	function render(renderFunc, text, params) {
+		if (!params.cb) return new Promise(function(resolve, reject) {
+			try {
+				return renderFunc(QRCode.create(text, params.opts), params.opts, function(err, data) {
+					return err ? reject(err) : resolve(data);
+				});
+			} catch (e) {
+				reject(e);
+			}
+		});
+		try {
+			return renderFunc(QRCode.create(text, params.opts), params.opts, params.cb);
+		} catch (e) {
+			params.cb(e);
+		}
+	}
 	exports.create = QRCode.create;
 	exports.toCanvas = require_browser().toCanvas;
+	exports.toString = function toString(text, opts, cb) {
+		const params = checkParams(text, opts, cb);
+		return render(getStringRendererFromType(params.opts ? params.opts.type : void 0).render, text, params);
+	};
+	exports.toDataURL = function toDataURL(text, opts, cb) {
+		const params = checkParams(text, opts, cb);
+		return render(getRendererFromType(params.opts.type).renderToDataURL, text, params);
+	};
 }));
 //#endregion
 //#region node_modules/qrcode/lib/index.js
