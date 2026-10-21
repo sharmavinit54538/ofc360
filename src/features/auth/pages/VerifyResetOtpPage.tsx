@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { RefreshCw, Loader2 } from 'lucide-react';
-import { AuthShell } from '@/components/layout/AuthShell';
-import { OtpInput } from '@/components/auth/OtpInput';
+import { AuthShell } from '@/shared/layout/AuthShell';
+import { OtpInput } from '@/features/auth/components/OtpInput';
 import { useVerifyOtpMutation, useForgotPasswordMutation } from '@/features/auth/api/authApi';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 
 export const VerifyResetOtpPage: React.FC = () => {
   const [searchParams] = useSearchParams();

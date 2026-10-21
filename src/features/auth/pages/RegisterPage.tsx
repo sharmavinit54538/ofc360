@@ -2,12 +2,12 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { AuthShell } from '@/components/layout/AuthShell';
-import { Input } from '@/components/ui/Input';
-import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
+import { AuthShell } from '@/shared/layout/AuthShell';
+import { Input } from '@/shared/ui/Input';
+import { PasswordStrengthMeter } from '@/features/auth/components/PasswordStrengthMeter';
 import { registerSchema, RegisterFormData } from '@/features/auth/schemas/auth.schemas';
 import { useRegisterMutation } from '@/features/auth/api/authApi';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 import { Loader2, Check } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {

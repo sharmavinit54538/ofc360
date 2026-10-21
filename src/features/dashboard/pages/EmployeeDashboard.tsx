@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { Clock, Calendar, FileText, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/shared/ui/Button';
+import { useToast } from '@/shared/ui/Toast';
 
 export const EmployeeDashboard: React.FC = () => {
   const [clockedIn, setClockedIn] = useState(true);

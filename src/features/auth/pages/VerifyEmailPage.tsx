@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, AlertTriangle, RefreshCw, Mail, Sparkles, Loader2 } from 'lucide-react';
-import { AuthShell } from '@/components/layout/AuthShell';
+import { AuthShell } from '@/shared/layout/AuthShell';
 import {
   useVerifyEmailMutation,
   useResendVerificationEmailMutation,
 } from '@/features/auth/api/authApi';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 
 export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();

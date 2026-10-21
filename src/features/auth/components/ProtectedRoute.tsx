@@ -8,7 +8,7 @@ import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole, Permission, ROLE_DASHBOARD_ROUTES } from '../types/auth.types';
-import { AuthLoadingScreen } from '@/components/layout/AuthLoadingScreen';
+import { AuthLoadingScreen } from '@/shared/layout/AuthLoadingScreen';
 
 export interface ProtectedRouteProps {
   children?: React.ReactNode;

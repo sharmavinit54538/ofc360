@@ -2,11 +2,11 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AuthShell } from '@/components/layout/AuthShell';
-import { Input } from '@/components/ui/Input';
+import { AuthShell } from '@/shared/layout/AuthShell';
+import { Input } from '@/shared/ui/Input';
 import { useLoginMutation } from '@/features/auth/api/authApi';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
 import { Loader2 } from 'lucide-react';
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLoginMutation } from '@/features/auth/api/authApi';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
 
