@@ -6,6 +6,32 @@
 
 import { z } from 'zod';
 
+import { UserRole, Permission } from '../types/auth.types';
+
+export const userRoleSchema = z.enum([
+  'SUPER_ADMIN',
+  'HR_ADMIN',
+  'MANAGER',
+  'EMPLOYEE',
+  'IT_ADMIN',
+]) as z.ZodType<UserRole>;
+
+export const permissionSchema = z.enum([
+  'users:read',
+  'users:write',
+  'users:delete',
+  'org:manage',
+  'hrms:payroll',
+  'hrms:attendance',
+  'hrms:leaves',
+  'hrms:performance',
+  'it:assets',
+  'it:security_logs',
+  'it:system_config',
+  'reports:view',
+  'reports:export',
+]) as z.ZodType<Permission>;
+
 export const passkeyItemSchema = z.object({
   id: z.string(),
   credentialId: z.string(),
@@ -46,9 +72,9 @@ export const passkeyLoginVerifyResponseSchema = z.object({
     jobTitle: z.string().optional(),
     department: z.string().optional(),
     organizationId: z.string(),
-    roles: z.array(z.string()),
-    activeRole: z.enum(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']),
-    permissions: z.array(z.string()),
+    roles: z.array(userRoleSchema),
+    activeRole: userRoleSchema,
+    permissions: z.array(permissionSchema),
     isEmailVerified: z.boolean(),
     isTwoFactorEnabled: z.boolean(),
     lastLoginAt: z.string().optional(),
@@ -82,7 +108,7 @@ export const passkeyRegisterOptionsResponseSchema = z.object({
       })
     ),
     timeout: z.number().optional(),
-    attestation: z.string().optional(),
+    attestation: z.enum(['none', 'indirect', 'direct', 'enterprise']).optional(),
     authenticatorSelection: z
       .object({
         authenticatorAttachment: z.enum(['platform', 'cross-platform']).optional(),

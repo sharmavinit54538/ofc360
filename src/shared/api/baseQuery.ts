@@ -206,6 +206,135 @@ export const baseQueryWithReauth: BaseQueryFn<
       };
     }
 
+    if (url === '/auth/passkey/login/options') {
+      return {
+        data: {
+          options: {
+            challenge: 'mock_login_challenge_a1b2c3d4e5f6',
+            rpId: window.location.hostname || 'localhost',
+            timeout: 60000,
+            userVerification: 'required',
+          },
+        },
+      };
+    }
+
+    if (url === '/auth/passkey/login/verify') {
+      const email = body.email || 'superadmin@ofc360.com';
+      return {
+        data: {
+          user: {
+            id: 'usr_passkey_demo',
+            email,
+            firstName: 'Enterprise',
+            lastName: 'Admin',
+            fullName: 'Enterprise Admin',
+            roles: ['SUPER_ADMIN'],
+            activeRole: 'SUPER_ADMIN',
+            permissions: ['users:read', 'users:write', 'org:manage'],
+            organizationId: 'org_ofc360_demo',
+            isEmailVerified: true,
+            isTwoFactorEnabled: true,
+            createdAt: new Date().toISOString(),
+          },
+          tokens: {
+            accessToken: `mock_passkey_jwt_${Date.now()}`,
+            refreshToken: `mock_passkey_refresh_${Date.now()}`,
+            expiresIn: 3600,
+          },
+          message: 'Passkey authentication verified',
+        },
+      };
+    }
+
+    if (url === '/auth/passkey/register/options') {
+      const state = api.getState() as RootState;
+      const user = state.auth.user;
+      return {
+        data: {
+          options: {
+            challenge: 'mock_reg_challenge_x9y8z7w6',
+            rp: {
+              name: 'OFC360 Enterprise',
+              id: window.location.hostname || 'localhost',
+            },
+            user: {
+              id: user?.id || 'usr_passkey_demo',
+              name: user?.email || 'admin@ofc360.com',
+              displayName: user?.fullName || 'Enterprise Admin',
+            },
+            pubKeyCredParams: [
+              { alg: -7, type: 'public-key' },
+              { alg: -257, type: 'public-key' },
+            ],
+            timeout: 60000,
+            attestation: 'none',
+            authenticatorSelection: {
+              residentKey: 'preferred',
+              userVerification: 'required',
+            },
+          },
+        },
+      };
+    }
+
+    if (url === '/auth/passkey/register/verify') {
+      return {
+        data: {
+          success: true,
+          passkey: {
+            id: `pk_${Date.now()}`,
+            credentialId: `cred_${Date.now()}`,
+            deviceName: body.deviceName || 'Windows Hello / Touch ID',
+            transports: ['internal'],
+            createdAt: new Date().toISOString(),
+            lastUsedAt: null,
+            signCount: 0,
+          },
+          message: 'Passkey registered successfully',
+        },
+      };
+    }
+
+    if (url === '/auth/passkey/list') {
+      return {
+        data: {
+          passkeys: [
+            {
+              id: 'pk_demo_1',
+              credentialId: 'cred_sample_fingerprint',
+              deviceName: 'MacBook Touch ID / Windows Hello',
+              transports: ['internal'],
+              createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+              lastUsedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+              signCount: 14,
+            },
+          ],
+          canDeletePasskey: true,
+          hasPasswordSet: true,
+        },
+      };
+    }
+
+    if (url?.startsWith('/auth/passkey/')) {
+      return {
+        data: {
+          success: true,
+          message: 'Passkey updated successfully',
+        },
+      };
+    }
+
+    if (url === '/auth/reauth') {
+      return {
+        data: {
+          verified: true,
+          reauthToken: `reauth_tok_${Date.now()}`,
+          expiresInSeconds: 300,
+        },
+      };
+    }
+
     if (url === '/auth/me') {
       const state = api.getState() as RootState;
       if (state.auth.user) {
