@@ -28,7 +28,7 @@ import { setCredentials, setAccessToken, logout } from '../slices/authSlice';
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Auth', 'User'],
+  tagTypes: ['Auth', 'User', 'Passkey'],
   endpoints: (builder) => ({
     /**
      * Authenticates corporate user with email/password or Google SSO payload.
