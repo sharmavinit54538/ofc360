@@ -9,6 +9,7 @@ interface AuthShellProps {
   footerText?: string;
   footerLinkText?: string;
   footerLinkTo?: string;
+  cardMaxWidth?: string;
 }
 
 export const AuthShell: React.FC<AuthShellProps> = ({
@@ -18,11 +19,12 @@ export const AuthShell: React.FC<AuthShellProps> = ({
   footerText = 'New to OFC360?',
   footerLinkText = 'Create a workspace',
   footerLinkTo = '/auth/register',
+  cardMaxWidth = 'max-w-[440px]',
 }) => {
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 p-6 sm:p-8 relative">
+    <div className="min-h-screen sm:h-screen w-full flex flex-col justify-between bg-white text-slate-900 px-4 py-3 sm:px-8 sm:py-4 relative overflow-y-auto">
       {/* Top Left Header with Purple Sparkle Badge & OFC360 Logo */}
-      <header className="w-full flex items-center justify-between">
+      <header className="w-full flex items-center justify-between shrink-0">
         <Link to="/" className="inline-flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform duration-200">
             <Sparkles className="w-4 h-4 text-white" />
@@ -34,14 +36,14 @@ export const AuthShell: React.FC<AuthShellProps> = ({
       </header>
 
       {/* Centered Authentication Card */}
-      <main className="w-full flex flex-col items-center justify-center my-auto py-8">
-        <div className="w-full max-w-[440px] rounded-[28px] border border-slate-900/90 bg-white p-8 sm:p-10 shadow-sm transition-all">
+      <main className="w-full flex flex-col items-center justify-center my-auto py-2 sm:py-3 shrink-0">
+        <div className={`w-full ${cardMaxWidth} rounded-[24px] border border-slate-900/90 bg-white p-5 sm:p-7 shadow-sm transition-all`}>
           {/* Card Header */}
-          <div className="space-y-1 mb-8">
-            <h1 className="text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-tight">
+          <div className="space-y-0.5 mb-4 sm:mb-5">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
               {title}
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
               {subtitle}
             </p>
           </div>
@@ -52,7 +54,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({
 
         {/* Footer Link below card */}
         {footerText && footerLinkText && footerLinkTo && (
-          <div className="mt-8 text-center text-sm text-slate-600">
+          <div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-slate-600">
             <span>{footerText} </span>
             <Link
               to={footerLinkTo}
@@ -64,8 +66,8 @@ export const AuthShell: React.FC<AuthShellProps> = ({
         )}
       </main>
 
-      {/* Subtle bottom footer spacer */}
-      <footer className="w-full text-center text-xs text-slate-400 py-2">
+      {/* Subtle bottom footer */}
+      <footer className="w-full text-center text-[11px] sm:text-xs text-slate-400 py-1 shrink-0">
         <span>&copy; {new Date().getFullYear()} OFC360 &bull; Enterprise HRMS & RBAC Suite</span>
       </footer>
     </div>

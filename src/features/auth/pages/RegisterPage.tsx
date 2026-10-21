@@ -63,77 +63,88 @@ export const RegisterPage: React.FC = () => {
       footerText="Already have an account?"
       footerLinkText="Sign in"
       footerLinkTo="/auth/login"
+      cardMaxWidth="max-w-[580px] sm:max-w-[620px]"
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        {/* Company Name */}
-        <Input
-          label="Company or organization name"
-          placeholder="Acme Global Inc."
-          error={errors.organizationName?.message}
-          {...register('organizationName')}
-        />
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+        {/* 2-Column Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5 gap-y-2.5">
+          {/* Company Name */}
+          <div className="sm:col-span-2">
+            <Input
+              label="Company or organization name"
+              placeholder="Acme Global Inc."
+              inputSize="sm"
+              error={errors.organizationName?.message}
+              {...register('organizationName')}
+            />
+          </div>
 
-        {/* Mobile Number */}
-        <Input
-          label="Mobile number"
-          type="tel"
-          placeholder="+91 98765 43210"
-          error={errors.phone?.message}
-          {...register('phone')}
-        />
-
-        {/* Admin First & Last Name */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Admin First & Last Name */}
           <Input
             label="First name"
             placeholder="John"
+            inputSize="sm"
             error={errors.firstName?.message}
             {...register('firstName')}
           />
           <Input
             label="Last name"
             placeholder="Doe"
+            inputSize="sm"
             error={errors.lastName?.message}
             {...register('lastName')}
           />
-        </div>
 
-        {/* Work Email */}
-        <Input
-          label="Work email"
-          type="email"
-          placeholder="admin@company.com"
-          error={errors.workEmail?.message}
-          {...register('workEmail')}
-        />
+          {/* Work Email & Mobile Number */}
+          <Input
+            label="Work email"
+            type="email"
+            placeholder="admin@company.com"
+            inputSize="sm"
+            error={errors.workEmail?.message}
+            {...register('workEmail')}
+          />
+          <Input
+            label="Mobile number"
+            type="tel"
+            placeholder="+91 98765 43210"
+            inputSize="sm"
+            error={errors.phone?.message}
+            {...register('phone')}
+          />
 
-        {/* Password */}
-        <div>
+          {/* Password & Confirm Password */}
           <Input
             label="Password"
             isPassword
             placeholder="••••••••••••"
+            inputSize="sm"
             error={errors.password?.message}
             {...register('password')}
           />
-          <PasswordStrengthMeter password={passwordValue} />
+          <Input
+            label="Confirm password"
+            isPassword
+            placeholder="••••••••••••"
+            inputSize="sm"
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
+          />
+
+          {/* Password Strength Meter - compact row */}
+          {passwordValue && (
+            <div className="sm:col-span-2 -mt-0.5">
+              <PasswordStrengthMeter password={passwordValue} compact />
+            </div>
+          )}
         </div>
 
-        {/* Confirm Password */}
-        <Input
-          label="Confirm password"
-          isPassword
-          placeholder="••••••••••••"
-          error={errors.confirmPassword?.message}
-          {...register('confirmPassword')}
-        />
-
         {/* Terms and Privacy - Circular Checkbox */}
-        <div className="pt-1">
-          <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+        <div className="pt-0.5">
+          <label className="flex items-center gap-2 cursor-pointer select-none group">
             <div
               onClick={() => setValue('termsAccepted', !termsAccepted, { shouldValidate: true })}
-              className={`w-4 h-4 mt-0.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
+              className={`w-4 h-4 rounded-full border transition-all flex items-center justify-center shrink-0 ${
                 termsAccepted
                   ? 'border-slate-900 bg-slate-900 text-white'
                   : 'border-slate-400 bg-white group-hover:border-slate-600'
@@ -141,7 +152,7 @@ export const RegisterPage: React.FC = () => {
             >
               {termsAccepted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
             </div>
-            <span className="text-xs text-slate-600 leading-relaxed">
+            <span className="text-xs text-slate-600 leading-normal">
               I agree to the OFC360{' '}
               <a href="#terms" className="text-slate-900 font-semibold hover:underline">
                 Terms of Service
@@ -155,7 +166,7 @@ export const RegisterPage: React.FC = () => {
             <input type="checkbox" className="hidden" {...register('termsAccepted')} />
           </label>
           {errors.termsAccepted?.message && (
-            <p className="text-xs text-rose-500 mt-1">{errors.termsAccepted.message}</p>
+            <p className="text-[11px] text-rose-500 mt-0.5">{errors.termsAccepted.message}</p>
           )}
         </div>
 
@@ -163,7 +174,7 @@ export const RegisterPage: React.FC = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3.5 px-4 bg-[#0d1527] hover:bg-[#1e293b] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          className="w-full py-2.5 sm:py-3 px-4 bg-[#0d1527] hover:bg-[#1e293b] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
         >
           {isLoading ? (
             <>
