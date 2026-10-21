@@ -1,8 +1,8 @@
 import React from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { Shield, Server, Users, Activity, Lock, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { RoleGuard } from '@/components/auth/RoleGuard';
+import { RoleGuard } from '@/features/auth/components/RoleGuard';
 
 export const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();

@@ -14,9 +14,9 @@ import {
   Search,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/shared/ui/Badge';
 import { UserRole, ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/shared/ui/Toast';
 
 interface DashboardShellProps {
   children: React.ReactNode;

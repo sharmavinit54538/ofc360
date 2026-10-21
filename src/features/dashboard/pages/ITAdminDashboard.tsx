@@ -1,7 +1,7 @@
 import React from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { Server, Laptop, ShieldAlert, Cpu, Key, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/shared/ui/Button';
 
 export const ITAdminDashboard: React.FC = () => {
   return (

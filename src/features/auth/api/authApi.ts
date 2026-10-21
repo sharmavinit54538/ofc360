@@ -5,7 +5,7 @@
  */
 
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { baseQueryWithReauth } from '@/api/apiInstance';
+import { baseQueryWithReauth } from '@/shared/api/baseQuery';
 import {
   LoginRequest,
   LoginResponse,

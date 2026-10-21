@@ -1,7 +1,7 @@
 import React from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { Briefcase, CheckSquare, Clock, Users, Target, ArrowUpRight } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/shared/ui/Button';
 
 export const ManagerDashboard: React.FC = () => {
   return (

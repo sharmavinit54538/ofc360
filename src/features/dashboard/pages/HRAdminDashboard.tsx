@@ -1,7 +1,7 @@
 import React from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { Users, DollarSign, Calendar, Award, UserPlus, FileSpreadsheet } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/shared/ui/Button';
 
 export const HRAdminDashboard: React.FC = () => {
   return (

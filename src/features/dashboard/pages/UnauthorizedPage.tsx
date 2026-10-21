@@ -2,8 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Home, LogIn } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Badge } from '@/shared/ui/Badge';
+import { Button } from '@/shared/ui/Button';
 import { ROLE_DASHBOARD_ROUTES, UserRole } from '@/features/auth/types/auth.types';
 
 export const UnauthorizedPage: React.FC = () => {

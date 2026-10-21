@@ -1,21 +1,21 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { RegisterPage } from '@/pages/auth/RegisterPage';
-import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
-import { VerifyResetOtpPage } from '@/pages/auth/VerifyResetOtpPage';
-import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
-import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { RegisterPage } from '@/features/auth/pages/RegisterPage';
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
+import { VerifyResetOtpPage } from '@/features/auth/pages/VerifyResetOtpPage';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
+import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage';
 
-import { SuperAdminDashboard } from '@/pages/dashboard/SuperAdminDashboard';
-import { HRAdminDashboard } from '@/pages/dashboard/HRAdminDashboard';
-import { ManagerDashboard } from '@/pages/dashboard/ManagerDashboard';
-import { EmployeeDashboard } from '@/pages/dashboard/EmployeeDashboard';
-import { ITAdminDashboard } from '@/pages/dashboard/ITAdminDashboard';
-import { UnauthorizedPage } from '@/pages/dashboard/UnauthorizedPage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
+import { SuperAdminDashboard } from '@/features/dashboard/pages/SuperAdminDashboard';
+import { HRAdminDashboard } from '@/features/dashboard/pages/HRAdminDashboard';
+import { ManagerDashboard } from '@/features/dashboard/pages/ManagerDashboard';
+import { EmployeeDashboard } from '@/features/dashboard/pages/EmployeeDashboard';
+import { ITAdminDashboard } from '@/features/dashboard/pages/ITAdminDashboard';
+import { UnauthorizedPage } from '@/features/dashboard/pages/UnauthorizedPage';
+import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
 
@@ -101,3 +101,5 @@ export const AppRoutes: React.FC = () => {
     </Routes>
   );
 };
+
+export default AppRoutes;
