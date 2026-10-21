@@ -6,9 +6,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: '@/components/ui/toast', replacement: path.resolve(__dirname, './src/shared/ui/Toast.tsx') },
+      { find: '@/shared/ui/toast', replacement: path.resolve(__dirname, './src/shared/ui/Toast.tsx') },
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+    ],
   },
   server: {
     port: 8080,
