@@ -9,7 +9,7 @@ import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas
 import { useToast } from '@/shared/ui/Toast';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
 import { usePasskey } from '@/features/auth/hooks/usePasskey';
-import { Loader2, Fingerprint, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Loader2, ScanFace, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -76,7 +76,7 @@ export const LoginPage: React.FC = () => {
       const response = await loginWithPasskey(emailInput || undefined);
       toast.success(
         `Welcome back, ${response.user.fullName}!`,
-        'Unlocked with Face / Fingerprint'
+        'Unlocked with Face Recognition'
       );
       handleSuccessfulAuth(response.user);
     } catch (err: unknown) {
@@ -112,18 +112,18 @@ export const LoginPage: React.FC = () => {
                   {isPasskeyLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Fingerprint className="w-4 h-4" />
+                    <ScanFace className="w-4 h-4" />
                   )}
                 </div>
                 <div className="text-left">
                   <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <span>Unlock with face / fingerprint</span>
+                    <span>Unlock with Face Recognition</span>
                     <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-200/60 text-indigo-800 rounded">
                       Passkey
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-500 font-normal">
-                    Touch ID • Face Unlock • Windows Hello
+                    Face ID • Windows Hello Face
                   </div>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export const LoginPage: React.FC = () => {
                 to="/auth/forgot-password"
                 className="text-xs text-slate-500 hover:text-indigo-600 transition-colors font-normal"
               >
-                Forgot password?
+                Forgot Password
               </Link>
             }
             isPassword
