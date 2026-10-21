@@ -4,6 +4,8 @@ import { Clock, Calendar, FileText, CheckCircle2, AlertCircle, ArrowRight } from
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 
+import { StatCard } from '@/features/dashboard/components/StatCard';
+
 export const EmployeeDashboard: React.FC = () => {
   const [clockedIn, setClockedIn] = useState(true);
   const toast = useToast();
@@ -50,41 +52,31 @@ export const EmployeeDashboard: React.FC = () => {
 
         {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs uppercase font-semibold">Available PTO</span>
-              <Calendar className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-emerald-400">14 Days</div>
-            <div className="text-[11px] text-slate-400">Accrues 1.5 days/month</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs uppercase font-semibold">Medical Leaves</span>
-              <CheckCircle2 className="w-4 h-4 text-brand-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">8 Days</div>
-            <div className="text-[11px] text-slate-400">Valid through year end</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs uppercase font-semibold">Latest Payslip</span>
-              <FileText className="w-4 h-4 text-cyan-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">Oct 2026</div>
-            <div className="text-[11px] text-brand-300">Ready for download</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs uppercase font-semibold">Allocated Devices</span>
-              <AlertCircle className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">2 Assets</div>
-            <div className="text-[11px] text-slate-400">MacBook Pro M3, YubiKey 5</div>
-          </div>
+          <StatCard
+            label="Available PTO"
+            value="14 Days"
+            subtext="Accrues 1.5 days/month"
+            icon={<Calendar className="w-4 h-4 text-emerald-400" />}
+            valueColor="text-emerald-400"
+          />
+          <StatCard
+            label="Medical Leaves"
+            value="8 Days"
+            subtext="Valid through year end"
+            icon={<CheckCircle2 className="w-4 h-4 text-brand-400" />}
+          />
+          <StatCard
+            label="Latest Payslip"
+            value="Oct 2026"
+            subtext="Ready for download"
+            icon={<FileText className="w-4 h-4 text-cyan-400" />}
+          />
+          <StatCard
+            label="Allocated Devices"
+            value="2 Assets"
+            subtext="MacBook Pro M3, YubiKey 5"
+            icon={<AlertCircle className="w-4 h-4 text-amber-400" />}
+          />
         </div>
 
         {/* Self Service Quick Links */}
