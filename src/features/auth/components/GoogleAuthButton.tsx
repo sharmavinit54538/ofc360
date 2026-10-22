@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { useLoginMutation } from '@/features/auth/api/authApi';
 import { useToast } from '@/shared/ui/Toast';
 import { useNavigate } from 'react-router-dom';
-import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, normalizeAuthResponse, normalizeRole } from '@/features/auth/types/auth.types';
 
 interface GoogleAuthButtonProps {
   label?: string;
@@ -31,15 +31,17 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
         googleToken: `mock_google_oauth_token_${Date.now()}`,
       }).unwrap();
 
+      const normalized = normalizeAuthResponse(result);
+
       toast.success(
-        `Authenticated as ${result.user.fullName} (${result.user.activeRole})`,
+        `Authenticated as ${normalized.user.fullName} (${normalized.user.activeRole})`,
         'Single Sign-On Success'
       );
 
       if (onSuccess) {
         onSuccess();
       } else {
-        const dest = ROLE_DASHBOARD_ROUTES[result.user.activeRole] || '/dashboard/employee';
+        const dest = ROLE_DASHBOARD_ROUTES[normalizeRole(normalized.user.activeRole)] || '/dashboard/employee';
         navigate(dest);
       }
     } catch (err: any) {

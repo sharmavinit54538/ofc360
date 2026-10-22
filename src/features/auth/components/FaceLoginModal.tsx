@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button';
 import { useFaceLoginMutation } from '@/features/auth/api/authApi';
 import { useToast } from '@/shared/ui/Toast';
 import { useNavigate } from 'react-router-dom';
-import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, normalizeAuthResponse, normalizeRole } from '@/features/auth/types/auth.types';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/features/auth/slices/authSlice';
 
@@ -130,21 +130,22 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
     try {
       const base64Data = capturedImage.split(',')[1];
       const response = await faceLogin({ email: email || '', image: base64Data }).unwrap();
+      const normalized = normalizeAuthResponse(response);
 
       toast.success(
-        `Welcome back, ${response.user.fullName}!`,
+        `Welcome back, ${normalized.user.fullName}!`,
         'Face Login Successful'
       );
 
       dispatch(
         setCredentials({
-          user: response.user,
-          tokens: response.tokens,
+          user: normalized.user,
+          tokens: normalized.tokens,
           rememberMe: true,
         })
       );
 
-      const destination = ROLE_DASHBOARD_ROUTES[response.user.activeRole] || '/dashboard/employee';
+      const destination = ROLE_DASHBOARD_ROUTES[normalizeRole(normalized.user.activeRole)] || '/dashboard/employee';
       navigate(destination);
       onClose();
     } catch (err: unknown) {

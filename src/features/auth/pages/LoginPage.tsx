@@ -7,7 +7,7 @@ import { Input } from '@/shared/ui/Input';
 import { useLoginMutation } from '@/features/auth/api/authApi';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
 import { useToast } from '@/shared/ui/Toast';
-import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, normalizeRole, normalizeAuthResponse, User } from '@/features/auth/types/auth.types';
 import { FaceLoginModal } from '@/features/auth/components/FaceLoginModal';
 import { Loader2, ScanFace } from 'lucide-react';
 
@@ -38,28 +38,80 @@ export const LoginPage: React.FC = () => {
 
   const rememberMe = watch('rememberMe');
 
-  const handleSuccessfulAuth = (user: { fullName: string; activeRole: keyof typeof ROLE_DASHBOARD_ROUTES }) => {
+  const handleSuccessfulAuth = (user: User | { fullName?: string; activeRole?: string; role?: string }) => {
     if (redirectUrl) {
       navigate(decodeURIComponent(redirectUrl));
     } else {
-      const dest = ROLE_DASHBOARD_ROUTES[user.activeRole] || '/dashboard/employee';
+      const canonicalRole = normalizeRole(user.activeRole || (user as any).role);
+      const dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
       navigate(dest);
     }
   };
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await login(data).unwrap();
+      const rawResponse = await login({
+        email: data.email,
+        identifier: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      }).unwrap();
+
+      // Check if multi-step email verification / OTP is required by FastAPI
+      const isVerificationRequired = Boolean(
+        rawResponse.requires_email_verification ||
+        rawResponse.requiresEmailVerification ||
+        rawResponse.data?.requires_email_verification ||
+        (!rawResponse.data?.user && !rawResponse.user && (rawResponse.verification_id || rawResponse.data?.verification_id))
+      );
+
+      if (isVerificationRequired) {
+        const emailToVerify =
+          rawResponse.data?.email ||
+          rawResponse.email ||
+          rawResponse.data?.masked_email ||
+          data.email;
+        const verificationId =
+          rawResponse.data?.verification_id ||
+          rawResponse.verification_id ||
+          '';
+
+        toast.info(
+          rawResponse.message || 'Email verification is required. An OTP has been dispatched to your email.',
+          'Verification Required'
+        );
+        navigate(
+          `/auth/verify-email?email=${encodeURIComponent(emailToVerify)}&vid=${encodeURIComponent(verificationId)}`
+        );
+        return;
+      }
+
+      // Safely parse user profile & tokens
+      const normalized = normalizeAuthResponse(rawResponse);
+      const displayName = normalized.user.fullName || normalized.user.firstName || 'User';
+
       toast.success(
-        `Welcome back, ${response.user.fullName}!`,
+        `Welcome back, ${displayName}!`,
         'Authenticated Successfully'
       );
-      handleSuccessfulAuth(response.user);
+      handleSuccessfulAuth(normalized.user);
     } catch (err: unknown) {
-      const errorMsg =
-        typeof err === 'object' && err !== null && 'data' in err && typeof (err as { data?: { message?: string } }).data?.message === 'string'
-          ? (err as { data: { message: string } }).data.message
-          : 'Invalid credentials. Please verify your corporate email and password.';
+      let errorMsg = 'Invalid credentials. Please verify your corporate email and password.';
+      if (typeof err === 'object' && err !== null) {
+        const e = err as any;
+        if (e.data?.message) {
+          errorMsg = e.data.message;
+        } else if (e.data?.detail) {
+          errorMsg = typeof e.data.detail === 'string' ? e.data.detail : JSON.stringify(e.data.detail);
+        } else if (Array.isArray(e.data?.errors) && e.data.errors[0]?.message) {
+          errorMsg = e.data.errors[0].message;
+        } else if (e.error) {
+          errorMsg =
+            e.error === 'FETCH_ERROR'
+              ? 'Unable to connect to the authentication server. Please verify the backend is running.'
+              : e.error;
+        }
+      }
       toast.error(errorMsg, 'Login Failed');
     }
   };

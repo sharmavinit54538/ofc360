@@ -6,6 +6,7 @@ interface OtpInputProps {
   onChange: (otp: string) => void;
   disabled?: boolean;
   hasError?: boolean;
+  autoFocus?: boolean;
 }
 
 export const OtpInput: React.FC<OtpInputProps> = ({
@@ -14,6 +15,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   onChange,
   disabled = false,
   hasError = false,
+  autoFocus = true,
 }) => {
   const [digits, setDigits] = useState<string[]>(Array(length).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -27,6 +29,13 @@ export const OtpInput: React.FC<OtpInputProps> = ({
     });
     setDigits(newDigits);
   }, [value, length]);
+
+  // Auto-focus first input on mount
+  useEffect(() => {
+    if (autoFocus && inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, [autoFocus]);
 
   const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
@@ -78,7 +87,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 sm:gap-3">
+    <div className="flex items-center justify-center gap-2">
       {Array.from({ length }).map((_, idx) => (
         <input
           key={idx}
@@ -92,16 +101,17 @@ export const OtpInput: React.FC<OtpInputProps> = ({
           onKeyDown={(e) => handleKeyDown(idx, e)}
           onPaste={handlePaste}
           disabled={disabled}
-          className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl bg-slate-900/90 border transition-all duration-200 outline-none
+          className={`w-11 h-13 text-center text-xl font-semibold rounded-xl border transition-all duration-200 outline-none
             ${
               hasError
-                ? 'border-rose-500/70 text-rose-300 focus:ring-2 focus:ring-rose-500/20'
+                ? 'border-rose-400 text-rose-600 placeholder:text-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
                 : digits[idx]
-                ? 'border-brand-500 text-brand-300 shadow-sm shadow-brand-500/20'
-                : 'border-slate-800 text-slate-100 hover:border-slate-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'
+                ? 'border-emerald-500 text-emerald-700 bg-emerald-50 placeholder:text-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                : 'border-gray-300 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 hover:border-gray-400 dark:hover:border-zinc-600 focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white'
             }
             disabled:opacity-50 disabled:cursor-not-allowed
           `}
+          placeholder=""
         />
       ))}
     </div>

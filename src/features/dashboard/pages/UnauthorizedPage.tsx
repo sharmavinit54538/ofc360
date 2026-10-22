@@ -4,7 +4,7 @@ import { ShieldAlert, Home, LogIn } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
-import { ROLE_DASHBOARD_ROUTES, UserRole } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, UserRole, normalizeRole } from '@/features/auth/types/auth.types';
 
 export const UnauthorizedPage: React.FC = () => {
   const location = useLocation();
@@ -19,7 +19,7 @@ export const UnauthorizedPage: React.FC = () => {
   } | null;
 
   const allowedRoles = state?.allowedRoles || [];
-  const homeRoute = activeRole ? ROLE_DASHBOARD_ROUTES[activeRole] : '/auth/login';
+  const homeRoute = activeRole ? ROLE_DASHBOARD_ROUTES[normalizeRole(activeRole)] : '/auth/login';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">

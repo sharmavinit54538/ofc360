@@ -45,10 +45,9 @@ export const VerifyResetOtpPage: React.FC = () => {
       }).unwrap();
 
       toast.success('Authorization code verified!', 'Identity Confirmed');
+      const tokenVal = res.verificationToken || res.resetToken || (res.data as any)?.resetToken || '';
       navigate(
-        `/auth/reset-password?email=${encodeURIComponent(email)}&token=${encodeURIComponent(
-          res.verificationToken
-        )}`
+        `/auth/reset-password?email=${encodeURIComponent(email)}&token=${encodeURIComponent(tokenVal)}`
       );
     } catch (err: any) {
       setHasError(true);
