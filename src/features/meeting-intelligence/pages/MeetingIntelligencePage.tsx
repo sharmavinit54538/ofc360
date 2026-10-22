@@ -6,15 +6,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Video,
-  Upload,
-  Search,
-  RefreshCw,
-  Sparkles,
-  Calendar,
-  Filter,
-} from 'lucide-react';
+import { Upload, Search } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 import {
@@ -84,11 +76,6 @@ export const MeetingIntelligencePage: React.FC = () => {
     [meetings, selectedMeetingId]
   );
 
-  const handleRefresh = () => {
-    refetchMeetings();
-    refetchKpis();
-    toast.info('Refreshing meeting transcripts and action items...', 'Refreshed');
-  };
 
   const handleUploadSubmit = async (payload: ProcessMeetingAudioPayload) => {
     try {
@@ -154,42 +141,6 @@ export const MeetingIntelligencePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[#ececec]">
-            Meeting Intelligence & Action Tracking
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-            Automated speech-to-text transcription, executive synthesis, strategic decision logs, and deliverable tracking.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isMeetingsFetching}
-            className="rounded-xl flex items-center gap-1.5"
-            title="Refresh from server"
-          >
-            <RefreshCw className={`w-4 h-4 ${isMeetingsFetching ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsUploadModalOpen(true)}
-            className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
-          >
-            <Upload className="w-4 h-4" />
-            <span>Process Audio</span>
-          </Button>
-        </div>
-      </div>
-
       {/* High-Level KPI Cards */}
       <MeetingKpiCards kpis={kpiSummary} isLoading={isKpiLoading} />
 
@@ -206,8 +157,19 @@ export const MeetingIntelligencePage: React.FC = () => {
           />
         </div>
 
-        <div className="text-xs font-semibold text-gray-400 dark:text-zinc-500">
-          {meetings.length} Recorded Sessions
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-semibold text-gray-400 dark:text-zinc-500">
+            {meetings.length} Recorded Sessions
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsUploadModalOpen(true)}
+            className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Process Audio</span>
+          </Button>
         </div>
       </div>
 

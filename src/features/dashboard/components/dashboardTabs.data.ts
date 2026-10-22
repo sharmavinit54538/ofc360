@@ -1,24 +1,21 @@
 import React from 'react';
 import {
-  LayoutGrid,
-  Sparkles,
+  LayoutDashboard,
   Users,
   UserCog,
-  UserPlus,
   Building2,
   CalendarDays,
-  Timer,
+  Clock,
   FileText,
   CreditCard,
   Gauge,
   FolderKanban,
-  Box,
-  Activity,
-  LayoutDashboard,
-  FileSpreadsheet,
   Briefcase,
+  FileSpreadsheet,
   FilePlus,
   UserSearch,
+  UserCheck,
+  Layers,
   CalendarCheck,
   ClipboardCheck,
   MessageSquare,
@@ -40,22 +37,36 @@ import {
   BookOpen,
   FilePlus2,
   Video,
-  UserCheck,
-  PackageMinus,
   LogOut,
-  KeyRound,
   Receipt,
   Plane,
   ShieldAlert,
   Settings,
-  Layers,
-  Clock,
-  ScrollText,
+  Activity,
+  Box,
+  UserPlus,
+  Timer,
   Palmtree,
+  ScrollText,
+  Sparkles,
+  LayoutGrid,
 } from 'lucide-react';
 
-export type TabGroup = 'core' | 'hrops' | 'recruitment' | 'aihub';
-export type SidebarSection = 'core' | 'recruitment' | 'aihub' | 'hrops';
+export type SidebarSection =
+  | 'overview'
+  | 'workforce'
+  | 'recruitment'
+  | 'attendance'
+  | 'payroll'
+  | 'leave'
+  | 'performance'
+  | 'reports'
+  | 'aihub'
+  | 'documents'
+  | 'hrops'
+  | 'settings';
+
+export type TabGroup = SidebarSection;
 
 export interface DashboardTabItem {
   id: string;
@@ -78,14 +89,21 @@ export interface SidebarSectionConfig {
   order: number;
 }
 
-// Sidebar section configuration
 export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
   {
-    id: 'core',
-    label: 'Core',
-    icon: LayoutGrid,
+    id: 'overview',
+    label: 'Overview',
+    icon: LayoutDashboard,
     collapsible: false,
     order: 0,
+  },
+  {
+    id: 'workforce',
+    label: 'Workforce',
+    icon: Users,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 1,
   },
   {
     id: 'recruitment',
@@ -93,27 +111,82 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     icon: Briefcase,
     collapsible: true,
     defaultExpanded: true,
-    order: 1,
-  },
-  {
-    id: 'aihub',
-    label: 'AI Hub',
-    icon: Bot,
-    collapsible: true,
-    defaultExpanded: true,
     order: 2,
   },
   {
-    id: 'hrops',
-    label: 'HR Ops & Administration',
-    icon: Settings,
+    id: 'attendance',
+    label: 'Attendance & Time',
+    icon: CalendarDays,
     collapsible: true,
     defaultExpanded: true,
     order: 3,
   },
+  {
+    id: 'payroll',
+    label: 'Payroll & Benefits',
+    icon: CreditCard,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 4,
+  },
+  {
+    id: 'leave',
+    label: 'Leave Management',
+    icon: FileText,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 5,
+  },
+  {
+    id: 'performance',
+    label: 'Performance',
+    icon: Gauge,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 6,
+  },
+  {
+    id: 'reports',
+    label: 'Reports & Analytics',
+    icon: LineChart,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 7,
+  },
+  {
+    id: 'aihub',
+    label: 'AI Intelligence Hub',
+    icon: Bot,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 8,
+  },
+  {
+    id: 'documents',
+    label: 'Documents & Compliance',
+    icon: FolderKanban,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 9,
+  },
+  {
+    id: 'hrops',
+    label: 'HR Operations',
+    icon: Activity,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 10,
+  },
+  {
+    id: 'settings',
+    label: 'Settings & Integrations',
+    icon: Settings,
+    collapsible: true,
+    defaultExpanded: false,
+    order: 11,
+  },
 ];
 
-// Lazy loaded views
 const OverviewView = React.lazy(() => import('./views/OverviewView'));
 const ComingSoonView = React.lazy(() => import('./views/ComingSoonView'));
 const TravelRequestsPage = React.lazy(() => import('@/features/travel/pages/TravelRequestsPage'));
@@ -131,176 +204,57 @@ const ShiftsView = React.lazy(() => import('./views/ShiftsView'));
 const RostersView = React.lazy(() => import('./views/RostersView'));
 const HolidaysView = React.lazy(() => import('./views/HolidaysView'));
 
-/**
- * Complete typed configuration array for all 68 tabs across the 4 groups.
- */
 export const DASHBOARD_TABS: DashboardTabItem[] = [
   // ==========================================
-  // 1. CORE (13 tabs) - Always visible at top
+  // 1. OVERVIEW (1 tab) - Always visible at top
   // ==========================================
   {
     id: 'overview',
     label: 'Overview',
-    icon: LayoutGrid,
-    group: 'core',
-    section: 'core',
+    icon: LayoutDashboard,
+    group: 'overview',
+    section: 'overview',
     component: OverviewView,
   },
-  {
-    id: 'ai-insights',
-    label: 'AI Insights',
-    icon: Sparkles,
-    group: 'core',
-    section: 'core',
-    component: AnalyticsCenterPage,
-  },
+
+  // ==========================================
+  // 2. WORKFORCE (4 tabs) - Collapsible group
+  // ==========================================
   {
     id: 'employees',
     label: 'Employees',
     icon: Users,
-    group: 'core',
-    section: 'core',
+    group: 'workforce',
+    section: 'workforce',
     component: ComingSoonView,
   },
   {
     id: 'hr-management',
     label: 'HR Management',
     icon: UserCog,
-    group: 'core',
-    section: 'core',
+    group: 'workforce',
+    section: 'workforce',
     component: ComingSoonView,
   },
   {
     id: 'managers',
     label: 'Managers',
     icon: UserPlus,
-    group: 'core',
-    section: 'core',
+    group: 'workforce',
+    section: 'workforce',
     component: ComingSoonView,
   },
   {
     id: 'departments',
     label: 'Departments',
     icon: Building2,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'attendance',
-    label: 'Attendance',
-    icon: CalendarDays,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-    children: [
-      {
-        id: 'attendance-shifts',
-        label: 'Shifts',
-        icon: Clock,
-        path: '/dashboard/attendance/shifts',
-        group: 'core',
-        section: 'core',
-        component: ShiftsView,
-      },
-      {
-        id: 'attendance-rosters',
-        label: 'Rosters',
-        icon: ScrollText,
-        path: '/dashboard/attendance/rosters',
-        group: 'core',
-        section: 'core',
-        component: RostersView,
-      },
-      {
-        id: 'attendance-holidays',
-        label: 'Holidays',
-        icon: Palmtree,
-        path: '/dashboard/attendance/holidays',
-        group: 'core',
-        section: 'core',
-        component: HolidaysView,
-      },
-    ],
-  },
-  {
-    id: 'shifts',
-    label: 'Shifts',
-    icon: Clock,
-    path: '/dashboard/attendance/shifts',
-    group: 'core',
-    section: 'core',
-    component: ShiftsView,
-  },
-  {
-    id: 'rosters',
-    label: 'Rosters',
-    icon: ScrollText,
-    path: '/dashboard/attendance/rosters',
-    group: 'core',
-    section: 'core',
-    component: RostersView,
-  },
-  {
-    id: 'holidays',
-    label: 'Holidays',
-    icon: Palmtree,
-    path: '/dashboard/attendance/holidays',
-    group: 'core',
-    section: 'core',
-    component: HolidaysView,
-  },
-  {
-    id: 'timesheets',
-    label: 'Timesheets',
-    icon: Timer,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'leaves',
-    label: 'Leaves',
-    icon: FileText,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'payroll',
-    label: 'Payroll',
-    icon: CreditCard,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'performance',
-    label: 'Performance',
-    icon: Gauge,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'documents',
-    label: 'Documents',
-    icon: FolderKanban,
-    group: 'core',
-    section: 'core',
-    component: ComingSoonView,
-  },
-  {
-    id: 'assets',
-    label: 'Assets',
-    icon: Box,
-    group: 'core',
-    section: 'core',
+    group: 'workforce',
+    section: 'workforce',
     component: ComingSoonView,
   },
 
   // ==========================================
-  // 2. RECRUITMENT HUB (27 tabs) - Collapsible group
+  // 3. RECRUITMENT (27 tabs) - Collapsible group
   // ==========================================
   {
     id: 'recruitment-dashboard',
@@ -520,7 +474,128 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 3. AI HUB (15 tabs) - Collapsible group
+  // 4. ATTENDANCE & TIME (5 tabs: 1 parent + 4 children) - Collapsible group
+  // ==========================================
+  {
+    id: 'attendance',
+    label: 'Attendance',
+    icon: CalendarDays,
+    group: 'attendance',
+    section: 'attendance',
+    component: ComingSoonView,
+    children: [
+      {
+        id: 'attendance-shifts',
+        label: 'Shifts',
+        icon: Clock,
+        path: '/dashboard/attendance/shifts',
+        group: 'attendance',
+        section: 'attendance',
+        component: ShiftsView,
+      },
+      {
+        id: 'attendance-rosters',
+        label: 'Rosters',
+        icon: ScrollText,
+        path: '/dashboard/attendance/rosters',
+        group: 'attendance',
+        section: 'attendance',
+        component: RostersView,
+      },
+      {
+        id: 'attendance-holidays',
+        label: 'Holidays',
+        icon: Palmtree,
+        path: '/dashboard/attendance/holidays',
+        group: 'attendance',
+        section: 'attendance',
+        component: HolidaysView,
+      },
+      {
+        id: 'timesheets',
+        label: 'Timesheets',
+        icon: Timer,
+        group: 'attendance',
+        section: 'attendance',
+        component: ComingSoonView,
+      },
+    ],
+  },
+
+  // ==========================================
+  // 5. PAYROLL & BENEFITS (1 tab) - Collapsible group
+  // ==========================================
+  {
+    id: 'payroll',
+    label: 'Payroll',
+    icon: CreditCard,
+    group: 'payroll',
+    section: 'payroll',
+    component: ComingSoonView,
+  },
+
+  // ==========================================
+  // 6. LEAVE MANAGEMENT (1 tab) - Collapsible group
+  // ==========================================
+  {
+    id: 'leaves',
+    label: 'Leaves',
+    icon: FileText,
+    group: 'leave',
+    section: 'leave',
+    component: ComingSoonView,
+  },
+
+  // ==========================================
+  // 7. PERFORMANCE (1 tab) - Collapsible group
+  // ==========================================
+  {
+    id: 'performance',
+    label: 'Performance',
+    icon: Gauge,
+    group: 'performance',
+    section: 'performance',
+    component: ComingSoonView,
+  },
+
+  // ==========================================
+  // 8. REPORTS & ANALYTICS (4 tabs) - Collapsible group
+  // ==========================================
+  {
+    id: 'ai-insights',
+    label: 'AI Insights',
+    icon: Sparkles,
+    group: 'reports',
+    section: 'reports',
+    component: AnalyticsCenterPage,
+  },
+  {
+    id: 'hiring-reports',
+    label: 'Hiring Reports',
+    icon: BarChart2,
+    group: 'reports',
+    section: 'reports',
+    component: ComingSoonView,
+  },
+  {
+    id: 'recruitment-analytics',
+    label: 'Recruitment Analytics',
+    icon: LineChart,
+    group: 'reports',
+    section: 'reports',
+    component: ComingSoonView,
+  },
+  {
+    id: 'analytics-center',
+    label: 'Analytics Center',
+    icon: LineChart,
+    group: 'reports',
+    section: 'reports',
+    component: AnalyticsCenterPage,
+  },
+
+  // ==========================================
+  // 9. AI INTELLIGENCE HUB (17 tabs) - Collapsible group
   // ==========================================
   {
     id: 'aihub-dashboard',
@@ -540,7 +615,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
   {
     id: 'ai-recruiter',
-    label: 'Recruiter',
+    label: 'AI Recruiter',
     icon: Briefcase,
     group: 'aihub',
     section: 'aihub',
@@ -635,16 +710,68 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     component: ChatAssistantPage,
   },
   {
-    id: 'analytics-center',
-    label: 'Analytics Center',
-    icon: LineChart,
+    id: 'recruitment-ai',
+    label: 'Recruitment AI',
+    icon: Sparkles,
     group: 'aihub',
     section: 'aihub',
-    component: AnalyticsCenterPage,
+    component: ComingSoonView,
+  },
+  {
+    id: 'ai-copilot',
+    label: 'AI Copilot',
+    icon: Bot,
+    group: 'aihub',
+    section: 'aihub',
+    component: ComingSoonView,
   },
 
   // ==========================================
-  // 4. HR OPS & ADMIN (13 tabs) - Collapsible group
+  // 10. DOCUMENTS & COMPLIANCE (5 tabs) - Collapsible group
+  // ==========================================
+  {
+    id: 'documents',
+    label: 'Documents',
+    icon: FolderKanban,
+    group: 'documents',
+    section: 'documents',
+    component: ComingSoonView,
+  },
+  {
+    id: 'recruitment-compliance',
+    label: 'Recruitment Compliance',
+    icon: ShieldCheck,
+    group: 'documents',
+    section: 'documents',
+    component: ComingSoonView,
+  },
+  {
+    id: 'compliance-monitor',
+    label: 'Compliance Monitor',
+    icon: ShieldAlert,
+    group: 'documents',
+    section: 'documents',
+    component: ComingSoonView,
+  },
+  {
+    id: 'policy-assistant',
+    label: 'Policy Assistant',
+    icon: BookOpen,
+    group: 'documents',
+    section: 'documents',
+    component: ComingSoonView,
+  },
+  {
+    id: 'document-generator',
+    label: 'Document Generator',
+    icon: FilePlus2,
+    group: 'documents',
+    section: 'documents',
+    component: ComingSoonView,
+  },
+
+  // ==========================================
+  // 11. HR OPERATIONS (9 tabs) - Collapsible group
   // ==========================================
   {
     id: 'hrops-dashboard',
@@ -703,14 +830,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     component: OnboardingChecklistPage,
   },
   {
-    id: 'offboarding',
-    label: 'Offboarding',
-    icon: PackageMinus,
-    group: 'hrops',
-    section: 'hrops',
-    component: ExitManagementPage,
-  },
-  {
     id: 'exit-management',
     label: 'Exit Management',
     icon: LogOut,
@@ -718,63 +837,33 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     section: 'hrops',
     component: ExitManagementPage,
   },
-  {
-    id: 'roles-permissions',
-    label: 'Roles & Permissions',
-    icon: ShieldCheck,
-    group: 'hrops',
-    section: 'hrops',
-    component: ComingSoonView,
-  },
-  {
-    id: 'audit-logs',
-    label: 'Audit Logs',
-    icon: KeyRound,
-    group: 'hrops',
-    section: 'hrops',
-    component: ComingSoonView,
-  },
-  {
-    id: 'billing',
-    label: 'Billing',
-    icon: CreditCard,
-    group: 'hrops',
-    section: 'hrops',
-    component: ComingSoonView,
-  },
+
+  // ==========================================
+  // 12. SETTINGS & INTEGRATIONS (1 tab - links to /settings)
+  // ==========================================
   {
     id: 'settings',
-    label: 'Settings',
+    label: 'Settings & Integrations',
     icon: Settings,
-    group: 'hrops',
-    section: 'hrops',
+    group: 'settings',
+    section: 'settings',
+    path: '/settings',
     component: ComingSoonView,
   },
 ];
 
-/**
- * Helper to find a tab configuration by id.
- */
 export const getTabConfig = (id: string): DashboardTabItem | undefined => {
   return DASHBOARD_TABS.find((tab) => tab.id === id);
 };
 
-/**
- * Get tabs filtered by sidebar section
- */
 export const getTabsBySection = (section: SidebarSection): DashboardTabItem[] => {
   return DASHBOARD_TABS.filter((tab) => tab.section === section);
 };
 
-/**
- * Get sidebar section config
- */
 export const getSidebarSection = (id: SidebarSection): SidebarSectionConfig | undefined => {
   return SIDEBAR_SECTIONS.find((s) => s.id === id);
 };
 
-// Aliases for compatibility
 export const ALL_DASHBOARD_TABS = DASHBOARD_TABS;
 
-// Export the type for backward compatibility
 export type DashboardTabConfig = DashboardTabItem;

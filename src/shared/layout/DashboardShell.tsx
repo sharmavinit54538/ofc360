@@ -36,14 +36,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const toast = useToast();
   const navigate = useNavigate();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const getInitials = (name?: string): string => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatarUrl]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,10 +49,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         setProfileMenuOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && profileMenuOpen) {
+        setProfileMenuOpen(false);
+      }
+    };
     if (profileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [profileMenuOpen]);
 
   const handleLogout = async () => {
@@ -109,30 +116,62 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-3 px-4 py-2 rounded-full bg-neutral-900/90 dark:bg-neutral-900/90 border border-neutral-800 dark:border-neutral-700 hover:bg-neutral-800 dark:hover:bg-neutral-800 transition-all duration-200"
+                className="flex items-center gap-2.5 p-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100/90 dark:bg-[#262626] border border-gray-200/80 dark:border-zinc-700/80 hover:bg-gray-200/80 dark:hover:bg-[#303030] hover:border-gray-300 dark:hover:border-zinc-600 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-expanded={profileMenuOpen}
                 aria-haspopup="true"
+                aria-label="User account menu"
               >
-                <div className="w-9 h-9 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-sm text-indigo-300">
-                  {getInitials(user?.fullName)}
+                {/* Circular User Avatar with subtle gray background and white initials */}
+                <div className="w-8 h-8 rounded-full bg-zinc-600 dark:bg-zinc-700 text-white flex items-center justify-center font-semibold text-xs shrink-0 overflow-hidden select-none ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                  {user?.avatarUrl && !avatarError ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.fullName || 'User avatar'}
+                      className="w-full h-full object-cover rounded-full"
+                      onError={() => setAvatarError(true)}
+                    />
+                  ) : (
+                    <span>{getInitials(user?.fullName)}</span>
+                  )}
                 </div>
-                <span className="hidden sm:block text-sm font-medium text-white dark:text-white">
+
+                {/* Dynamic User Name - visible on sm+ screens */}
+                <span className="hidden sm:inline-block text-sm font-medium text-gray-800 dark:text-zinc-200 truncate max-w-[130px] md:max-w-[170px]">
                   {user?.fullName || 'User'}
                 </span>
-                <ChevronDown className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 transition-transform duration-200 shrink-0 ${
+                    profileMenuOpen ? 'rotate-180' : ''
+                  }`}
+                  aria-hidden="true"
+                />
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-neutral-950 border border-neutral-800 shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95">
+                <div className="absolute right-0 mt-2 w-60 rounded-2xl bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 shadow-xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95">
                   {/* User Info Header */}
-                  <div className="px-4 py-4 border-b border-neutral-800">
+                  <div className="px-4 py-4 border-b border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/40">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-lg text-indigo-300">
-                        {getInitials(user?.fullName)}
+                      <div className="w-11 h-11 rounded-full bg-zinc-600 dark:bg-zinc-700 text-white flex items-center justify-center font-semibold text-sm shrink-0 overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-sm select-none">
+                        {user?.avatarUrl && !avatarError ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={user.fullName || 'User avatar'}
+                            className="w-full h-full object-cover rounded-full"
+                            onError={() => setAvatarError(true)}
+                          />
+                        ) : (
+                          <span>{getInitials(user?.fullName)}</span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{user?.fullName || 'Authenticated User'}</p>
-                        <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {user?.fullName || 'Authenticated User'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
+                          {user?.email || ''}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
@@ -148,16 +187,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                     <button
                       type="button"
                       onClick={toggleTheme}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-400 hover:bg-neutral-900/50 hover:text-white transition-colors rounded-lg mx-2"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-900/50 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg mx-2"
                     >
                       {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                       <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
-                    <hr className="my-2 border-neutral-800" />
+                    <hr className="my-2 border-gray-200 dark:border-neutral-800" />
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors rounded-lg mx-2"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 transition-colors rounded-lg mx-2"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -191,9 +230,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   );
 };
 
-export const getInitials = (name?: string): string => {
+export const getInitials = (name?: string | null): string => {
   if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  const trimmed = name.trim();
+  if (!trimmed) return 'U';
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'U';
+  if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };

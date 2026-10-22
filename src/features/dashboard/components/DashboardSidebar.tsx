@@ -27,18 +27,24 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const location = useLocation();
 
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
-    core: true,
+    overview: true,
+    workforce: true,
     recruitment: true,
+    attendance: true,
+    payroll: true,
+    leave: true,
+    performance: true,
+    reports: true,
     aihub: true,
+    documents: true,
     hrops: true,
+    settings: true,
   });
 
-  // Track expandable parent tabs (e.g. Attendance -> Shifts, Rosters, Holidays)
   const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({
     attendance: true,
   });
 
-  // Auto-expand attendance submenu if on any attendance sub-route
   useEffect(() => {
     if (location.pathname.startsWith('/dashboard/attendance')) {
       setExpandedTabs((prev) => ({ ...prev, attendance: true }));
@@ -57,16 +63,20 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   const sectionTabs = useMemo(() => {
     const tabsBySection: Record<SidebarSection, DashboardTabItem[]> = {
-      core: [],
+      overview: [],
+      workforce: [],
       recruitment: [],
+      attendance: [],
+      payroll: [],
+      leave: [],
+      performance: [],
+      reports: [],
       aihub: [],
+      documents: [],
       hrops: [],
+      settings: [],
     };
     DASHBOARD_TABS.forEach((tab) => {
-      // Exclude standalone duplicates so they appear cleanly under Attendance sub-navigation
-      if (tab.id === 'shifts' || tab.id === 'rosters' || tab.id === 'holidays') {
-        return;
-      }
       tabsBySection[tab.section].push(tab);
     });
     return tabsBySection;
@@ -133,10 +143,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       );
     }
 
-    // Expanded Sidebar Mode
     return (
       <div key={tab.id} className="flex flex-col gap-0.5">
-        {/* Main Tab Button or NavLink */}
         {hasChildren ? (
           <div
             className={`
@@ -195,7 +203,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         )}
 
-        {/* Nested Child Items (e.g., Shifts, Rosters, Holidays) */}
         {hasChildren && isSubmenuOpen && (
           <div className="flex flex-col gap-0.5 mt-0.5 pl-4 border-l border-slate-200 dark:border-zinc-800 ml-4">
             {tab.children?.map((child) => {
@@ -240,7 +247,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
     return (
       <div key={sectionConfig.id} className="flex flex-col gap-1">
-        {/* Section Header (for collapsible sections) or just tabs for core */}
         {isCollapsible && !isCollapsed && (
           <button
             type="button"
@@ -258,7 +264,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         )}
 
-        {/* Section Content - tabs or collapsed icons */}
         {!isCollapsible || isExpanded || isCollapsed ? (
           <div className={`flex flex-col gap-1 ${isCollapsible && !isExpanded && !isCollapsed ? 'hidden' : ''}`}>
             {tabs.map((tab) => renderTabItem(tab, isCollapsed))}
@@ -275,10 +280,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className={`${collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH} shrink-0 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out overflow-hidden`}
       aria-label="Dashboard navigation"
     >
-      {/* Sidebar Header: Single consolidated clean flex row */}
       {!collapsed ? (
         <div className="h-16 flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
-          {/* Left side: The single official brand logo */}
           <Link to="/" className="flex items-center min-w-0 flex-shrink-0" title="OFC360 Home">
             <img
               src="/logo.png"
@@ -287,7 +290,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             />
           </Link>
 
-          {/* Right side: The sidebar collapse/expand toggle icon button */}
           {onToggleCollapse && (
             <button
               type="button"
@@ -316,7 +318,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </div>
       )}
 
-      {/* Sidebar Navigation Content */}
       <nav
         className="flex-1 flex flex-col gap-2 p-3 overflow-y-auto no-scrollbar"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
