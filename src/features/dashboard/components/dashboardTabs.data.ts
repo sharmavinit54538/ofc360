@@ -50,6 +50,8 @@ import {
   Settings,
   Layers,
   Clock,
+  ScrollText,
+  Palmtree,
 } from 'lucide-react';
 
 export type TabGroup = 'core' | 'hrops' | 'recruitment' | 'aihub';
@@ -61,6 +63,9 @@ export interface DashboardTabItem {
   icon: React.ComponentType<{ className?: string }>;
   group: TabGroup;
   section: SidebarSection;
+  path?: string;
+  badge?: string;
+  children?: DashboardTabItem[];
   component?: React.LazyExoticComponent<React.ComponentType<any>>;
 }
 
@@ -115,6 +120,16 @@ const TravelRequestsPage = React.lazy(() => import('@/features/travel/pages/Trav
 const ExpenseClaimsPage = React.lazy(() => import('@/features/expenses/pages/ExpenseClaimsPage'));
 const ExitManagementPage = React.lazy(() => import('@/features/exit-management/pages/ExitManagementPage'));
 const OnboardingChecklistPage = React.lazy(() => import('@/features/employee-onboarding/pages/OnboardingChecklistPage'));
+const VisitorsPage = React.lazy(() => import('@/features/visitors/pages/VisitorsPage'));
+const AssetManagementPage = React.lazy(() => import('@/features/assets/pages/AssetManagementPage'));
+const TimelinePage = React.lazy(() => import('@/features/timeline/pages/TimelinePage'));
+const HrOpsPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsPage'));
+const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/AnalyticsCenterPage'));
+const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
+const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
+const ShiftsView = React.lazy(() => import('./views/ShiftsView'));
+const RostersView = React.lazy(() => import('./views/RostersView'));
+const HolidaysView = React.lazy(() => import('./views/HolidaysView'));
 
 /**
  * Complete typed configuration array for all 68 tabs across the 4 groups.
@@ -137,7 +152,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Sparkles,
     group: 'core',
     section: 'core',
-    component: ComingSoonView,
+    component: AnalyticsCenterPage,
   },
   {
     id: 'employees',
@@ -178,6 +193,62 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     group: 'core',
     section: 'core',
     component: ComingSoonView,
+    children: [
+      {
+        id: 'attendance-shifts',
+        label: 'Shifts',
+        icon: Clock,
+        path: '/dashboard/attendance/shifts',
+        group: 'core',
+        section: 'core',
+        component: ShiftsView,
+      },
+      {
+        id: 'attendance-rosters',
+        label: 'Rosters',
+        icon: ScrollText,
+        path: '/dashboard/attendance/rosters',
+        group: 'core',
+        section: 'core',
+        component: RostersView,
+      },
+      {
+        id: 'attendance-holidays',
+        label: 'Holidays',
+        icon: Palmtree,
+        path: '/dashboard/attendance/holidays',
+        group: 'core',
+        section: 'core',
+        component: HolidaysView,
+      },
+    ],
+  },
+  {
+    id: 'shifts',
+    label: 'Shifts',
+    icon: Clock,
+    path: '/dashboard/attendance/shifts',
+    group: 'core',
+    section: 'core',
+    component: ShiftsView,
+  },
+  {
+    id: 'rosters',
+    label: 'Rosters',
+    icon: ScrollText,
+    path: '/dashboard/attendance/rosters',
+    group: 'core',
+    section: 'core',
+    component: RostersView,
+  },
+  {
+    id: 'holidays',
+    label: 'Holidays',
+    icon: Palmtree,
+    path: '/dashboard/attendance/holidays',
+    group: 'core',
+    section: 'core',
+    component: HolidaysView,
   },
   {
     id: 'timesheets',
@@ -545,7 +616,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Video,
     group: 'aihub',
     section: 'aihub',
-    component: ComingSoonView,
+    component: MeetingIntelligencePage,
   },
   {
     id: 'compliance-monitor',
@@ -561,7 +632,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: MessageSquare,
     group: 'aihub',
     section: 'aihub',
-    component: ComingSoonView,
+    component: ChatAssistantPage,
   },
   {
     id: 'analytics-center',
@@ -569,7 +640,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: LineChart,
     group: 'aihub',
     section: 'aihub',
-    component: ComingSoonView,
+    component: AnalyticsCenterPage,
   },
 
   // ==========================================
@@ -581,7 +652,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: LayoutDashboard,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: HrOpsPage,
   },
   {
     id: 'employee-timeline',
@@ -589,7 +660,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Activity,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: TimelinePage,
   },
   {
     id: 'asset-management',
@@ -597,7 +668,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Box,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: AssetManagementPage,
   },
   {
     id: 'visitor-management',
@@ -605,7 +676,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Users,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: VisitorsPage,
   },
   {
     id: 'expense-claims',

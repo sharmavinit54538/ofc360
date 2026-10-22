@@ -1,7 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, PanelLeft } from 'lucide-react';
-import { DASHBOARD_TABS, SIDEBAR_SECTIONS, type DashboardTabItem, type SidebarSection } from './dashboardTabs.data';
+import {
+  DASHBOARD_TABS,
+  SIDEBAR_SECTIONS,
+  type DashboardTabItem,
+  type SidebarSection,
+} from './dashboardTabs.data';
 
 export interface DashboardSidebarProps {
   activeTab?: string;
@@ -19,6 +24,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   collapsed = false,
   onToggleCollapse,
 }) => {
+  const location = useLocation();
+
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
     core: true,
     recruitment: true,
@@ -26,10 +33,26 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     hrops: true,
   });
 
+  // Track expandable parent tabs (e.g. Attendance -> Shifts, Rosters, Holidays)
+  const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({
+    attendance: true,
+  });
+
+  // Auto-expand attendance submenu if on any attendance sub-route
+  useEffect(() => {
+    if (location.pathname.startsWith('/dashboard/attendance')) {
+      setExpandedTabs((prev) => ({ ...prev, attendance: true }));
+    }
+  }, [location.pathname]);
+
   const toggleSection = (section: SidebarSection) => {
     const sectionConfig = SIDEBAR_SECTIONS.find((s) => s.id === section);
     if (!sectionConfig?.collapsible) return;
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const toggleTabSubmenu = (tabId: string) => {
+    setExpandedTabs((prev) => ({ ...prev, [tabId]: !prev[tabId] }));
   };
 
   const sectionTabs = useMemo(() => {
@@ -40,16 +63,54 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       hrops: [],
     };
     DASHBOARD_TABS.forEach((tab) => {
+      // Exclude standalone duplicates so they appear cleanly under Attendance sub-navigation
+      if (tab.id === 'shifts' || tab.id === 'rosters' || tab.id === 'holidays') {
+        return;
+      }
       tabsBySection[tab.section].push(tab);
     });
     return tabsBySection;
   }, []);
 
   const renderTabItem = (tab: DashboardTabItem, isCollapsed: boolean) => {
-    const isActive = activeTab === tab.id;
+    const hasChildren = Boolean(tab.children && tab.children.length > 0);
+    const isSubmenuOpen = Boolean(expandedTabs[tab.id]);
+
+    const isDirectActive =
+      (tab.path && location.pathname === tab.path) || activeTab === tab.id;
+    const isChildActive = Boolean(
+      hasChildren &&
+        tab.children?.some(
+          (c) =>
+            (c.path && location.pathname === c.path) ||
+            activeTab === c.id ||
+            activeTab === `attendance-${c.id}`
+        )
+    );
+    const isActive = isDirectActive || isChildActive;
     const Icon = tab.icon;
 
     if (isCollapsed) {
+      if (tab.path && !hasChildren) {
+        return (
+          <NavLink
+            key={tab.id}
+            to={tab.path}
+            onClick={() => onTabChange?.(tab.id)}
+            title={tab.label}
+            className={({ isActive: navActive }) => `
+              relative flex items-center justify-center px-3 py-2.5 rounded-lg transition-colors duration-150
+              ${navActive || isDirectActive
+                ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white'
+                : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+              }
+            `}
+          >
+            <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+          </NavLink>
+        );
+      }
+
       return (
         <button
           key={tab.id}
@@ -67,29 +128,106 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           `}
           title={tab.label}
         >
-<Icon className="w-[18px] h-[18px] flex-shrink-0" />
+          <Icon className="w-[18px] h-[18px] flex-shrink-0" />
         </button>
       );
     }
 
+    // Expanded Sidebar Mode
     return (
-      <button
-        key={tab.id}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        onClick={() => onTabChange?.(tab.id)}
-        className={`
-          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
-          ${isActive
-            ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
-            : 'text-slate-600 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
-          }
-        `}
-      >
-        <Icon className="w-[18px] h-[18px] flex-shrink-0" />
-        <span className="truncate">{tab.label}</span>
-      </button>
+      <div key={tab.id} className="flex flex-col gap-0.5">
+        {/* Main Tab Button or NavLink */}
+        {hasChildren ? (
+          <div
+            className={`
+              w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer
+              ${isActive
+                ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-600 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+              }
+            `}
+            onClick={() => {
+              toggleTabSubmenu(tab.id);
+              onTabChange?.(tab.id);
+            }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+              <span className="truncate">{tab.label}</span>
+            </div>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 dark:text-zinc-500 transition-transform duration-200 ${
+                isSubmenuOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </div>
+        ) : tab.path ? (
+          <NavLink
+            to={tab.path}
+            onClick={() => onTabChange?.(tab.id)}
+            className={({ isActive: navActive }) => `
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
+              ${navActive || isDirectActive
+                ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-600 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+              }
+            `}
+          >
+            <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+            <span className="truncate">{tab.label}</span>
+          </NavLink>
+        ) : (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onTabChange?.(tab.id)}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
+              ${isActive
+                ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-600 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+              }
+            `}
+          >
+            <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+            <span className="truncate">{tab.label}</span>
+          </button>
+        )}
+
+        {/* Nested Child Items (e.g., Shifts, Rosters, Holidays) */}
+        {hasChildren && isSubmenuOpen && (
+          <div className="flex flex-col gap-0.5 mt-0.5 pl-4 border-l border-slate-200 dark:border-zinc-800 ml-4">
+            {tab.children?.map((child) => {
+              const ChildIcon = child.icon;
+              return (
+                <NavLink
+                  key={child.id}
+                  to={child.path || '#'}
+                  onClick={() => onTabChange?.(child.id)}
+                  className={({ isActive: navActive }) => {
+                    const isSubActive =
+                      navActive ||
+                      location.pathname === child.path ||
+                      activeTab === child.id ||
+                      activeTab === child.id.replace('attendance-', '');
+                    return `
+                      w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 text-left
+                      ${isSubActive
+                        ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
+                        : 'text-slate-500 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+                      }
+                    `;
+                  }}
+                >
+                  <ChildIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{child.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -113,7 +251,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <sectionConfig.icon className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1 truncate">{sectionConfig.label}</span>
             <ChevronDown
-              className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
             />
           </button>
         )}

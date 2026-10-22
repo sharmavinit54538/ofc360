@@ -8,6 +8,13 @@ import { expensesApi } from '../features/expenses/api/expensesApi';
 import { settingsApi } from '../features/settings/api/settingsApi';
 import { exitsApi } from '../features/exit-management/api/exitsApi';
 import { onboardingApi } from '../features/employee-onboarding/api/onboardingApi';
+import { visitorsApi } from '../services/visitorsApi';
+import { assetsApi } from '../services/assetsApi';
+import { timelineApi } from '../services/timelineApi';
+import { hrOpsApi } from '../services/hrOpsApi';
+import { analyticsApi } from '../services/analytics.api';
+import { chatAssistantApi } from '../services/chatAssistantApi';
+import { meetingIntelligenceApi } from '../services/meetingIntelligenceApi';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +26,13 @@ export const store = configureStore({
     [settingsApi.reducerPath]: settingsApi.reducer,
     [exitsApi.reducerPath]: exitsApi.reducer,
     [onboardingApi.reducerPath]: onboardingApi.reducer,
+    [visitorsApi.reducerPath]: visitorsApi.reducer,
+    [assetsApi.reducerPath]: assetsApi.reducer,
+    [timelineApi.reducerPath]: timelineApi.reducer,
+    [hrOpsApi.reducerPath]: hrOpsApi.reducer,
+    [analyticsApi.reducerPath]: analyticsApi.reducer,
+    [chatAssistantApi.reducerPath]: chatAssistantApi.reducer,
+    [meetingIntelligenceApi.reducerPath]: meetingIntelligenceApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -33,7 +47,14 @@ export const store = configureStore({
       expensesApi.middleware,
       settingsApi.middleware,
       exitsApi.middleware,
-      onboardingApi.middleware
+      onboardingApi.middleware,
+      visitorsApi.middleware,
+      assetsApi.middleware,
+      timelineApi.middleware,
+      hrOpsApi.middleware,
+      analyticsApi.middleware,
+      chatAssistantApi.middleware,
+      meetingIntelligenceApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });

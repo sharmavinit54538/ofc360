@@ -16,6 +16,16 @@ import { DashboardTravelRoute } from '@/routes/dashboard.travel';
 import { DashboardExpensesRoute } from '@/routes/dashboard.expenses';
 import { DashboardExitManagementRoute } from '@/routes/dashboard.exit-management';
 import { DashboardOnboardingChecklistRoute } from '@/routes/dashboard.onboarding-checklist';
+import { DashboardVisitorsRoute } from '@/routes/dashboard.visitors';
+import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-management';
+import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
+import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
+import { AIAnalyticsCenterRoute } from '@/routes/ai.analytics-center';
+import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
+import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
+import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
+import { DashboardAttendanceRostersRoute } from '@/routes/dashboard.attendance.rosters';
+import { DashboardAttendanceHolidaysRoute } from '@/routes/dashboard.attendance.holidays';
 import { UnauthorizedPage } from '@/features/dashboard/pages/UnauthorizedPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
@@ -163,6 +173,212 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']}
           >
             <DashboardOnboardingChecklistRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Visitor Management & Facility Access */}
+      <Route
+        path="/dashboard/visitors"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardVisitorsRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Asset Management & Equipment Inventory */}
+      <Route
+        path="/dashboard/asset-management"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAssetManagementRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/assets"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAssetManagementRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Employee Career Timeline & Milestones */}
+      <Route
+        path="/dashboard/timeline"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardTimelineRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/employee-timeline"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardTimelineRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* HR Operations Command Center & Dispatch */}
+      <Route
+        path="/dashboard/hr-ops"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardHrOpsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/hrops"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardHrOpsRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Workforce Analytics & AI Intelligence Center */}
+      <Route
+        path="/dashboard/analytics"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAnalyticsCenterRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai/analytics-center"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAnalyticsCenterRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/ai-insights"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAnalyticsCenterRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AI Hub Conversational Assistant */}
+      <Route
+        path="/ai/chat-assistant"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIChatAssistantRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/ai-hub/assistant"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIChatAssistantRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/chat-assistant"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIChatAssistantRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AI Meeting Intelligence & Action Tracking */}
+      <Route
+        path="/ai/meeting-intelligence"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIMeetingIntelligenceRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/ai-hub/meetings"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIMeetingIntelligenceRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/meeting-intelligence"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIMeetingIntelligenceRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Workforce Attendance: Shifts, Rosters & Holidays */}
+      <Route
+        path="/dashboard/attendance/shifts"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAttendanceShiftsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/attendance/rosters"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAttendanceRostersRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/attendance/holidays"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAttendanceHolidaysRoute />
           </ProtectedRoute>
         }
       />
