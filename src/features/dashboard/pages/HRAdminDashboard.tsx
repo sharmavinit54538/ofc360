@@ -17,7 +17,6 @@ import {
   FileSpreadsheet,
   Megaphone,
   ArrowRight,
-  RefreshCw,
   TrendingUp,
   User,
   Shield,
@@ -31,6 +30,7 @@ import {
   BarChart2,
 } from 'lucide-react';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
+import { DashboardTabBar } from '@/features/dashboard/components/DashboardTabBar';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { SkeletonStatCard, SkeletonTimelineItem, SkeletonListItem } from '@/shared/ui/Skeleton';
@@ -778,14 +778,16 @@ export const HRAdminDashboard: React.FC = () => {
   const nextPayDate = activePayroll?.payDate || upcomingPayroll?.payDate;
 
   return (
-    <DashboardShell>
+    <DashboardShell
+      subNav={
+        <DashboardTabBar
+          activeTab="overview"
+          onRefresh={refreshAll}
+          isRefreshing={anyLoading}
+        />
+      }
+    >
       <div className="space-y-6">
-        {/* Refresh button - minimal, top-right */}
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={refreshAll} leftIcon={<RefreshCw className="w-3.5 h-3.5" />} disabled={anyLoading}>
-            {anyLoading ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        </div>
 
         {/* Global Error Banner */}
         {anyError && (
