@@ -7,8 +7,6 @@
 import React, { useRef, useEffect } from 'react';
 import {
   Bot,
-  Trash2,
-  Sparkles,
   Layers,
   Calendar,
   DollarSign,

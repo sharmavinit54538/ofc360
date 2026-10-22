@@ -17,7 +17,6 @@ import {
   useExportMeetingNotesMutation,
 } from '../api/meetingIntelligenceApi';
 import type {
-  MeetingIntelligenceRecord,
   MeetingFilterParams,
   ProcessMeetingAudioPayload,
   ActionItemStatus,
@@ -48,15 +47,12 @@ export const MeetingIntelligencePage: React.FC = () => {
   const {
     data: meetings = [],
     isLoading: isMeetingsLoading,
-    isFetching: isMeetingsFetching,
-    refetch: refetchMeetings,
   } = useGetMeetingIntelligenceListQuery(queryFilters);
 
   // RTK Query: KPIs
   const {
     data: kpiSummary,
     isLoading: isKpiLoading,
-    refetch: refetchKpis,
   } = useGetMeetingKpiSummaryQuery();
 
   // Mutations

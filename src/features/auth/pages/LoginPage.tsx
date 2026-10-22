@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,17 +7,20 @@ import { Input } from '@/shared/ui/Input';
 import { useLoginMutation } from '@/features/auth/api/authApi';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
 import { useToast } from '@/shared/ui/Toast';
-import { ROLE_DASHBOARD_ROUTES, normalizeRole, normalizeAuthResponse, User } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, normalizeRole, normalizeAuthResponse } from '@/features/auth/types/auth.types';
 import { FaceLoginModal } from '@/features/auth/components/FaceLoginModal';
 import { Loader2, ScanFace } from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
   const [login, { isLoading }] = useLoginMutation();
+  const { isAuthenticated, isInitialized, user } = useAuth();
 
   const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   const redirectUrl = searchParams.get('redirect');
 
@@ -38,15 +41,13 @@ export const LoginPage: React.FC = () => {
 
   const rememberMe = watch('rememberMe');
 
-  const handleSuccessfulAuth = (user: User | { fullName?: string; activeRole?: string; role?: string }) => {
-    if (redirectUrl) {
-      navigate(decodeURIComponent(redirectUrl));
-    } else {
-      const canonicalRole = normalizeRole(user.activeRole || (user as any).role);
-      const dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
-      navigate(dest);
+  // Navigate when Redux auth state is fully initialized after successful login
+  useEffect(() => {
+    if (pendingRedirect && isAuthenticated && isInitialized && user) {
+      navigate(pendingRedirect, { replace: true });
+      setPendingRedirect(null);
     }
-  };
+  }, [pendingRedirect, isAuthenticated, isInitialized, user, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -95,7 +96,12 @@ export const LoginPage: React.FC = () => {
         `Welcome back, ${displayName}!`,
         'Authenticated Successfully'
       );
-      handleSuccessfulAuth(normalized.user);
+
+      const canonicalRole = normalizeRole(normalized.user.activeRole || (normalized.user as any).role);
+      const dest = redirectUrl
+        ? decodeURIComponent(redirectUrl)
+        : ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+      setPendingRedirect(dest);
     } catch (err: unknown) {
       let errorMsg = 'Invalid credentials. Please verify your corporate email and password.';
       if (typeof err === 'object' && err !== null) {

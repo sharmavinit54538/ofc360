@@ -10,11 +10,13 @@ import {
 } from '@/features/auth/api/authApi';
 import { useToast } from '@/shared/ui/Toast';
 import { ROLE_DASHBOARD_ROUTES, normalizeRole, normalizeAuthResponse } from '@/features/auth/types/auth.types';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { isAuthenticated, isInitialized, user } = useAuth();
 
   const token = searchParams.get('token');
   const vid = searchParams.get('vid') || searchParams.get('verification_id');
@@ -22,12 +24,21 @@ export const VerifyEmailPage: React.FC = () => {
 
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   const [verifyEmail, { isLoading: isVerifying, isSuccess, isError, error }] = useVerifyEmailMutation();
   const [verifyEmailOtp, { isLoading: isVerifyingOtp }] = useVerifyEmailOtpMutation();
   const [resendVerification, { isLoading: isResending }] = useResendVerificationEmailMutation();
 
   const [countdown, setCountdown] = useState(0);
+
+  // Navigate when Redux auth state is fully initialized after successful OTP verification
+  useEffect(() => {
+    if (pendingRedirect && isAuthenticated && isInitialized && user) {
+      navigate(pendingRedirect, { replace: true });
+      setPendingRedirect(null);
+    }
+  }, [pendingRedirect, isAuthenticated, isInitialized, user, navigate]);
 
   // If token is in query params, verify automatically on mount
   useEffect(() => {
@@ -77,7 +88,7 @@ export const VerifyEmailPage: React.FC = () => {
         'Identity Confirmed'
       );
       const dest = ROLE_DASHBOARD_ROUTES[normalizeRole(normalized.user.activeRole)] || '/dashboard/employee';
-      navigate(dest);
+      setPendingRedirect(dest);
     } catch (err: any) {
       setOtpError(true);
       const msg = err?.data?.message || err?.data?.detail || 'Invalid or expired code. Please try again.';

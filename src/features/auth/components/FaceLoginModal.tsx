@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROLE_DASHBOARD_ROUTES, normalizeAuthResponse, normalizeRole } from '@/features/auth/types/auth.types';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/features/auth/slices/authSlice';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface FaceLoginModalProps {
   isOpen: boolean;
@@ -27,12 +28,23 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   const [faceLogin, { isLoading: isApiLoading }] = useFaceLoginMutation();
   const toast = useToast();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated, isInitialized, user } = useAuth();
+
+  // Navigate when Redux auth state is fully initialized after successful face login
+  useEffect(() => {
+    if (pendingRedirect && isAuthenticated && isInitialized && user) {
+      navigate(pendingRedirect, { replace: true });
+      setPendingRedirect(null);
+      onClose();
+    }
+  }, [pendingRedirect, isAuthenticated, isInitialized, user, navigate, onClose]);
 
   const stopStream = useCallback(() => {
     if (streamRef.current) {
@@ -146,8 +158,7 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
       );
 
       const destination = ROLE_DASHBOARD_ROUTES[normalizeRole(normalized.user.activeRole)] || '/dashboard/employee';
-      navigate(destination);
-      onClose();
+      setPendingRedirect(destination);
     } catch (err: unknown) {
       const errorMsg =
         typeof err === 'object' && err !== null && 'data' in err && typeof (err as { data?: { message?: string } }).data?.message === 'string'
