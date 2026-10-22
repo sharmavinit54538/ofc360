@@ -57,12 +57,15 @@ export const LoginPage: React.FC = () => {
         rememberMe: data.rememberMe,
       }).unwrap();
 
+      // Safely parse user profile & tokens first
+      const normalized = normalizeAuthResponse(rawResponse);
+
       // Check if multi-step email verification / OTP is required by FastAPI
+      // Only redirect to verify-email if user is NOT already verified
       const isVerificationRequired = Boolean(
-        rawResponse.requires_email_verification ||
-        rawResponse.requiresEmailVerification ||
-        rawResponse.data?.requires_email_verification ||
-        (!rawResponse.data?.user && !rawResponse.user && (rawResponse.verification_id || rawResponse.data?.verification_id))
+        normalized.requiresEmailVerification &&
+        !normalized.user.isEmailVerified &&
+        (rawResponse.verification_id || rawResponse.data?.verification_id)
       );
 
       if (isVerificationRequired) {
@@ -86,8 +89,6 @@ export const LoginPage: React.FC = () => {
         return;
       }
 
-      // Safely parse user profile & tokens
-      const normalized = normalizeAuthResponse(rawResponse);
       const displayName = normalized.user.fullName || normalized.user.firstName || 'User';
 
       toast.success(

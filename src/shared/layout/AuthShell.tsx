@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/shared/context/ThemeContext';
 
@@ -28,13 +28,12 @@ export const AuthShell: React.FC<AuthShellProps> = ({
     <div className="min-h-screen sm:h-screen w-full flex flex-col justify-between bg-white dark:bg-[#212121] text-gray-900 dark:text-[#ececec] px-4 py-3 sm:px-8 sm:py-4 relative overflow-y-auto transition-colors duration-200">
       {/* Top Header with Logo and Theme Toggle */}
       <header className="w-full flex items-center justify-between shrink-0">
-        <Link to="/" className="inline-flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 flex items-center justify-center shadow-sm shadow-purple-500/20 group-hover:scale-105 transition-transform duration-200">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-[#ececec] font-sans">
-            OFC360
-          </span>
+        <Link to="/" className="inline-flex items-center group" title="OFC360 Home">
+          <img
+            src="/logo.png"
+            alt="OFC360"
+            className="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+          />
         </Link>
         {/* Theme Toggle */}
         <button
@@ -51,6 +50,17 @@ export const AuthShell: React.FC<AuthShellProps> = ({
       {/* Centered Authentication Card */}
       <main className="w-full flex flex-col items-center justify-center my-auto py-2 sm:py-3 shrink-0">
         <div className={`w-full ${cardMaxWidth} rounded-[24px] border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] p-5 sm:p-7 shadow-sm transition-all`}>
+          {/* Prominent Official Brand Logo atop the Auth Card */}
+          <div className="flex justify-center mb-5">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700/60 shadow-sm flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="OFC360"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+          </div>
+
           {/* Card Header */}
           <div className="space-y-0.5 mb-4 sm:mb-5">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#ececec] tracking-tight leading-tight">

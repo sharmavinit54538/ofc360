@@ -111,6 +111,10 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
 // Lazy loaded views
 const OverviewView = React.lazy(() => import('./views/OverviewView'));
 const ComingSoonView = React.lazy(() => import('./views/ComingSoonView'));
+const TravelRequestsPage = React.lazy(() => import('@/features/travel/pages/TravelRequestsPage'));
+const ExpenseClaimsPage = React.lazy(() => import('@/features/expenses/pages/ExpenseClaimsPage'));
+const ExitManagementPage = React.lazy(() => import('@/features/exit-management/pages/ExitManagementPage'));
+const OnboardingChecklistPage = React.lazy(() => import('@/features/employee-onboarding/pages/OnboardingChecklistPage'));
 
 /**
  * Complete typed configuration array for all 68 tabs across the 4 groups.
@@ -609,7 +613,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Receipt,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: ExpenseClaimsPage,
   },
   {
     id: 'travel-requests',
@@ -617,7 +621,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Plane,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: TravelRequestsPage,
   },
   {
     id: 'onboarding-checklist',
@@ -625,7 +629,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: UserCheck,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: OnboardingChecklistPage,
   },
   {
     id: 'offboarding',
@@ -633,7 +637,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: PackageMinus,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: ExitManagementPage,
   },
   {
     id: 'exit-management',
@@ -641,7 +645,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: LogOut,
     group: 'hrops',
     section: 'hrops',
-    component: ComingSoonView,
+    component: ExitManagementPage,
   },
   {
     id: 'roles-permissions',

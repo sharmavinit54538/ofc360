@@ -9,6 +9,10 @@ export default defineConfig({
     alias: [
       { find: '@/components/ui/toast', replacement: path.resolve(__dirname, './src/shared/ui/Toast.tsx') },
       { find: '@/shared/ui/toast', replacement: path.resolve(__dirname, './src/shared/ui/Toast.tsx') },
+      { find: '@/components/ui/Tabs', replacement: path.resolve(__dirname, './src/shared/ui/Tabs.tsx') },
+      { find: '@/components/ui/tabs', replacement: path.resolve(__dirname, './src/shared/ui/Tabs.tsx') },
+      { find: '@/shared/ui/tabs', replacement: path.resolve(__dirname, './src/shared/ui/Tabs.tsx') },
+      { find: '@/shared/ui/Tabs', replacement: path.resolve(__dirname, './src/shared/ui/Tabs.tsx') },
       { find: '@', replacement: path.resolve(__dirname, './src') },
     ],
   },

@@ -390,7 +390,7 @@ export const normalizeUser = (rawUser: any): User => {
     roles,
     activeRole: canonicalRole,
     permissions,
-    isEmailVerified: Boolean(rawUser.is_verified ?? rawUser.email_verified ?? rawUser.isEmailVerified ?? true),
+    isEmailVerified: Boolean(rawUser.is_email_verified ?? rawUser.is_verified ?? rawUser.email_verified ?? rawUser.isEmailVerified ?? true),
     isTwoFactorEnabled: Boolean(rawUser.isTwoFactorEnabled ?? false),
     lastLoginAt: rawUser.lastLoginAt || undefined,
     createdAt: rawUser.createdAt || new Date().toISOString(),

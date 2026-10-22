@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 
 interface AuthLoadingScreenProps {
   message?: string;
@@ -18,10 +18,8 @@ export const AuthLoadingScreen: React.FC<AuthLoadingScreenProps> = ({
       <div className="relative flex flex-col items-center text-center max-w-sm space-y-6">
         {/* Animated Brand Emblem */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 p-0.5 shadow-2xl shadow-brand-500/40 animate-pulse">
-            <div className="w-full h-full bg-white dark:bg-[#171717] rounded-[22px] flex items-center justify-center border border-gray-200 dark:border-zinc-800">
-              <Building2 className="w-10 h-10 text-brand-400 animate-in zoom-in-75 duration-500" />
-            </div>
+          <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 p-2 shadow-2xl flex items-center justify-center animate-pulse">
+            <img src="/logo.png" alt="OFC360" className="w-14 h-14 object-contain animate-in zoom-in-75 duration-500" />
           </div>
           <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white dark:bg-[#171717] border-2 border-gray-200 dark:border-zinc-800 flex items-center justify-center text-emerald-400 shadow-md">
             <ShieldCheck className="w-4 h-4" />

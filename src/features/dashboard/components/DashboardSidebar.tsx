@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, PanelLeft, Building2 } from 'lucide-react';
+import { ChevronDown, PanelLeft } from 'lucide-react';
 import { DASHBOARD_TABS, SIDEBAR_SECTIONS, type DashboardTabItem, type SidebarSection } from './dashboardTabs.data';
 
 export interface DashboardSidebarProps {
@@ -137,8 +137,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     >
       {/* Sidebar Header: Single consolidated clean flex row */}
       {!collapsed ? (
-        <div className="h-16 flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
-          {/* Left side: The sidebar collapse/expand toggle icon button */}
+        <div className="h-16 flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
+          {/* Left side: The single official brand logo */}
+          <Link to="/" className="flex items-center min-w-0 flex-shrink-0" title="OFC360 Home">
+            <img
+              src="/logo.png"
+              alt="OFC360"
+              className="h-8 w-auto object-contain flex-shrink-0 hover:opacity-90 transition-opacity"
+            />
+          </Link>
+
+          {/* Right side: The sidebar collapse/expand toggle icon button */}
           {onToggleCollapse && (
             <button
               type="button"
@@ -150,26 +159,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <PanelLeft className="w-5 h-5" strokeWidth={2} />
             </button>
           )}
-
-          {/* Right side: The single official brand logo (OFC360 with its building icon) */}
-          <Link to="/" className="flex items-center gap-2.5 min-w-0 flex-shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 p-0.5 shadow-md shadow-brand-500/20 flex-shrink-0">
-              <div className="w-full h-full bg-white dark:bg-[#171717] rounded-[10px] flex items-center justify-center border border-slate-200 dark:border-zinc-800">
-                <Building2 className="w-5 h-5 text-brand-400" />
-              </div>
-            </div>
-            <span className="font-bold text-slate-900 dark:text-white text-base tracking-tight whitespace-nowrap">
-              OFC<span className="text-brand-400">360</span>
-            </span>
-          </Link>
         </div>
       ) : (
-        <div className="h-16 flex items-center justify-center px-3 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
+        <div className="h-16 flex items-center justify-center px-2 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
           {onToggleCollapse && (
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+              className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
               aria-label="Expand sidebar"
               title="Expand sidebar"
             >

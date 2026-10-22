@@ -12,8 +12,24 @@ import { HRAdminDashboard } from '@/features/dashboard/pages/HRAdminDashboard';
 import { ManagerDashboard } from '@/features/dashboard/pages/ManagerDashboard';
 import { EmployeeDashboard } from '@/features/dashboard/pages/EmployeeDashboard';
 import { ITAdminDashboard } from '@/features/dashboard/pages/ITAdminDashboard';
+import { DashboardTravelRoute } from '@/routes/dashboard.travel';
+import { DashboardExpensesRoute } from '@/routes/dashboard.expenses';
+import { DashboardExitManagementRoute } from '@/routes/dashboard.exit-management';
+import { DashboardOnboardingChecklistRoute } from '@/routes/dashboard.onboarding-checklist';
 import { UnauthorizedPage } from '@/features/dashboard/pages/UnauthorizedPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
+
+// Settings Module
+import { SettingsLayout } from '@/features/settings/components/SettingsLayout';
+import { CompanySection } from '@/features/settings/components/CompanySection';
+import { EmployeesSection } from '@/features/settings/components/EmployeesSection';
+import { AttendanceSection } from '@/features/settings/components/AttendanceSection';
+import { LeaveSection } from '@/features/settings/components/LeaveSection';
+import { PayrollSection } from '@/features/settings/components/PayrollSection';
+import { DocumentsSection } from '@/features/settings/components/DocumentsSection';
+import { AssetsSection } from '@/features/settings/components/AssetsSection';
+import { NotificationsSection } from '@/features/settings/components/NotificationsSection';
+import { MyProfileSection } from '@/features/settings/components/MyProfileSection';
 
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -92,6 +108,87 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Corporate Travel Requests & Approvals */}
+      <Route
+        path="/dashboard/travel"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']}
+          >
+            <DashboardTravelRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Corporate Expense Claims & Reimbursements */}
+      <Route
+        path="/dashboard/expenses"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']}
+          >
+            <DashboardExpensesRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Exit Management & Offboarding */}
+      <Route
+        path="/dashboard/exit-management"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}
+          >
+            <DashboardExitManagementRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Employee Onboarding Checklist & Progress */}
+      <Route
+        path="/dashboard/onboarding-checklist"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']}
+          >
+            <DashboardOnboardingChecklistRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/onboarding"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']}
+          >
+            <DashboardOnboardingChecklistRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Settings Module */}
+      <Route
+        path="/settings/*"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'IT_ADMIN', 'EMPLOYEE']}
+          >
+            <SettingsLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="/settings/company" replace />} />
+        <Route path="company" element={<CompanySection />} />
+        <Route path="employees" element={<EmployeesSection />} />
+        <Route path="attendance" element={<AttendanceSection />} />
+        <Route path="leave" element={<LeaveSection />} />
+        <Route path="payroll" element={<PayrollSection />} />
+        <Route path="documents" element={<DocumentsSection />} />
+        <Route path="assets" element={<AssetsSection />} />
+        <Route path="notifications" element={<NotificationsSection />} />
+        <Route path="profile" element={<MyProfileSection />} />
+      </Route>
 
       {/* 403 Forbidden Access Screen */}
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

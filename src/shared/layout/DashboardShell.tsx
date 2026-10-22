@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Building2,
   LogOut,
   Bell,
   Search,
@@ -77,24 +76,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation Bar - Clean & Minimal */}
-        <header className="h-16 border-b border-gray-200 dark:border-zinc-800 bg-white/95 dark:bg-[#171717]/95 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-6">
-          {/* Left: Brand logo only for pages without a sidebar */}
+        <header className="h-16 border-b border-gray-200 dark:border-zinc-800 bg-white/95 dark:bg-[#171717]/95 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-6 gap-4">
+          {/* Left: Brand logo only when page has no sidebar */}
           <div className="flex items-center gap-3 flex-shrink-0">
             {!sidebar && (
-              <Link to="/" className="flex items-center gap-3 flex-shrink-0">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 p-0.5 shadow-md shadow-brand-500/20">
-                  <div className="w-full h-full bg-white dark:bg-[#171717] rounded-[10px] flex items-center justify-center border border-gray-200 dark:border-zinc-800">
-                    <Building2 className="w-5 h-5 text-brand-400" />
-                  </div>
-                </div>
-                <span className="font-bold text-gray-900 dark:text-[#ececec] text-base hidden sm:block">
-                  OFC<span className="text-brand-400">360</span>
-                </span>
+              <Link to="/" className="flex items-center flex-shrink-0" title="OFC360 Home">
+                <img src="/logo.png" alt="OFC360" className="h-8 w-auto object-contain hover:opacity-90 transition-opacity" />
               </Link>
             )}
           </div>
 
-          {/* Right Controls: Search, Notifications, User Profile Menu */}
+          {/* CENTER-RIGHT: Search, Notifications, User Profile */}
           <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end min-w-0">
             {/* Search */}
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#2f2f2f] border border-gray-200 dark:border-zinc-800 text-xs text-gray-600 dark:text-zinc-400 w-56 md:w-64 flex-shrink-0">
@@ -117,33 +109,33 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-100 dark:bg-[#2f2f2f] hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 rounded-full bg-neutral-900/90 dark:bg-neutral-900/90 border border-neutral-800 dark:border-neutral-700 hover:bg-neutral-800 dark:hover:bg-neutral-800 transition-all duration-200"
                 aria-expanded={profileMenuOpen}
                 aria-haspopup="true"
               >
-                <div className="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center font-bold text-sm text-brand-300">
+                <div className="w-9 h-9 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-sm text-indigo-300">
                   {getInitials(user?.fullName)}
                 </div>
-                <span className="hidden sm:block text-sm font-medium text-gray-900 dark:text-[#ececec]">
-                  {getInitials(user?.fullName)}
+                <span className="hidden sm:block text-sm font-medium text-white dark:text-white">
+                  {user?.fullName || 'User'}
                 </span>
-                <ChevronDown className="w-4 h-4 text-gray-600 dark:text-zinc-400" />
+                <ChevronDown className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95">
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-neutral-950 border border-neutral-800 shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95">
                   {/* User Info Header */}
-                  <div className="px-4 py-3 border-b border-gray-200 dark:border-zinc-800">
+                  <div className="px-4 py-4 border-b border-neutral-800">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center font-bold text-base text-brand-300">
-                        {user?.firstName?.[0] || 'U'}
+                      <div className="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-lg text-indigo-300">
+                        {getInitials(user?.fullName)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-[#ececec] truncate">{user?.fullName || 'Authenticated User'}</p>
-                        <p className="text-xs text-gray-600 dark:text-zinc-400 truncate">{user?.email}</p>
+                        <p className="text-sm font-semibold text-white truncate">{user?.fullName || 'Authenticated User'}</p>
+                        <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-3 flex items-center gap-2">
                       <Badge variant="brand" size="sm" className="flex items-center gap-1.5">
                         <Shield className="w-3 h-3" />
                         {activeRole}
@@ -152,20 +144,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   </div>
 
                   {/* Menu Items */}
-                  <div className="py-1">
+                  <div className="py-2">
                     <button
                       type="button"
                       onClick={toggleTheme}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-[#2f2f2f] hover:text-gray-900 dark:hover:text-[#ececec] transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-400 hover:bg-neutral-900/50 hover:text-white transition-colors rounded-lg mx-2"
                     >
                       {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                       <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
-                    <hr className="my-1 border-gray-200 dark:border-zinc-800" />
+                    <hr className="my-2 border-neutral-800" />
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors rounded-lg mx-2"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
