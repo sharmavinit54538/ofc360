@@ -4,7 +4,7 @@ import { UserRole, Permission } from '@/features/auth/types/auth.types';
 
 interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles?: UserRole[];
+  allowedRoles?: (UserRole | string)[];
   requiredPermissions?: Permission[];
   requireAllPermissions?: boolean;
   fallback?: React.ReactNode;

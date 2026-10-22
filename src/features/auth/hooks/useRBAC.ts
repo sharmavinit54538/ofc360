@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
-import { UserRole, Permission, ROLE_DASHBOARD_ROUTES } from '../types/auth.types';
+import { UserRole, Permission, ROLE_DASHBOARD_ROUTES, normalizeRole } from '../types/auth.types';
 
 export interface RBACCheckOptions {
-  requiredRoles?: UserRole[];
+  requiredRoles?: (UserRole | string)[];
   requiredPermissions?: Permission[];
   requireAllPermissions?: boolean;
 }
@@ -12,20 +12,22 @@ export const useRBAC = () => {
   const { user, activeRole, roles, permissions } = useAuth();
 
   const hasRole = useCallback(
-    (role: UserRole | UserRole[]): boolean => {
+    (role: UserRole | UserRole[] | string | string[]): boolean => {
       if (!activeRole) return false;
+      const current = normalizeRole(activeRole);
       if (Array.isArray(role)) {
-        return role.includes(activeRole);
+        return role.map((r) => normalizeRole(r)).includes(current);
       }
-      return activeRole === role;
+      return current === normalizeRole(role);
     },
     [activeRole]
   );
 
   const hasAnyRole = useCallback(
-    (targetRoles: UserRole[]): boolean => {
+    (targetRoles: (UserRole | string)[]): boolean => {
       if (!roles || roles.length === 0) return false;
-      return targetRoles.some((r) => roles.includes(r));
+      const currentRoles = roles.map((r) => normalizeRole(r));
+      return targetRoles.some((r) => currentRoles.includes(normalizeRole(r)));
     },
     [roles]
   );
@@ -34,7 +36,7 @@ export const useRBAC = () => {
     (permission: Permission): boolean => {
       if (!user) return false;
       // Super Admin automatically bypasses all permission checks
-      if (activeRole === 'SUPER_ADMIN') return true;
+      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
       return permissions.includes(permission);
     },
     [user, activeRole, permissions]
@@ -43,7 +45,7 @@ export const useRBAC = () => {
   const hasAllPermissions = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (activeRole === 'SUPER_ADMIN') return true;
+      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
       return perms.every((p) => permissions.includes(p));
     },
     [user, activeRole, permissions]
@@ -52,7 +54,7 @@ export const useRBAC = () => {
   const hasAnyPermission = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (activeRole === 'SUPER_ADMIN') return true;
+      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
       return perms.some((p) => permissions.includes(p));
     },
     [user, activeRole, permissions]
@@ -64,7 +66,10 @@ export const useRBAC = () => {
 
       // Role check
       if (requiredRoles && requiredRoles.length > 0) {
-        if (!activeRole || !requiredRoles.includes(activeRole)) {
+        if (!activeRole) return false;
+        const currentNormalized = normalizeRole(activeRole);
+        const isAuthorized = requiredRoles.some((r) => normalizeRole(r) === currentNormalized);
+        if (!isAuthorized) {
           return false;
         }
       }
@@ -85,18 +90,19 @@ export const useRBAC = () => {
 
   const defaultRedirectRoute = useMemo(() => {
     if (!activeRole) return '/auth/login';
-    return ROLE_DASHBOARD_ROUTES[activeRole] || '/dashboard/employee';
+    const canonical = normalizeRole(activeRole);
+    return ROLE_DASHBOARD_ROUTES[canonical] || '/dashboard/employee';
   }, [activeRole]);
 
   return {
-    activeRole,
-    roles,
+    activeRole: activeRole ? normalizeRole(activeRole) : null,
+    roles: (roles || []).map((r) => normalizeRole(r)),
     permissions,
-    isSuperAdmin: activeRole === 'SUPER_ADMIN',
-    isHRAdmin: activeRole === 'HR_ADMIN',
-    isManager: activeRole === 'MANAGER',
-    isEmployee: activeRole === 'EMPLOYEE',
-    isITAdmin: activeRole === 'IT_ADMIN',
+    isSuperAdmin: normalizeRole(activeRole) === 'SUPER_ADMIN',
+    isHRAdmin: normalizeRole(activeRole) === 'HR_ADMIN',
+    isManager: normalizeRole(activeRole) === 'MANAGER',
+    isEmployee: normalizeRole(activeRole) === 'EMPLOYEE',
+    isITAdmin: normalizeRole(activeRole) === 'IT_ADMIN',
     hasRole,
     hasAnyRole,
     hasPermission,

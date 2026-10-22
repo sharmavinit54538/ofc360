@@ -8,7 +8,6 @@ import { useLoginMutation } from '@/features/auth/api/authApi';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
 import { useToast } from '@/shared/ui/Toast';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
-import { GoogleAuthButton } from '@/features/auth/components/GoogleAuthButton';
 import { FaceLoginModal } from '@/features/auth/components/FaceLoginModal';
 import { Loader2, ScanFace } from 'lucide-react';
 
@@ -17,13 +16,6 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [login, { isLoading }] = useLoginMutation();
-  const {
-    canUsePasskey,
-    isAuthenticating: isPasskeyLoading,
-    error: passkeyError,
-    clearError: clearPasskeyError,
-    loginWithPasskey,
-  } = usePasskey();
 
   const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
 
@@ -72,25 +64,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handlePasskeyLogin = async () => {
-    clearPasskeyError();
-    try {
-      const emailInput = watch('email')?.trim();
-      const response = await loginWithPasskey(emailInput || undefined);
-      toast.success(
-        `Welcome back, ${response.user.fullName}!`,
-        'Unlocked with Face Recognition'
-      );
-      handleSuccessfulAuth(response.user);
-    } catch (err: unknown) {
-      const clientError = err as { message?: string };
-      toast.info(
-        clientError?.message || 'Passkey authentication dismissed. Please continue with your password.',
-        'Passkey Fallback'
-      );
-    }
-  };
-
   const openFaceLoginModal = () => {
     setIsFaceModalOpen(true);
   };
@@ -104,63 +77,6 @@ export const LoginPage: React.FC = () => {
       footerLinkTo="/auth/register"
     >
       <div className="space-y-5">
-        {/* Passkey / WebAuthn Button (Feature-detected & Hidden if unsupported) */}
-        {canUsePasskey && (
-          <div className="space-y-3">
-            <button
-              type="button"
-              id="passkey-login-button"
-              onClick={handlePasskeyLogin}
-              disabled={isPasskeyLoading || isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-indigo-50 to-violet-50 hover:from-indigo-100 hover:to-violet-100 border border-indigo-200 text-indigo-950 font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-between group disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                  {isPasskeyLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ScanFace className="w-4 h-4" />
-                  )}
-                </div>
-                <div className="text-left">
-                  <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <span>Unlock with Face Recognition</span>
-                    <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-200/60 text-indigo-800 rounded">
-                      Passkey
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-normal">
-                    Face ID • Windows Hello Face
-                  </div>
-                </div>
-              </div>
-              <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
-            </button>
-
-            {/* Inline Error Helper with Fallback Message */}
-            {passkeyError && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold">{passkeyError.message}</p>
-                  <p className="text-amber-700 text-[11px] mt-0.5">
-                    You can always enter your standard password below to proceed.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Visual Divider */}
-            <div className="relative flex items-center py-1">
-              <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-3 text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Or sign in with password
-              </span>
-              <div className="flex-grow border-t border-slate-200" />
-            </div>
-          </div>
-        )}
-
         {/* Standard Password Form (Always available as primary or fallback) */}
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
           {/* Work email */}
@@ -210,7 +126,7 @@ export const LoginPage: React.FC = () => {
           {/* Full-width Dark Sign In Button */}
           <button
             type="submit"
-            disabled={isLoading || isPasskeyLoading}
+            disabled={isLoading}
             className="w-full py-3.5 px-4 bg-[#0d1527] hover:bg-[#1a233a] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
@@ -224,28 +140,23 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Social Login / Google SSO */}
-        <div className="space-y-3">
-          <GoogleAuthButton onSuccess={() => handleSuccessfulAuth({ fullName: '', activeRole: 'EMPLOYEE' })} />
-
-          {/* Compact Face Login Icon Button */}
-          <button
-            type="button"
-            onClick={openFaceLoginModal}
-            disabled={isLoading || isPasskeyLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] relative group"
-            title="Quick Face Unlock"
-            aria-label="Quick Face Unlock"
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
-              <ScanFace className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-medium text-slate-900">Quick Face Unlock</span>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              Face Login
-            </div>
-          </button>
-        </div>
+        {/* Quick Face Unlock Button */}
+        <button
+          type="button"
+          onClick={openFaceLoginModal}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] relative group"
+          title="Quick Face Unlock"
+          aria-label="Quick Face Unlock"
+        >
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+            <ScanFace className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-medium text-slate-900">Quick Face Unlock</span>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+            Face Login
+          </div>
+        </button>
 
         {/* Face Login Modal */}
         <FaceLoginModal

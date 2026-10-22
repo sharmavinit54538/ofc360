@@ -1,7 +1,7 @@
 /**
  * @file useAuth.ts
  * @description Enterprise custom hook encapsulating typed Redux selectors, dispatchers,
- * and RBAC authorization utility functions.
+ * and RBAC authorization utility functions with case-insensitive role matching.
  */
 
 import { useCallback } from 'react';
@@ -19,7 +19,7 @@ import {
   logout as logoutAction,
 } from '../slices/authSlice';
 import { useLoginMutation, useLogoutMutation } from '../api/authApi';
-import { UserRole, Permission, LoginRequest, LoginResponse } from '../types/auth.types';
+import { UserRole, Permission, LoginRequest, LoginResponse, normalizeRole } from '../types/auth.types';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -28,11 +28,14 @@ export const useAuth = () => {
   const user = useAppSelector(selectCurrentUser);
   const accessToken = useAppSelector(selectAccessToken);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const role = useAppSelector(selectAuthRole);
-  const activeRole = useAppSelector(selectActiveRole);
+  const rawRole = useAppSelector(selectAuthRole);
+  const rawActiveRole = useAppSelector(selectActiveRole);
   const permissions = useAppSelector(selectUserPermissions);
   const isLoading = useAppSelector(selectIsAuthLoading);
   const isInitialized = useAppSelector(selectIsAuthInitialized);
+
+  const role: UserRole | null = rawRole ? normalizeRole(rawRole) : null;
+  const activeRole: UserRole | null = rawActiveRole ? normalizeRole(rawActiveRole) : role;
 
   // RTK Query Mutations
   const [triggerLoginMutation, { isLoading: isLoginLoading }] = useLoginMutation();
@@ -65,22 +68,24 @@ export const useAuth = () => {
    * Switches active role for multi-role corporate accounts.
    */
   const switchRole = useCallback(
-    (newRole: UserRole) => {
-      dispatch(setRoleAction(newRole));
+    (newRole: UserRole | string) => {
+      dispatch(setRoleAction(normalizeRole(newRole)));
     },
     [dispatch]
   );
 
   /**
    * Verifies if the current user matches a single role or any from a list.
+   * Case-insensitive and normalizes snake_case backend roles.
    */
   const hasRole = useCallback(
-    (targetRole: UserRole | UserRole[]): boolean => {
+    (targetRole: UserRole | UserRole[] | string | string[]): boolean => {
       if (!role) return false;
+      const currentCanonical = normalizeRole(role);
       if (Array.isArray(targetRole)) {
-        return targetRole.includes(role);
+        return targetRole.map((r) => normalizeRole(r)).includes(currentCanonical);
       }
-      return role === targetRole;
+      return currentCanonical === normalizeRole(targetRole);
     },
     [role]
   );
@@ -123,7 +128,7 @@ export const useAuth = () => {
     isAuthenticated,
     role,
     activeRole,
-    roles: user?.roles ?? [],
+    roles: (user?.roles ?? []).map((r: string) => normalizeRole(r)),
     permissions,
     isLoading: isLoading || isLoginLoading || isLogoutLoading,
     isInitialized,

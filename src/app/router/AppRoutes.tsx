@@ -17,7 +17,7 @@ import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
+import { ROLE_DASHBOARD_ROUTES, normalizeRole } from '@/features/auth/types/auth.types';
 
 // Dynamic Index Root Redirection based on Auth State
 const RootRedirect: React.FC = () => {
@@ -27,7 +27,7 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/auth/login" replace />;
   }
 
-  const destination = (activeRole && ROLE_DASHBOARD_ROUTES[activeRole]) || '/dashboard/employee';
+  const destination = (activeRole && ROLE_DASHBOARD_ROUTES[normalizeRole(activeRole)]) || '/dashboard/employee';
   return <Navigate to={destination} replace />;
 };
 

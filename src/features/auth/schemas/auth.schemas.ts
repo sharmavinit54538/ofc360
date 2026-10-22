@@ -6,13 +6,19 @@ export const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_+
 export const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Corporate email is required')
-    .email('Please enter a valid work email address')
-    .toLowerCase()
-    .trim(),
+    .min(1, 'Corporate email or identifier is required')
+    .refine((val) => {
+      const trimmed = val.trim();
+      // Allow valid email format or corporate identifier / username
+      if (trimmed.includes('@')) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+      }
+      return trimmed.length >= 3;
+    }, 'Please enter a valid work email or corporate identifier')
+    .transform((val) => val.trim().toLowerCase()),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(6, 'Password must be at least 6 characters')
     .max(128, 'Password is too long'),
   rememberMe: z.boolean().default(false),
 });

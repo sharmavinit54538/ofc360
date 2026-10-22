@@ -5,7 +5,7 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, User, UserRole } from '../types/auth.types';
+import { AuthState, User, UserRole, normalizeRole } from '../types/auth.types';
 
 const ACCESS_TOKEN_KEY = 'ofc360_access_token';
 const REFRESH_TOKEN_KEY = 'ofc360_refresh_token';
@@ -30,16 +30,25 @@ const loadPersistedSession = (): {
     const storedUser = storage.getItem(USER_KEY);
     const storedAccess = storage.getItem(ACCESS_TOKEN_KEY);
     const storedRefresh = storage.getItem(REFRESH_TOKEN_KEY);
-    const storedRole = storage.getItem(ROLE_KEY) as UserRole | null;
+    const storedRole = storage.getItem(ROLE_KEY) as string | null;
 
     const parsedUser = storedUser ? (JSON.parse(storedUser) as User) : null;
-    const resolvedRole = storedRole || parsedUser?.activeRole || null;
+    const resolvedRole = normalizeRole(storedRole || parsedUser?.activeRole || (parsedUser as any)?.role || null);
+
+    if (parsedUser) {
+      parsedUser.activeRole = resolvedRole;
+      if (!parsedUser.roles || parsedUser.roles.length === 0) {
+        parsedUser.roles = [resolvedRole];
+      } else {
+        parsedUser.roles = parsedUser.roles.map((r: string) => normalizeRole(r));
+      }
+    }
 
     return {
       user: parsedUser,
       accessToken: storedAccess || null,
       refreshToken: storedRefresh || null,
-      role: resolvedRole,
+      role: parsedUser ? resolvedRole : null,
       rememberMe,
     };
   } catch (err) {
@@ -84,14 +93,24 @@ export const authSlice = createSlice({
       }>
     ) => {
       const { user, tokens, rememberMe = state.rememberMe } = action.payload;
+      if (!user || !tokens) return;
+
+      const canonicalRole = normalizeRole(user.activeRole || (user as any).role || (user.roles && user.roles[0]) || 'EMPLOYEE');
+      user.activeRole = canonicalRole;
+      if (!user.roles || user.roles.length === 0) {
+        user.roles = [canonicalRole];
+      } else {
+        user.roles = user.roles.map((r: string) => normalizeRole(r));
+      }
+
       state.user = user;
-      state.accessToken = tokens.accessToken;
+      state.accessToken = tokens.accessToken || null;
       if (tokens.refreshToken) {
         state.refreshToken = tokens.refreshToken;
       }
-      state.isAuthenticated = true;
-      state.role = user.activeRole || user.roles[0] || 'EMPLOYEE';
-      state.activeRole = state.role;
+      state.isAuthenticated = Boolean(tokens.accessToken);
+      state.role = canonicalRole;
+      state.activeRole = canonicalRole;
       state.rememberMe = rememberMe;
       state.isInitialized = true;
       state.isLoading = false;
@@ -106,12 +125,14 @@ export const authSlice = createSlice({
         otherStorage.removeItem(USER_KEY);
         otherStorage.removeItem(ROLE_KEY);
 
-        storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+        if (tokens.accessToken) {
+          storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+        }
         if (tokens.refreshToken) {
           storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
         }
         storage.setItem(USER_KEY, JSON.stringify(user));
-        storage.setItem(ROLE_KEY, state.role);
+        storage.setItem(ROLE_KEY, canonicalRole);
         localStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
       } catch (err) {
         console.error('Session persistence failed:', err);
@@ -123,7 +144,7 @@ export const authSlice = createSlice({
      */
     setAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
-      state.isAuthenticated = true;
+      state.isAuthenticated = Boolean(action.payload);
 
       try {
         const storage = state.rememberMe ? localStorage : sessionStorage;
@@ -136,12 +157,15 @@ export const authSlice = createSlice({
     /**
      * Switches active user role for multi-role accounts.
      */
-    setRole: (state, action: PayloadAction<UserRole>) => {
-      const newRole = action.payload;
-      if (state.user && state.user.roles.includes(newRole)) {
+    setRole: (state, action: PayloadAction<UserRole | string>) => {
+      const newRole = normalizeRole(action.payload);
+      if (state.user) {
         state.role = newRole;
         state.activeRole = newRole;
         state.user.activeRole = newRole;
+        if (!state.user.roles.includes(newRole)) {
+          state.user.roles.push(newRole);
+        }
 
         try {
           const storage = state.rememberMe ? localStorage : sessionStorage;
@@ -155,10 +179,9 @@ export const authSlice = createSlice({
 
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
-      if (!state.role) {
-        state.role = action.payload.activeRole;
-        state.activeRole = action.payload.activeRole;
-      }
+      const canonicalRole = normalizeRole(action.payload.activeRole || (action.payload as any).role);
+      state.role = canonicalRole;
+      state.activeRole = canonicalRole;
     },
 
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -224,8 +247,9 @@ export const authSlice = createSlice({
         (state, action: any) => {
           if (action.payload) {
             state.user = action.payload;
-            state.role = action.payload.activeRole;
-            state.activeRole = action.payload.activeRole;
+            const r = normalizeRole(action.payload.activeRole || (action.payload as any).role);
+            state.role = r;
+            state.activeRole = r;
           }
         }
       );

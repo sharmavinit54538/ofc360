@@ -7,12 +7,12 @@
 import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { UserRole, Permission, ROLE_DASHBOARD_ROUTES } from '../types/auth.types';
+import { UserRole, Permission, ROLE_DASHBOARD_ROUTES, normalizeRole } from '../types/auth.types';
 import { AuthLoadingScreen } from '@/shared/layout/AuthLoadingScreen';
 
 export interface ProtectedRouteProps {
   children?: React.ReactNode;
-  allowedRoles?: UserRole[];
+  allowedRoles?: (UserRole | string)[];
   requiredPermissions?: Permission[];
   requireAllPermissions?: boolean;
   requireVerifiedEmail?: boolean;
@@ -58,15 +58,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (allowedRoles && allowedRoles.length > 0) {
     const isRoleAuthorized = allowedRoles.some((targetRole) => hasRole(targetRole));
     if (!isRoleAuthorized) {
+      const canonicalRole = role ? normalizeRole(role) : null;
       return (
         <Navigate
           to={redirectUnauthorizedTo}
           replace
           state={{
             from: location,
-            currentRole: role,
-            allowedRoles,
-            homeRoute: role ? ROLE_DASHBOARD_ROUTES[role] : '/auth/login',
+            currentRole: canonicalRole,
+            allowedRoles: allowedRoles.map((r) => normalizeRole(r)),
+            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/auth/login',
           }}
         />
       );
@@ -80,15 +81,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       : requiredPermissions.some((perm) => hasPermission(perm));
 
     if (!isPermissionAuthorized) {
+      const canonicalRole = role ? normalizeRole(role) : null;
       return (
         <Navigate
           to={redirectUnauthorizedTo}
           replace
           state={{
             from: location,
-            currentRole: role,
+            currentRole: canonicalRole,
             requiredPermissions,
-            homeRoute: role ? ROLE_DASHBOARD_ROUTES[role] : '/auth/login',
+            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/auth/login',
           }}
         />
       );

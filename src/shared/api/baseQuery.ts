@@ -16,7 +16,16 @@ import { RefreshTokenResponse } from '@/features/auth/types/auth.types';
  */
 const mutex = new Mutex();
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.ofc360.com';
+/**
+ * Normalizes the API base URL to ensure consistent alignment with FastAPI /api/v1 prefix.
+ */
+const getNormalizedBaseUrl = (): string => {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || 'https://api.ofc360.com/api/v1';
+  const clean = envUrl.replace(/\/+$/, '');
+  return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+};
+
+const BASE_URL = getNormalizedBaseUrl();
 
 /**
  * Raw fetchBaseQuery with Authorization header injection and credentials handling.
@@ -34,6 +43,9 @@ export const rawBaseQuery = fetchBaseQuery({
 
     headers.set('X-Client-Platform', 'OFC360-Enterprise-Web');
     headers.set('Accept', 'application/json');
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
     return headers;
   },
 });
@@ -66,24 +78,37 @@ export const baseQueryWithReauth: BaseQueryFn<
         const state = api.getState() as RootState;
         const currentRefreshToken = state.auth.refreshToken;
 
-        // Perform token refresh request
+        // Perform token refresh request (supports both camelCase and snake_case backend keys)
         const refreshResult = await rawBaseQuery(
           {
             url: '/auth/refresh',
             method: 'POST',
-            body: currentRefreshToken ? { refreshToken: currentRefreshToken } : undefined,
+            body: currentRefreshToken
+              ? { refreshToken: currentRefreshToken, refresh_token: currentRefreshToken }
+              : {},
           },
           api,
           extraOptions
         );
 
         if (refreshResult.data) {
-          const payload = refreshResult.data as RefreshTokenResponse;
-          // Store updated access token into Redux state
-          api.dispatch(setAccessToken(payload.tokens.accessToken));
+          const resData = refreshResult.data as any;
+          // Extract access token safely from FastAPI envelope or legacy tokens object
+          const newAccessToken =
+            resData?.data?.access_token ||
+            resData?.access_token ||
+            resData?.tokens?.accessToken ||
+            resData?.accessToken;
 
-          // Retry the original query with the new access token
-          result = await rawBaseQuery(args, api, extraOptions);
+          if (newAccessToken) {
+            // Store updated access token into Redux state
+            api.dispatch(setAccessToken(newAccessToken));
+
+            // Retry the original query with the new access token
+            result = await rawBaseQuery(args, api, extraOptions);
+          } else {
+            api.dispatch(logout());
+          }
         } else {
           // Token refresh failed or session revoked by server
           api.dispatch(logout());

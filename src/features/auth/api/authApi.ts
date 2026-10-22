@@ -24,6 +24,8 @@ import {
   FaceLoginRequest,
   FaceLoginResponse,
   User,
+  normalizeAuthResponse,
+  normalizeUser,
 } from '../types/auth.types';
 import { setCredentials, setAccessToken, logout } from '../slices/authSlice';
 
@@ -34,24 +36,32 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     /**
      * Authenticates corporate user with email/password or Google SSO payload.
+     * Maps both email and identifier for FastAPI Pydantic compatibility.
      */
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: '/auth/login',
         method: 'POST',
-        body: credentials,
+        body: {
+          email: credentials.email,
+          identifier: credentials.identifier || credentials.email,
+          password: credentials.password,
+        },
       }),
       invalidatesTags: ['Auth', 'User'],
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(
-            setCredentials({
-              user: data.user,
-              tokens: data.tokens,
-              rememberMe: args.rememberMe,
-            })
-          );
+          const normalized = normalizeAuthResponse(data);
+          if (normalized.user && normalized.tokens?.accessToken) {
+            dispatch(
+              setCredentials({
+                user: normalized.user,
+                tokens: normalized.tokens,
+                rememberMe: args.rememberMe,
+              })
+            );
+          }
         } catch {
           // Handled at component UI boundary
         }
@@ -60,22 +70,34 @@ export const authApi = createApi({
 
     /**
      * Registers a new corporate tenant and initial administrator account.
+     * Formats keys for FastAPI RegisterRequest schema.
      */
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (registrationData) => ({
         url: '/auth/register',
         method: 'POST',
-        body: registrationData,
+        body: {
+          name: `${registrationData.firstName} ${registrationData.lastName}`.trim(),
+          first_name: registrationData.firstName,
+          last_name: registrationData.lastName,
+          email: registrationData.workEmail,
+          identifier: registrationData.workEmail,
+          phone: registrationData.phone || '',
+          password: registrationData.password,
+          company_name: registrationData.organizationName,
+          organization_name: registrationData.organizationName,
+        },
       }),
       invalidatesTags: ['Auth'],
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          if (data.tokens && data.user) {
+          const normalized = normalizeAuthResponse(data);
+          if (normalized.tokens?.accessToken && normalized.user) {
             dispatch(
               setCredentials({
-                user: data.user,
-                tokens: data.tokens,
+                user: normalized.user,
+                tokens: normalized.tokens,
               })
             );
           }
@@ -110,12 +132,20 @@ export const authApi = createApi({
       query: (body) => ({
         url: '/auth/refresh',
         method: 'POST',
-        body: body || {},
+        body: body
+          ? {
+              refresh_token: body.refresh_token || body.refreshToken,
+              refreshToken: body.refreshToken || body.refresh_token,
+            }
+          : {},
       }),
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setAccessToken(data.tokens.accessToken));
+          const normalized = normalizeAuthResponse(data);
+          if (normalized.tokens?.accessToken) {
+            dispatch(setAccessToken(normalized.tokens.accessToken));
+          }
         } catch {
           dispatch(logout());
         }
@@ -127,6 +157,10 @@ export const authApi = createApi({
      */
     getCurrentUser: builder.query<User, void>({
       query: () => '/auth/me',
+      transformResponse: (response: any) => {
+        const source = response?.data || response;
+        return normalizeUser(source);
+      },
       providesTags: ['Auth', 'User'],
     }),
 
@@ -137,19 +171,68 @@ export const authApi = createApi({
       query: (body) => ({
         url: '/auth/forgot-password',
         method: 'POST',
-        body,
+        body: {
+          email: body.email,
+          identifier: body.email,
+        },
       }),
     }),
 
     /**
-     * Validates 6-digit one-time authorization passcode.
+     * Validates 6-digit one-time authorization passcode for password reset.
+     * Aligns with FastAPI route /api/v1/auth/verify-reset-otp.
      */
     verifyOtp: builder.mutation<VerifyOtpResponse, VerifyOtpRequest>({
       query: (body) => ({
-        url: '/auth/verify-otp',
+        url: '/auth/verify-reset-otp',
+        method: 'POST',
+        body: {
+          email: body.email,
+          identifier: body.email,
+          otp: body.otp,
+        },
+      }),
+      transformResponse: (response: any) => {
+        const dataObj = response?.data || response;
+        return {
+          success: Boolean(response?.success ?? true),
+          valid: true,
+          verificationToken: dataObj?.resetToken || dataObj?.verificationToken || '',
+          resetToken: dataObj?.resetToken || '',
+          message: response?.message || 'OTP verified successfully.',
+          data: dataObj,
+        };
+      },
+    }),
+
+    /**
+     * Validates email OTP during multi-step login.
+     * Aligns with FastAPI route /api/v1/auth/verify-email-otp.
+     */
+    verifyEmailOtp: builder.mutation<LoginResponse, { verification_id: string; otp: string; email?: string }>({
+      query: (body) => ({
+        url: '/auth/verify-email-otp',
         method: 'POST',
         body,
       }),
+      invalidatesTags: ['Auth', 'User'],
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const normalized = normalizeAuthResponse(data);
+          if (normalized.user && normalized.tokens?.accessToken) {
+            dispatch(
+              setCredentials({
+                user: normalized.user,
+                tokens: normalized.tokens,
+                rememberMe: true,
+              })
+            );
+          }
+        } catch {
+          // Handled at component boundary
+        }
+      },
     }),
 
     /**
@@ -159,7 +242,13 @@ export const authApi = createApi({
       query: (body) => ({
         url: '/auth/reset-password',
         method: 'POST',
-        body,
+        body: {
+          email: body.email,
+          token: body.verificationToken,
+          reset_token: body.verificationToken,
+          new_password: body.newPassword,
+          password: body.newPassword,
+        },
       }),
     }),
 
@@ -170,7 +259,11 @@ export const authApi = createApi({
       query: (body) => ({
         url: '/auth/verify-email',
         method: 'POST',
-        body,
+        body: {
+          token: body.token,
+          email: body.email,
+          otp: body.otp,
+        },
       }),
       invalidatesTags: ['User'],
     }),
@@ -182,7 +275,10 @@ export const authApi = createApi({
       query: (body) => ({
         url: '/auth/resend-verification',
         method: 'POST',
-        body,
+        body: {
+          email: body.email,
+          identifier: body.email,
+        },
       }),
     }),
 
@@ -200,13 +296,16 @@ export const authApi = createApi({
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(
-            setCredentials({
-              user: data.user,
-              tokens: data.tokens,
-              rememberMe: true,
-            })
-          );
+          const normalized = normalizeAuthResponse(data);
+          if (normalized.user && normalized.tokens?.accessToken) {
+            dispatch(
+              setCredentials({
+                user: normalized.user,
+                tokens: normalized.tokens,
+                rememberMe: true,
+              })
+            );
+          }
         } catch {
           // Handled at component UI boundary
         }
@@ -224,6 +323,7 @@ export const {
   useLazyGetCurrentUserQuery,
   useForgotPasswordMutation,
   useVerifyOtpMutation,
+  useVerifyEmailOtpMutation,
   useResetPasswordMutation,
   useVerifyEmailMutation,
   useResendVerificationEmailMutation,
