@@ -21,6 +21,8 @@ import {
   VerifyEmailResponse,
   VerifyOtpRequest,
   VerifyOtpResponse,
+  FaceLoginRequest,
+  FaceLoginResponse,
   User,
 } from '../types/auth.types';
 import { setCredentials, setAccessToken, logout } from '../slices/authSlice';
@@ -183,6 +185,33 @@ export const authApi = createApi({
         body,
       }),
     }),
+
+    /**
+     * Authenticates user via face recognition using captured image.
+     * Expects base64-encoded JPEG image and email for user lookup.
+     */
+    faceLogin: builder.mutation<FaceLoginResponse, FaceLoginRequest>({
+      query: (body) => ({
+        url: '/auth/face-login',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Auth', 'User'],
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            setCredentials({
+              user: data.user,
+              tokens: data.tokens,
+              rememberMe: true,
+            })
+          );
+        } catch {
+          // Handled at component UI boundary
+        }
+      },
+    }),
   }),
 });
 
@@ -198,4 +227,5 @@ export const {
   useResetPasswordMutation,
   useVerifyEmailMutation,
   useResendVerificationEmailMutation,
+  useFaceLoginMutation,
 } = authApi;

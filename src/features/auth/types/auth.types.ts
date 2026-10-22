@@ -177,6 +177,17 @@ export interface ApiErrorResponse {
   details?: Record<string, string[]>;
 }
 
+export interface FaceLoginRequest {
+  email: string;
+  image: string;
+}
+
+export interface FaceLoginResponse {
+  user: User;
+  tokens: AuthTokens;
+  message?: string;
+}
+
 // Role-to-Dashboard route mapping
 export const ROLE_DASHBOARD_ROUTES: Record<UserRole, string> = {
   SUPER_ADMIN: '/dashboard/super-admin',

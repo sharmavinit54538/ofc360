@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,8 +8,9 @@ import { useLoginMutation } from '@/features/auth/api/authApi';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
 import { useToast } from '@/shared/ui/Toast';
 import { ROLE_DASHBOARD_ROUTES } from '@/features/auth/types/auth.types';
-import { usePasskey } from '@/features/auth/hooks/usePasskey';
-import { Loader2, ScanFace, ShieldCheck, AlertCircle } from 'lucide-react';
+import { GoogleAuthButton } from '@/features/auth/components/GoogleAuthButton';
+import { FaceLoginModal } from '@/features/auth/components/FaceLoginModal';
+import { Loader2, ScanFace } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +24,8 @@ export const LoginPage: React.FC = () => {
     clearError: clearPasskeyError,
     loginWithPasskey,
   } = usePasskey();
+
+  const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
 
   const redirectUrl = searchParams.get('redirect');
 
@@ -88,6 +91,10 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const openFaceLoginModal = () => {
+    setIsFaceModalOpen(true);
+  };
+
   return (
     <AuthShell
       title="Welcome back"
@@ -97,7 +104,7 @@ export const LoginPage: React.FC = () => {
       footerLinkTo="/auth/register"
     >
       <div className="space-y-5">
-        {/* Passkey / Biometric Unlock Button (Feature-detected & Hidden if unsupported) */}
+        {/* Passkey / WebAuthn Button (Feature-detected & Hidden if unsupported) */}
         {canUsePasskey && (
           <div className="space-y-3">
             <button
@@ -216,6 +223,36 @@ export const LoginPage: React.FC = () => {
             )}
           </button>
         </form>
+
+        {/* Social Login / Google SSO */}
+        <div className="space-y-3">
+          <GoogleAuthButton onSuccess={() => handleSuccessfulAuth({ fullName: '', activeRole: 'EMPLOYEE' })} />
+
+          {/* Compact Face Login Icon Button */}
+          <button
+            type="button"
+            onClick={openFaceLoginModal}
+            disabled={isLoading || isPasskeyLoading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] relative group"
+            title="Quick Face Unlock"
+            aria-label="Quick Face Unlock"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+              <ScanFace className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-medium text-slate-900">Quick Face Unlock</span>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+              Face Login
+            </div>
+          </button>
+        </div>
+
+        {/* Face Login Modal */}
+        <FaceLoginModal
+          isOpen={isFaceModalOpen}
+          onClose={() => setIsFaceModalOpen(false)}
+          email={watch('email')?.trim() || undefined}
+        />
       </div>
     </AuthShell>
   );
