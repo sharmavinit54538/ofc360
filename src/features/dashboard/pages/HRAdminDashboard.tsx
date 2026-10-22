@@ -520,43 +520,43 @@ const AnnouncementDialog: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-2xl bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4">
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white">Post Announcement</h3>
-          <button type="button" onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+      <div className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4">
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <h3 className="text-lg font-bold text-foreground">Post Announcement</h3>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Title *</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Title *</label>
             <input
               type="text"
               value={formData.title || ''}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
+              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground placeholder:text-muted-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
               placeholder="Announcement title"
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Content *</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Content *</label>
             <textarea
               value={formData.content || ''}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               rows={4}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors resize-none"
+              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground placeholder:text-muted-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors resize-none"
               placeholder="Write your announcement..."
               required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Type</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
               <select
                 value={formData.type || 'INFO'}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as Announcement['type'] })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
+                className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
               >
                 <option value="INFO">Information</option>
                 <option value="WARNING">Warning</option>
@@ -567,11 +567,11 @@ const AnnouncementDialog: React.FC<{
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Priority</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Priority</label>
               <select
                 value={formData.priority || 'MEDIUM'}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value as Announcement['priority'] })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
+                className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -581,11 +581,11 @@ const AnnouncementDialog: React.FC<{
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Target Audience</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Target Audience</label>
             <select
               value={formData.targetAudience || 'ALL'}
               onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value as Announcement['targetAudience'] })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
+              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
             >
               <option value="ALL">All Employees</option>
               <option value="DEPARTMENT">Specific Department</option>
@@ -599,11 +599,11 @@ const AnnouncementDialog: React.FC<{
               id="pinned"
               checked={formData.isPinned || false}
               onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
-              className="w-4 h-4 rounded border-slate-600 text-brand-500 focus:ring-brand-500"
+              className="w-4 h-4 rounded border-border text-brand-500 focus:ring-brand-500"
             />
-            <label htmlFor="pinned" className="text-sm text-slate-300">Pin to top of feed</label>
+            <label htmlFor="pinned" className="text-sm text-muted-foreground">Pin to top of feed</label>
           </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
             <Button type="submit" variant="primary" isLoading={loading} disabled={!formData.title || !formData.content || loading}>
               Post Announcement
@@ -902,9 +902,9 @@ export const HRAdminDashboard: React.FC = () => {
         {/* Middle Section: Attendance & Approvals Split View */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Live Pending Approvals Queue */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div className="p-5 rounded-2xl bg-card/50 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 Pending Approvals Queue
               </h3>
@@ -941,9 +941,9 @@ export const HRAdminDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: HR Command Center - Timeline Feed */}
           <div className="lg:col-span-2">
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-card/50 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Activity className="w-4 h-4 text-brand-400" />
                   HR Command Center
                 </h3>
@@ -963,9 +963,9 @@ export const HRAdminDashboard: React.FC = () => {
           {/* Right Column: Payroll Status + Upcoming Events */}
           <div className="space-y-6">
             {/* Payroll Status Card */}
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-card/50 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-emerald-400" />
                   Payroll Status
                 </h3>
@@ -980,13 +980,13 @@ export const HRAdminDashboard: React.FC = () => {
                 <ErrorDisplay error={payrollErrorData} onRetry={refetchPayroll} compact />
               ) : (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${payrollConfig.bgColor} shrink-0`}>
                         {payrollConfig.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-white">{activePayroll ? 'Active Payroll Run' : upcomingPayroll ? 'Upcoming Payroll Run' : 'No Active Payroll Run'}</div>
+                        <div className="font-medium text-foreground">{activePayroll ? 'Active Payroll Run' : upcomingPayroll ? 'Upcoming Payroll Run' : 'No Active Payroll Run'}</div>
                         <Badge variant={payrollConfig.label === 'Draft' ? 'slate' : payrollConfig.label === 'Pending Approval' ? 'warning' : 'success'} size="sm">
                           {payrollConfig.label}
                         </Badge>
@@ -996,22 +996,22 @@ export const HRAdminDashboard: React.FC = () => {
                     {activePayroll && (
                       <div className="mt-4 grid grid-cols-2 gap-3 text-[11px]">
                         <div>
-                          <div className="text-slate-400">Period</div>
-                          <div className="font-medium text-white">
+                          <div className="text-muted-foreground">Period</div>
+                          <div className="font-medium text-foreground">
                             {new Date(activePayroll.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} –{' '}
                             {new Date(activePayroll.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </div>
                         </div>
                         <div>
-                          <div className="text-slate-400">Pay Date</div>
-                          <div className="font-medium text-white">{new Date(activePayroll.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                          <div className="text-muted-foreground">Pay Date</div>
+                          <div className="font-medium text-foreground">{new Date(activePayroll.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                         </div>
                         <div>
-                          <div className="text-slate-400">Employees</div>
-                          <div className="font-medium text-white">{activePayroll.totalEmployees}</div>
+                          <div className="text-muted-foreground">Employees</div>
+                          <div className="font-medium text-foreground">{activePayroll.totalEmployees}</div>
                         </div>
                         <div>
-                          <div className="text-slate-400">Net Amount</div>
+                          <div className="text-muted-foreground">Net Amount</div>
                           <div className="font-medium text-emerald-400">{formatCurrency(activePayroll.totalNetAmount, activePayroll.currency)}</div>
                         </div>
                       </div>
@@ -1020,21 +1020,21 @@ export const HRAdminDashboard: React.FC = () => {
                     {upcomingPayroll && !activePayroll && (
                       <div className="mt-4 grid grid-cols-2 gap-3 text-[11px]">
                         <div>
-                          <div className="text-slate-400">Upcoming Period</div>
-                          <div className="font-medium text-white">
+                          <div className="text-muted-foreground">Upcoming Period</div>
+                          <div className="font-medium text-foreground">
                             {new Date(upcomingPayroll.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} –{' '}
                             {new Date(upcomingPayroll.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </div>
                         </div>
                         <div>
-                          <div className="text-slate-400">Scheduled Pay Date</div>
-                          <div className="font-medium text-white">{new Date(upcomingPayroll.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                          <div className="text-muted-foreground">Scheduled Pay Date</div>
+                          <div className="font-medium text-foreground">{new Date(upcomingPayroll.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                         </div>
                       </div>
                     )}
 
                     {!activePayroll && !upcomingPayroll && (
-                      <div className="mt-4 text-center text-slate-400">
+                      <div className="mt-4 text-center text-muted-foreground">
                         <p className="text-sm">No payroll runs scheduled</p>
                         <Button variant="outline" size="sm" className="mt-2" onClick={() => handleNavigate('/dashboard/payroll')}>
                           Create First Payroll Run
@@ -1044,19 +1044,19 @@ export const HRAdminDashboard: React.FC = () => {
                   </div>
 
                   {lastPayroll && (
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">Last Completed Run</span>
+                        <span className="text-muted-foreground">Last Completed Run</span>
                         <Badge variant="success" size="sm">Paid</Badge>
                       </div>
                       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                         <div>
                           <div className="font-bold text-emerald-400">{formatCurrency(lastPayroll.totalNetAmount, lastPayroll.currency)}</div>
-                          <div className="text-[10px] text-slate-400">Net Paid</div>
+                          <div className="text-[10px] text-muted-foreground">Net Paid</div>
                         </div>
                         <div>
-                          <div className="font-bold text-white">{lastPayroll.totalEmployees}</div>
-                          <div className="text-[10px] text-slate-400">Employees</div>
+                          <div className="font-bold text-foreground">{lastPayroll.totalEmployees}</div>
+                          <div className="text-[10px] text-muted-foreground">Employees</div>
                         </div>
                         <div>
                           <div className="font-bold text-white">{new Date(lastPayroll.paidAt || lastPayroll.processedAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
@@ -1070,9 +1070,9 @@ export const HRAdminDashboard: React.FC = () => {
             </div>
 
             {/* Upcoming Events */}
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-card/50 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-cyan-400" />
                   Upcoming Milestones
                 </h3>
