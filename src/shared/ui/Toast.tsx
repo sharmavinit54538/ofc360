@@ -63,11 +63,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           };
 
           const cardStyles = {
-            success: 'border-emerald-200/80 bg-white shadow-xl shadow-emerald-950/5',
-            error: 'border-rose-200/80 bg-white shadow-xl shadow-rose-950/5',
-            warning: 'border-amber-200/80 bg-white shadow-xl shadow-amber-950/5',
-            info: 'border-indigo-200/80 bg-white shadow-xl shadow-indigo-950/5',
+            success: 'border-emerald-200 dark:border-emerald-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-emerald-950/5 dark:shadow-emerald-900/10',
+            error: 'border-rose-200 dark:border-rose-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-rose-950/5 dark:shadow-rose-900/10',
+            warning: 'border-amber-200 dark:border-amber-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-amber-950/5 dark:shadow-amber-900/10',
+            info: 'border-indigo-200 dark:border-indigo-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-indigo-950/5 dark:shadow-indigo-900/10',
           };
+
+          const titleColor = 'text-gray-900 dark:text-[#ececec]';
+          const messageColor = 'text-gray-600 dark:text-zinc-400';
 
           return (
             <div
@@ -77,16 +80,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               {icons[t.type]}
               <div className="flex-1 min-w-0">
                 {t.title && (
-                  <h4 className="text-sm font-bold text-slate-900 mb-0.5">{t.title}</h4>
+                  <h4 className={`text-sm font-bold ${titleColor} mb-0.5`}>{t.title}</h4>
                 )}
-                <p className="text-xs text-slate-600 leading-relaxed break-words font-medium">
+                <p className={`text-xs ${messageColor} leading-relaxed break-words font-medium`}>
                   {t.message}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => dismiss(t.id)}
-                className="text-slate-400 hover:text-slate-700 transition-colors p-1 rounded-lg hover:bg-slate-100 shrink-0"
+                className="text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2f2f2f] shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>

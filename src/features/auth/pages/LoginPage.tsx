@@ -146,7 +146,7 @@ export const LoginPage: React.FC = () => {
             labelRight={
               <Link
                 to="/auth/forgot-password"
-                className="text-xs text-slate-500 hover:text-indigo-600 transition-colors font-normal"
+                className="text-xs text-gray-500 dark:text-zinc-400 hover:text-indigo-600 transition-colors font-normal"
               >
                 Forgot Password
               </Link>
@@ -164,26 +164,26 @@ export const LoginPage: React.FC = () => {
                 onClick={() => setValue('rememberMe', !rememberMe)}
                 className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
                   rememberMe
-                    ? 'border-slate-900 bg-slate-900'
-                    : 'border-slate-400/80 bg-white group-hover:border-slate-600'
+                    ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white'
+                    : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-[#171717] group-hover:border-gray-500 dark:group-hover:border-zinc-400'
                 }`}
               >
-                {rememberMe && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                {rememberMe && <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-gray-900" />}
               </div>
-              <span className="text-xs text-slate-600">Remember me on this device</span>
+              <span className="text-xs text-gray-600 dark:text-zinc-400">Remember me on this device</span>
               <input type="checkbox" className="hidden" {...register('rememberMe')} />
             </label>
           </div>
 
-          {/* Full-width Dark Sign In Button */}
+          {/* Full-width Sign In Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-4 bg-[#0d1527] hover:bg-[#1a233a] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 animate-spin text-white dark:text-gray-900" />
                 <span>Signing in...</span>
               </>
             ) : (
@@ -197,15 +197,15 @@ export const LoginPage: React.FC = () => {
           type="button"
           onClick={openFaceLoginModal}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] relative group"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] hover:bg-gray-50 dark:hover:bg-[#2f2f2f] text-gray-900 dark:text-[#ececec] text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] relative group"
           title="Quick Face Unlock"
           aria-label="Quick Face Unlock"
         >
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
             <ScanFace className="w-4 h-4 text-white" />
           </div>
-          <span className="font-medium text-slate-900">Quick Face Unlock</span>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="font-medium text-gray-900 dark:text-[#ececec]">Quick Face Unlock</span>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase px-1.5 py-0.2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded opacity-0 group-hover:opacity-100 transition-opacity">
             Face Login
           </div>
         </button>

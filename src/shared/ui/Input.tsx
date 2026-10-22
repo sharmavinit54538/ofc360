@@ -43,7 +43,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label && (
               <label
                 htmlFor={inputId}
-                className={`block font-semibold text-slate-800 ${isSm ? 'text-[11px] sm:text-xs' : 'text-xs'}`}
+                className={`block font-semibold text-gray-900 dark:text-[#ececec] ${isSm ? 'text-[11px] sm:text-xs' : 'text-xs'}`}
               >
                 {label}
               </label>
@@ -54,7 +54,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative rounded-xl">
           {leftIcon && (
-            <div className={`absolute inset-y-0 left-0 flex items-center pointer-events-none text-slate-400 ${isSm ? 'pl-3' : 'pl-3.5'}`}>
+            <div className={`absolute inset-y-0 left-0 flex items-center pointer-events-none text-gray-500 dark:text-zinc-400 ${isSm ? 'pl-3' : 'pl-3.5'}`}>
               {leftIcon}
             </div>
           )}
@@ -63,14 +63,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             type={resolvedType}
-            className={`w-full rounded-xl bg-[#eef4ff] border text-slate-900 placeholder-slate-400 transition-all duration-200 outline-none
+            className={`w-full rounded-xl bg-white dark:bg-[#171717] border text-gray-900 dark:text-[#ececec] placeholder-gray-500 dark:placeholder-zinc-500 transition-all duration-200 outline-none
               ${isSm ? 'text-xs sm:text-sm py-2 sm:py-2.5' : 'text-sm py-3'}
               ${leftIcon ? (isSm ? 'pl-9' : 'pl-10') : (isSm ? 'px-3 sm:px-3.5' : 'px-4')}
               ${rightIcon || isPassword ? (isSm ? 'pr-9 sm:pr-10' : 'pr-11') : (isSm ? 'px-3 sm:px-3.5' : 'px-4')}
               ${
                 error
-                  ? 'border-rose-400 bg-rose-50/50 focus:border-rose-500 focus:ring-4 focus:ring-rose-100'
-                  : 'border-transparent hover:bg-[#e8f0fe] focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100'
+                  ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/30 focus:border-rose-500 focus:ring-4 focus:ring-rose-100 dark:focus:ring-rose-900/30'
+                  : 'border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-[#2f2f2f] focus:bg-white dark:focus:bg-[#171717] focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30'
               }
               ${className}
             `}
@@ -82,13 +82,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword(!showPassword)}
-              className={`absolute inset-y-0 right-0 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors ${isSm ? 'pr-3' : 'pr-3.5'}`}
+              className={`absolute inset-y-0 right-0 flex items-center text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 focus:outline-none transition-colors ${isSm ? 'pr-3' : 'pr-3.5'}`}
             >
               {showPassword ? <EyeOff className={isSm ? "w-3.5 h-3.5" : "w-4 h-4"} /> : <Eye className={isSm ? "w-3.5 h-3.5" : "w-4 h-4"} />}
             </button>
           ) : (
             rightIcon && (
-              <div className={`absolute inset-y-0 right-0 flex items-center pointer-events-none text-slate-400 ${isSm ? 'pr-3' : 'pr-3.5'}`}>
+              <div className={`absolute inset-y-0 right-0 flex items-center pointer-events-none text-gray-500 dark:text-zinc-400 ${isSm ? 'pr-3' : 'pr-3.5'}`}>
                 {rightIcon}
               </div>
             )
@@ -98,15 +98,15 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {/* Error message displayed cleanly underneath input (no overlap) */}
         {error ? (
           <div className="flex items-center gap-1.5 pt-0.5 transition-all duration-200 animate-in fade-in slide-in-from-top-1">
-            <div className="w-3.5 h-3.5 rounded bg-[#e65100] text-white flex items-center justify-center font-bold text-[9px] shrink-0 leading-none shadow-xs">
+            <div className="w-3.5 h-3.5 rounded bg-rose-600 text-white flex items-center justify-center font-bold text-[9px] shrink-0 leading-none shadow-xs">
               !
             </div>
-            <p className="text-[11px] text-slate-700 font-medium leading-tight">
+            <p className="text-[11px] text-rose-700 dark:text-rose-300 font-medium leading-tight">
               {error}
             </p>
           </div>
         ) : helperText ? (
-          <p className="text-xs text-slate-500">{helperText}</p>
+          <p className="text-xs text-gray-500 dark:text-zinc-400">{helperText}</p>
         ) : null}
       </div>
     );

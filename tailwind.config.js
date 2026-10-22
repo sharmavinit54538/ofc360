@@ -21,11 +21,24 @@ export default {
           900: '#312e81',
           950: '#1e1b4b',
         },
-        slate: {
-          850: '#151e2e',
-          900: '#0f172a',
-          950: '#090d16',
-        }
+        chatgpt: {
+          light: {
+            bg: '#ffffff',
+            canvas: '#f9f9f9',
+            surface: '#f4f4f4',
+            surfaceBorder: '#e5e5e5',
+            textPrimary: '#0d0d0d',
+            textSecondary: '#5d5d5d',
+          },
+          dark: {
+            bg: '#212121',
+            surface: '#171717',
+            surfaceElevated: '#2f2f2f',
+            surfaceBorder: '#383838',
+            textPrimary: '#ececec',
+            textSecondary: '#b4b4b4',
+          },
+        },
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],

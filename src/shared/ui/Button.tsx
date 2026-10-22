@@ -26,19 +26,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
 
     const variants = {
       primary:
-        'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white shadow-lg shadow-brand-500/25 border border-brand-400/30 focus:ring-brand-500',
+        'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white shadow-lg shadow-brand-500/25 border border-brand-400/30 focus:ring-brand-500 focus:ring-offset-white dark:focus:ring-offset-[#212121]',
       secondary:
-        'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700/60 focus:ring-slate-400',
+        'bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 focus:ring-gray-400 focus:ring-offset-white dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 dark:border-gray-300 dark:focus:ring-offset-[#212121]',
       outline:
-        'bg-transparent hover:bg-slate-800/60 text-slate-200 border border-slate-700 hover:border-slate-600 focus:ring-brand-500',
+        'bg-transparent hover:bg-gray-100 dark:hover:bg-[#2f2f2f] text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 focus:ring-brand-500 focus:ring-offset-white dark:focus:ring-offset-[#212121]',
       ghost:
-        'bg-transparent hover:bg-slate-850 text-slate-300 hover:text-white focus:ring-slate-500',
+        'bg-transparent hover:bg-gray-100 dark:hover:bg-[#2f2f2f] text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white focus:ring-gray-400 focus:ring-offset-white dark:focus:ring-offset-[#212121]',
       danger:
-        'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-lg shadow-rose-500/20 border border-rose-400/30 focus:ring-rose-500',
+        'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-lg shadow-rose-500/20 border border-rose-400/30 focus:ring-rose-500 focus:ring-offset-white dark:focus:ring-offset-[#212121]',
     };
 
     const sizes = {

@@ -91,7 +91,7 @@ export const VerifyEmailPage: React.FC = () => {
       <AuthShell title="Validating email" subtitle="Verifying your workspace activation token...">
         <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-          <p className="text-sm text-slate-500">Please hold while we verify your domain.</p>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">Please hold while we verify your domain.</p>
         </div>
       </AuthShell>
     );
@@ -108,21 +108,21 @@ export const VerifyEmailPage: React.FC = () => {
         footerLinkTo="/auth/login"
       >
         <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-5">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-slate-900">Workspace Activated</h3>
-            <p className="text-xs text-slate-500 max-w-sm">
-              Your account <span className="font-semibold text-slate-800">{email}</span> is now fully verified.
+            <h3 className="text-base font-bold text-gray-900 dark:text-[#ececec]">Workspace Activated</h3>
+            <p className="text-xs text-gray-600 dark:text-zinc-400 max-w-sm">
+              Your account <span className="font-semibold text-gray-900 dark:text-[#ececec]">{email}</span> is now fully verified.
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => navigate('/auth/login')}
-            className="w-full max-w-sm py-3.5 px-4 bg-[#0d1527] hover:bg-[#1e293b] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99]"
+            className="w-full max-w-sm py-3.5 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99]"
           >
             Continue to Sign in
           </button>
@@ -142,12 +142,12 @@ export const VerifyEmailPage: React.FC = () => {
         footerLinkTo="/auth/login"
       >
         <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-5">
-          <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500">
+          <div className="w-14 h-14 rounded-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <AlertTriangle className="w-7 h-7" />
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-600 dark:text-zinc-400">
               {(error as any)?.data?.message || 'Please request a fresh verification link.'}
             </p>
           </div>
@@ -156,7 +156,7 @@ export const VerifyEmailPage: React.FC = () => {
             type="button"
             onClick={handleResend}
             disabled={countdown > 0}
-            className="w-full max-w-sm py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm rounded-xl transition-colors"
+            className="w-full max-w-sm py-3 px-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-900 dark:text-white font-semibold text-sm rounded-xl transition-colors"
           >
             {countdown > 0 ? `Resend in ${countdown}s` : 'Resend verification link'}
           </button>
@@ -176,9 +176,9 @@ export const VerifyEmailPage: React.FC = () => {
         <div className="w-full max-w-sm">
           {/* Header - centered */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">Enter code</h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Please enter the code sent to <span className="font-semibold text-slate-900">{email}</span>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-[#ececec]">Enter code</h1>
+            <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
+              Please enter the code sent to <span className="font-semibold text-gray-900 dark:text-[#ececec]">{email}</span>
             </p>
           </div>
 
@@ -200,7 +200,7 @@ export const VerifyEmailPage: React.FC = () => {
             <button
               type="submit"
               disabled={otp.length !== 6 || isVerifyingOtp}
-              className="w-full h-12 bg-[#0d0d0d] hover:bg-[#202020] text-white font-medium text-sm rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-medium text-sm rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isVerifyingOtp ? (
                 <>
@@ -214,16 +214,16 @@ export const VerifyEmailPage: React.FC = () => {
           </form>
 
           {/* Footer: Resend */}
-          <div className="text-center text-sm text-slate-500 mt-6">
+          <div className="text-center text-sm text-gray-600 dark:text-zinc-400 mt-6">
             Didn't receive the email?{' '}
             {countdown > 0 ? (
-              <span className="font-medium text-slate-700">Wait {countdown}s to resend</span>
+              <span className="font-medium text-gray-900 dark:text-[#ececec]">Wait {countdown}s to resend</span>
             ) : (
               <button
                 type="button"
                 onClick={handleResend}
                 disabled={isResending}
-                className="text-slate-600 hover:text-slate-900 font-semibold underline underline-offset-2 inline-flex items-center gap-1.5 transition-colors"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white font-semibold underline underline-offset-2 inline-flex items-center gap-1.5 transition-colors"
               >
                 {isResending ? (
                   <>
@@ -238,11 +238,11 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
 
           {/* Back to login link */}
-          <div className="text-center text-sm text-slate-500 mt-4">
+          <div className="text-center text-sm text-gray-600 dark:text-zinc-400 mt-4">
             <span>Already verified? </span>
             <a
               href="/auth/login"
-              className="text-slate-600 hover:text-slate-900 font-semibold underline underline-offset-2 transition-colors"
+              className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white font-semibold underline underline-offset-2 transition-colors"
             >
               Sign in
             </a>

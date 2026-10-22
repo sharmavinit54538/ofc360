@@ -183,14 +183,14 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in">
-        <div className="flex items-center justify-between p-4 border-b border-slate-100">
-          <h3 className="text-lg font-semibold text-slate-900">Quick Face Unlock</h3>
+      <div className="w-full max-w-md bg-white dark:bg-[#171717] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in border border-gray-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#ececec]">Quick Face Unlock</h3>
           <button
             type="button"
             onClick={handleClose}
             disabled={isVerifying || isApiLoading}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1.5 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#2f2f2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -198,7 +198,7 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
         </div>
 
         <div className="relative p-4">
-          <div className="relative aspect-video bg-slate-900 rounded-xl overflow-hidden">
+          <div className="relative aspect-video bg-gray-900 dark:bg-gray-950 rounded-xl overflow-hidden">
             <video
               ref={videoRef}
               autoPlay
@@ -208,7 +208,7 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
               aria-label="Camera preview for face login"
             />
             {!isStreamActive && !capturedImage && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-900/50">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-400 bg-gray-900/50 dark:bg-gray-950/50">
                 <Camera className="w-12 h-12 mb-3 opacity-50" />
                 <p className="text-sm">Initializing camera...</p>
               </div>
@@ -257,19 +257,19 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
             )}
 
             {capturedImage && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 dark:bg-gray-950/90">
                 <img
                   src={capturedImage}
                   alt="Captured face"
                   className="w-48 h-48 rounded-full object-cover border-4 border-emerald-400 shadow-xl"
                 />
-                <p className="mt-3 text-sm text-slate-300">Face captured</p>
+                <p className="mt-3 text-sm text-gray-300 dark:text-zinc-300">Face captured</p>
               </div>
             )}
           </div>
 
           {error && (
-            <div className="mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-2 animate-in fade-in">
+            <div className="mt-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-300 text-sm flex items-start gap-2 animate-in fade-in">
               <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <p>{error}</p>
             </div>
@@ -289,7 +289,7 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
               >
                 {countdown !== null ? `Capturing in ${countdown}...` : 'Capture & Login'}
               </Button>
-              <p className="text-center text-xs text-slate-500">
+              <p className="text-center text-xs text-gray-600 dark:text-zinc-400">
                 Position your face within the cyan frame. Auto-captures in 3 seconds.
               </p>
             </div>
@@ -322,7 +322,7 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-slate-500 hover:text-slate-700"
+            className="w-full text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
             onClick={handleClose}
             disabled={isVerifying || isApiLoading}
           >

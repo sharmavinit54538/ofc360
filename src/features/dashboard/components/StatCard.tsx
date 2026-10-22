@@ -20,20 +20,21 @@ export const StatCard: React.FC<StatCardProps> = ({
   value,
   subtext,
   icon: Icon,
-  valueColor = 'text-white',
+  iconColor,
+  valueColor = 'text-gray-900 dark:text-[#ececec]',
   className = '',
 }) => {
   return (
     <div
-      className={`p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2 transition-colors hover:border-slate-700/80 ${className}`}
+      className={`p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 space-y-2 transition-colors hover:border-gray-300 dark:hover:border-zinc-700 ${className}`}
     >
-      <div className="flex items-center justify-between text-slate-400">
+      <div className="flex items-center justify-between text-gray-600 dark:text-zinc-400">
         <span className="text-xs uppercase font-semibold tracking-wider">{label}</span>
         {Icon && (
           <div className="shrink-0">
             {typeof Icon === 'function' ? (
               // Lucide component
-              <Icon className="w-4 h-4 text-slate-400" />
+              <Icon className={`w-4 h-4 ${iconColor || 'text-gray-600 dark:text-zinc-400'}`} />
             ) : (
               // ReactNode element
               Icon
@@ -42,7 +43,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         )}
       </div>
       <div className={`text-2xl font-bold ${valueColor}`}>{value}</div>
-      {subtext && <div className="text-[11px] text-slate-400 font-medium">{subtext}</div>}
+      {subtext && <div className="text-[11px] text-gray-600 dark:text-zinc-400 font-medium">{subtext}</div>}
     </div>
   );
 };

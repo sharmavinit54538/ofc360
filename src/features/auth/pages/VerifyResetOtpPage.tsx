@@ -90,7 +90,7 @@ export const VerifyResetOtpPage: React.FC = () => {
             hasError={hasError}
             disabled={isVerifying}
           />
-          <p className="text-xs text-slate-400 pt-1">
+          <p className="text-xs text-gray-600 dark:text-zinc-400 pt-1">
             Enter the 6 digits or paste the code directly
           </p>
         </div>
@@ -98,11 +98,11 @@ export const VerifyResetOtpPage: React.FC = () => {
         <button
           type="submit"
           disabled={otp.length !== 6 || isVerifying}
-          className="w-full py-3.5 px-4 bg-[#0d1527] hover:bg-[#1e293b] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3.5 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isVerifying ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <Loader2 className="w-4 h-4 animate-spin text-white dark:text-gray-900" />
               <span>Verifying code...</span>
             </>
           ) : (
@@ -110,10 +110,10 @@ export const VerifyResetOtpPage: React.FC = () => {
           )}
         </button>
 
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-xs text-gray-600 dark:text-zinc-400">
           Didn&apos;t receive the code?{' '}
           {resendCountdown > 0 ? (
-            <span className="font-medium text-slate-700">Resend in {resendCountdown}s</span>
+            <span className="font-medium text-gray-900 dark:text-[#ececec]">Resend in {resendCountdown}s</span>
           ) : (
             <button
               type="button"

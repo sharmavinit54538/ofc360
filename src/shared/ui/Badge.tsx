@@ -16,43 +16,43 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
   className = '',
 }) => {
-  let colorStyles = 'bg-brand-500/10 text-brand-300 border-brand-500/20';
+  let colorStyles = 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/30';
 
   if (role) {
     switch (role) {
       case 'SUPER_ADMIN':
-        colorStyles = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+        colorStyles = 'bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/30';
         break;
       case 'HR_ADMIN':
-        colorStyles = 'bg-pink-500/15 text-pink-300 border-pink-500/30';
+        colorStyles = 'bg-pink-50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-900/30';
         break;
       case 'MANAGER':
-        colorStyles = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+        colorStyles = 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/30';
         break;
       case 'EMPLOYEE':
-        colorStyles = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+        colorStyles = 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30';
         break;
       case 'IT_ADMIN':
-        colorStyles = 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30';
+        colorStyles = 'bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/30';
         break;
     }
   } else {
     switch (variant) {
       case 'success':
-        colorStyles = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+        colorStyles = 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30';
         break;
       case 'warning':
-        colorStyles = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+        colorStyles = 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/30';
         break;
       case 'danger':
-        colorStyles = 'bg-rose-500/10 text-rose-300 border-rose-500/20';
+        colorStyles = 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/30';
         break;
       case 'slate':
-        colorStyles = 'bg-slate-800 text-slate-300 border-slate-700';
+        colorStyles = 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border-gray-200 dark:border-zinc-700';
         break;
       case 'brand':
       default:
-        colorStyles = 'bg-brand-500/10 text-brand-300 border-brand-500/20';
+        colorStyles = 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/30';
         break;
     }
   }

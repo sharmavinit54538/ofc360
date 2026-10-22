@@ -1,0 +1,197 @@
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, PanelLeft, Building2 } from 'lucide-react';
+import { DASHBOARD_TABS, SIDEBAR_SECTIONS, type DashboardTabItem, type SidebarSection } from './dashboardTabs.data';
+
+export interface DashboardSidebarProps {
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}
+
+const SIDEBAR_WIDTH = 'w-64';
+const SIDEBAR_COLLAPSED_WIDTH = 'w-16';
+
+export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
+  activeTab = 'overview',
+  onTabChange,
+  collapsed = false,
+  onToggleCollapse,
+}) => {
+  const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
+    core: true,
+    recruitment: true,
+    aihub: true,
+    hrops: true,
+  });
+
+  const toggleSection = (section: SidebarSection) => {
+    const sectionConfig = SIDEBAR_SECTIONS.find((s) => s.id === section);
+    if (!sectionConfig?.collapsible) return;
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const sectionTabs = useMemo(() => {
+    const tabsBySection: Record<SidebarSection, DashboardTabItem[]> = {
+      core: [],
+      recruitment: [],
+      aihub: [],
+      hrops: [],
+    };
+    DASHBOARD_TABS.forEach((tab) => {
+      tabsBySection[tab.section].push(tab);
+    });
+    return tabsBySection;
+  }, []);
+
+  const renderTabItem = (tab: DashboardTabItem, isCollapsed: boolean) => {
+    const isActive = activeTab === tab.id;
+    const Icon = tab.icon;
+
+    if (isCollapsed) {
+      return (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={isActive}
+          aria-label={tab.label}
+          onClick={() => onTabChange?.(tab.id)}
+          className={`
+            relative flex items-center justify-center px-3 py-2.5 rounded-lg transition-colors duration-150
+            ${isActive
+              ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white'
+              : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+            }
+          `}
+          title={tab.label}
+        >
+<Icon className="w-[18px] h-[18px] flex-shrink-0" />
+        </button>
+      );
+    }
+
+    return (
+      <button
+        key={tab.id}
+        type="button"
+        role="tab"
+        aria-selected={isActive}
+        onClick={() => onTabChange?.(tab.id)}
+        className={`
+          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
+          ${isActive
+            ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-semibold'
+            : 'text-slate-600 dark:text-zinc-400 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-zinc-100'
+          }
+        `}
+      >
+        <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+        <span className="truncate">{tab.label}</span>
+      </button>
+    );
+  };
+
+  const renderSection = (sectionConfig: typeof SIDEBAR_SECTIONS[0], isCollapsed: boolean) => {
+    const tabs = sectionTabs[sectionConfig.id] || [];
+    const isExpanded = expandedSections[sectionConfig.id];
+    const isCollapsible = sectionConfig.collapsible;
+
+    if (tabs.length === 0) return null;
+
+    return (
+      <div key={sectionConfig.id} className="flex flex-col gap-1">
+        {/* Section Header (for collapsible sections) or just tabs for core */}
+        {isCollapsible && !isCollapsed && (
+          <button
+            type="button"
+            onClick={() => toggleSection(sectionConfig.id)}
+            className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
+            aria-expanded={isExpanded}
+          >
+            <sectionConfig.icon className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 truncate">{sectionConfig.label}</span>
+            <ChevronDown
+              className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+        )}
+
+        {/* Section Content - tabs or collapsed icons */}
+        {!isCollapsible || isExpanded || isCollapsed ? (
+          <div className={`flex flex-col gap-1 ${isCollapsible && !isExpanded && !isCollapsed ? 'hidden' : ''}`}>
+            {tabs.map((tab) => renderTabItem(tab, isCollapsed))}
+          </div>
+        ) : (
+          <div className="h-0 overflow-hidden transition-all duration-200" />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <aside
+      className={`${collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH} shrink-0 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out overflow-hidden`}
+      aria-label="Dashboard navigation"
+    >
+      {/* Sidebar Header: Single consolidated clean flex row */}
+      {!collapsed ? (
+        <div className="h-16 flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
+          {/* Left side: The sidebar collapse/expand toggle icon button */}
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+            >
+              <PanelLeft className="w-5 h-5" strokeWidth={2} />
+            </button>
+          )}
+
+          {/* Right side: The single official brand logo (OFC360 with its building icon) */}
+          <Link to="/" className="flex items-center gap-2.5 min-w-0 flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 p-0.5 shadow-md shadow-brand-500/20 flex-shrink-0">
+              <div className="w-full h-full bg-white dark:bg-[#171717] rounded-[10px] flex items-center justify-center border border-slate-200 dark:border-zinc-800">
+                <Building2 className="w-5 h-5 text-brand-400" />
+              </div>
+            </div>
+            <span className="font-bold text-slate-900 dark:text-white text-base tracking-tight whitespace-nowrap">
+              OFC<span className="text-brand-400">360</span>
+            </span>
+          </Link>
+        </div>
+      ) : (
+        <div className="h-16 flex items-center justify-center px-3 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+            >
+              <PanelLeft className="w-5 h-5" strokeWidth={2} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Sidebar Navigation Content */}
+      <nav
+        className="flex-1 flex flex-col gap-2 p-3 overflow-y-auto no-scrollbar"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        role="navigation"
+        aria-label="Dashboard modules"
+      >
+        {SIDEBAR_SECTIONS.map((sectionConfig) =>
+          renderSection(sectionConfig, collapsed)
+        )}
+      </nav>
+    </aside>
+  );
+};
+
+export default DashboardSidebar;

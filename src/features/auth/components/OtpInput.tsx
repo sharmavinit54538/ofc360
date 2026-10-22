@@ -104,10 +104,10 @@ export const OtpInput: React.FC<OtpInputProps> = ({
           className={`w-11 h-13 text-center text-xl font-semibold rounded-xl border transition-all duration-200 outline-none
             ${
               hasError
-                ? 'border-rose-400 text-rose-600 placeholder:text-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                ? 'border-rose-400 text-rose-600 dark:text-rose-400 placeholder:text-rose-300 dark:placeholder:text-rose-600 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
                 : digits[idx]
-                ? 'border-emerald-500 text-emerald-700 bg-emerald-50 placeholder:text-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                : 'border-gray-300 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 hover:border-gray-400 dark:hover:border-zinc-600 focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white'
+                ? 'border-emerald-500 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 placeholder:text-emerald-200 dark:placeholder:text-emerald-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                : 'border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 hover:border-gray-400 dark:hover:border-zinc-600 focus:border-gray-900 dark:focus:border-white focus:ring-1 focus:ring-gray-900 dark:focus:ring-white'
             }
             disabled:opacity-50 disabled:cursor-not-allowed
           `}

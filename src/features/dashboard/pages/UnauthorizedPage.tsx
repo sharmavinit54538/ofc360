@@ -22,39 +22,39 @@ export const UnauthorizedPage: React.FC = () => {
   const homeRoute = activeRole ? ROLE_DASHBOARD_ROUTES[normalizeRole(activeRole)] : '/auth/login';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#212121] text-gray-900 dark:text-[#ececec] flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-200">
       {/* Background ambient red glow */}
-      <div className="absolute top-1/3 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 w-96 h-96 bg-rose-500/10 dark:bg-rose-950/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-lg p-8 rounded-3xl bg-slate-900/80 border border-rose-500/30 backdrop-blur-xl shadow-2xl space-y-6 text-center relative z-10">
-        <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto shadow-xl shadow-rose-950/40">
+      <div className="w-full max-w-lg p-8 rounded-3xl bg-white dark:bg-[#171717] border border-rose-200 dark:border-rose-900/30 shadow-2xl space-y-6 text-center relative z-10">
+        <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 mx-auto shadow-xl shadow-rose-950/10 dark:shadow-rose-900/20">
           <ShieldAlert className="w-8 h-8" />
         </div>
 
         <div className="space-y-2">
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/30 uppercase tracking-wider">
             HTTP 403 Forbidden &bull; RBAC Clearance Required
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Access Denied</h1>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-[#ececec]">Access Denied</h1>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
             You do not possess the required clearance or administrative privileges to view this section of the OFC360 workspace.
           </p>
         </div>
 
         {/* Role Comparison Matrix Card */}
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-left space-y-3">
+        <div className="p-4 rounded-xl bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-left space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">Your Current Active Role:</span>
+            <span className="text-gray-600 dark:text-zinc-400">Your Current Active Role:</span>
             {activeRole ? (
               <Badge role={activeRole}>{activeRole}</Badge>
             ) : (
-              <span className="font-mono text-slate-400 text-xs">Unassigned</span>
+              <span className="font-mono text-gray-600 dark:text-zinc-400 text-xs">Unassigned</span>
             )}
           </div>
 
           {allowedRoles.length > 0 && (
-            <div className="flex items-start justify-between text-xs pt-2 border-t border-slate-800/80">
-              <span className="text-slate-400">Allowed Roles for this Module:</span>
+            <div className="flex items-start justify-between text-xs pt-2 border-t border-gray-200 dark:border-zinc-700">
+              <span className="text-gray-600 dark:text-zinc-400">Allowed Roles for this Module:</span>
               <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
                 {allowedRoles.map((r) => (
                   <Badge key={r} role={r} size="sm">
@@ -66,9 +66,9 @@ export const UnauthorizedPage: React.FC = () => {
           )}
 
           {state?.from?.pathname && (
-            <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-              <span className="text-slate-400">Attempted Route:</span>
-              <code className="text-rose-300 bg-rose-950/40 px-2 py-0.5 rounded text-[11px] font-mono">
+            <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-200 dark:border-zinc-700">
+              <span className="text-gray-600 dark:text-zinc-400">Attempted Route:</span>
+              <code className="text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/40 px-2 py-0.5 rounded text-[11px] font-mono">
                 {state.from.pathname}
               </code>
             </div>
@@ -77,8 +77,8 @@ export const UnauthorizedPage: React.FC = () => {
 
         {/* Demo Fast-Switch Option (Allows the user to promote their test role) */}
         {allowedRoles.length > 0 && (
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-brand-500/30 text-left space-y-2">
-            <div className="text-[11px] font-semibold text-brand-300">
+          <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/30 text-left space-y-2">
+            <div className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
               Interactive Test: Switch to an Authorized Role:
             </div>
             <div className="flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ export const UnauthorizedPage: React.FC = () => {
                       navigate(ROLE_DASHBOARD_ROUTES[r]);
                     }
                   }}
-                  className="text-xs px-2.5 py-1.5 rounded-lg bg-brand-600/30 hover:bg-brand-600/60 border border-brand-500/50 text-brand-200 font-medium transition-colors"
+                  className="text-xs px-2.5 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium transition-colors"
                 >
                   Switch to {r.replace('_', ' ')}
                 </button>

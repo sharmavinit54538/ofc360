@@ -43,9 +43,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     if (isAuthError) {
       return {
         icon: ShieldAlert,
-        iconColor: 'text-rose-500',
-        bgColor: 'bg-rose-500/10 border-rose-500/20',
-        textColor: 'text-rose-300',
+        iconColor: 'text-rose-600 dark:text-rose-400',
+        bgColor: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/30',
+        textColor: 'text-rose-700 dark:text-rose-300',
         defaultTitle: 'Access Denied',
         defaultMessage: 'You do not have permission to view this data. Please contact your administrator.',
       };
@@ -53,9 +53,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     if (isServerError) {
       return {
         icon: AlertTriangle,
-        iconColor: 'text-amber-500',
-        bgColor: 'bg-amber-500/10 border-amber-500/20',
-        textColor: 'text-amber-300',
+        iconColor: 'text-amber-600 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/30',
+        textColor: 'text-amber-700 dark:text-amber-300',
         defaultTitle: 'Server Error',
         defaultMessage: 'The server encountered an error. Please try again in a moment.',
       };
@@ -63,9 +63,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     if (isNotFound) {
       return {
         icon: AlertCircle,
-        iconColor: 'text-slate-500',
-        bgColor: 'bg-slate-800/50 border-slate-700',
-        textColor: 'text-slate-400',
+        iconColor: 'text-gray-600 dark:text-zinc-400',
+        bgColor: 'bg-gray-50 dark:bg-zinc-900/30 border-gray-200 dark:border-zinc-800',
+        textColor: 'text-gray-700 dark:text-zinc-300',
         defaultTitle: 'Not Found',
         defaultMessage: 'The requested resource was not found.',
       };
@@ -73,18 +73,18 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     if (isNetworkError) {
       return {
         icon: AlertTriangle,
-        iconColor: 'text-rose-500',
-        bgColor: 'bg-rose-500/10 border-rose-500/20',
-        textColor: 'text-rose-300',
+        iconColor: 'text-rose-600 dark:text-rose-400',
+        bgColor: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/30',
+        textColor: 'text-rose-700 dark:text-rose-300',
         defaultTitle: 'Connection Error',
         defaultMessage: 'Unable to connect to the server. Please check your network and try again.',
       };
     }
     return {
       icon: AlertCircle,
-      iconColor: 'text-rose-500',
-      bgColor: 'bg-rose-500/10 border-rose-500/20',
-      textColor: 'text-rose-300',
+      iconColor: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/30',
+      textColor: 'text-rose-700 dark:text-rose-300',
       defaultTitle: 'Error',
       defaultMessage: message || 'An unexpected error occurred.',
     };
@@ -128,7 +128,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
           {errorDetails && (
             <details className="mt-3 text-xs">
               <summary className={`cursor-pointer ${config.textColor}/70`}>Error Details</summary>
-              <pre className="mt-2 p-3 bg-slate-900/50 rounded-lg overflow-auto text-[10px] text-slate-400">
+              <pre className="mt-2 p-3 bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-auto text-[10px] text-gray-600 dark:text-zinc-400">
                 {errorDetails}
               </pre>
             </details>
@@ -152,7 +152,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 };
 
 export const InlineError: React.FC<{ message: string; onDismiss?: () => void }> = ({ message, onDismiss }) => (
-  <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300">
+  <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-300">
     <AlertCircle className="w-4 h-4 shrink-0" />
     <span className="text-sm flex-1">{message}</span>
     {onDismiss && (

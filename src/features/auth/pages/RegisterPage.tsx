@@ -146,19 +146,19 @@ export const RegisterPage: React.FC = () => {
               onClick={() => setValue('termsAccepted', !termsAccepted, { shouldValidate: true })}
               className={`w-4 h-4 rounded-full border transition-all flex items-center justify-center shrink-0 ${
                 termsAccepted
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-400 bg-white group-hover:border-slate-600'
+                  ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white'
+                  : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-[#171717] group-hover:border-gray-500 dark:group-hover:border-zinc-400'
               }`}
             >
               {termsAccepted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
             </div>
-            <span className="text-xs text-slate-600 leading-normal">
+            <span className="text-xs text-gray-600 dark:text-zinc-400 leading-normal">
               I agree to the OFC360{' '}
-              <a href="#terms" className="text-slate-900 font-semibold hover:underline">
+              <a href="#terms" className="text-gray-900 dark:text-[#ececec] font-semibold hover:underline">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="#privacy" className="text-slate-900 font-semibold hover:underline">
+              <a href="#privacy" className="text-gray-900 dark:text-[#ececec] font-semibold hover:underline">
                 Privacy Policy
               </a>
               .
@@ -166,7 +166,7 @@ export const RegisterPage: React.FC = () => {
             <input type="checkbox" className="hidden" {...register('termsAccepted')} />
           </label>
           {errors.termsAccepted?.message && (
-            <p className="text-[11px] text-rose-500 mt-0.5">{errors.termsAccepted.message}</p>
+            <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-0.5">{errors.termsAccepted.message}</p>
           )}
         </div>
 
@@ -174,11 +174,11 @@ export const RegisterPage: React.FC = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-2.5 sm:py-3 px-4 bg-[#0d1527] hover:bg-[#1e293b] text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+          className="w-full py-2.5 sm:py-3 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-semibold text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <Loader2 className="w-4 h-4 animate-spin text-white dark:text-gray-900" />
               <span>Creating workspace...</span>
             </>
           ) : (
