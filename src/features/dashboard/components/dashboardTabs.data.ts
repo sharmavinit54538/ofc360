@@ -51,6 +51,7 @@ import {
   Sparkles,
   LayoutGrid,
 } from 'lucide-react';
+import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
 export type SidebarSection =
   | 'overview'
@@ -704,7 +705,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   {
     id: 'chat-assistant',
     label: 'Chat Assistant',
-    icon: MessageSquare,
+    icon: GeminiIcon,
     group: 'aihub',
     section: 'aihub',
     component: ChatAssistantPage,

@@ -4,7 +4,6 @@ import {
   LogOut,
   Bell,
   Search,
-  ChevronDown,
   Shield,
   Sun,
   Moon,
@@ -116,13 +115,13 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-2.5 p-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100/90 dark:bg-[#262626] border border-gray-200/80 dark:border-zinc-700/80 hover:bg-gray-200/80 dark:hover:bg-[#303030] hover:border-gray-300 dark:hover:border-zinc-600 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="p-1.5 rounded-full bg-gray-100/90 dark:bg-[#262626] border border-gray-200/80 dark:border-zinc-700/80 hover:bg-gray-200/80 dark:hover:bg-[#303030] hover:border-gray-300 dark:hover:border-zinc-600 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-expanded={profileMenuOpen}
                 aria-haspopup="true"
-                aria-label="User account menu"
+                aria-label="Open profile menu"
               >
                 {/* Circular User Avatar with subtle gray background and white initials */}
-                <div className="w-8 h-8 rounded-full bg-zinc-600 dark:bg-zinc-700 text-white flex items-center justify-center font-semibold text-xs shrink-0 overflow-hidden select-none ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                <div className="w-11 h-11 rounded-full bg-zinc-600 dark:bg-zinc-700 text-white flex items-center justify-center font-semibold text-sm shrink-0 overflow-hidden select-none ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
                   {user?.avatarUrl && !avatarError ? (
                     <img
                       src={user.avatarUrl}
@@ -134,18 +133,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                     <span>{getInitials(user?.fullName)}</span>
                   )}
                 </div>
-
-                {/* Dynamic User Name - visible on sm+ screens */}
-                <span className="hidden sm:inline-block text-sm font-medium text-gray-800 dark:text-zinc-200 truncate max-w-[130px] md:max-w-[170px]">
-                  {user?.fullName || 'User'}
-                </span>
-
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 transition-transform duration-200 shrink-0 ${
-                    profileMenuOpen ? 'rotate-180' : ''
-                  }`}
-                  aria-hidden="true"
-                />
               </button>
 
               {profileMenuOpen && (

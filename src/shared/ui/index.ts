@@ -42,3 +42,6 @@ export type { ErrorDisplayProps } from './ErrorDisplay';
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './Tabs';
+
+export { GeminiIcon } from './GeminiIcon';
+export type { GeminiIconProps } from './GeminiIcon';
