@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Briefcase, Plus } from 'lucide-react';
+import { X, Briefcase, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Textarea } from '@/shared/ui/Textarea';
 import { useToast } from '@/shared/ui/Toast';
 import type { DepartmentItem } from '@/features/workforce/types/workforce.types';
 import type { EmployeeItem } from '@/features/workforce/types/workforce.types';
-import { useCreateJobMutation } from '../api/recruitmentApi';
+import { useCreateJobMutation, useGenerateJobDescriptionMutation } from '../api/recruitmentApi';
 import { createJobSchema, type CreateJobFormData } from '../schemas/recruitment.schemas';
 
 interface CreateJobModalProps {
@@ -50,6 +50,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 }) => {
   const toast = useToast();
   const [createJob, { isLoading: isSaving }] = useCreateJobMutation();
+  const [generateJd, { isLoading: isGenerating }] = useGenerateJobDescriptionMutation();
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
 
@@ -57,6 +58,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     register,
     handleSubmit,
     setValue,
+    watch,
     reset,
     formState: { errors },
   } = useForm<CreateJobFormData>({
@@ -104,6 +106,60 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     const next = skills.filter((_, i) => i !== index);
     setSkills(next);
     setValue('skills', next, { shouldValidate: true });
+  };
+
+  // AI-Powered Automatic JD Generator — collect current requisition
+  // parameters and post them to the AI tool.
+  const watchTitle = watch('title');
+  const watchDepartmentId = watch('departmentId');
+  const watchLocation = watch('location');
+  const watchJobType = watch('jobType');
+  const watchOpenings = watch('openingsCount');
+  const watchExpMin = watch('experienceMinYears');
+  const watchExpMax = watch('experienceMaxYears');
+  const watchMinSalary = watch('minSalary');
+  const watchMaxSalary = watch('maxSalary');
+  const watchCurrency = watch('currency');
+
+  const canGenerateJd =
+    Boolean(watchTitle && watchTitle.trim().length >= 3) &&
+    Boolean(watchDepartmentId) &&
+    Boolean(watchLocation && watchLocation.trim().length >= 2);
+
+  const handleGenerateJd = async () => {
+    const departmentName =
+      departments.find((dept) => dept.id === watchDepartmentId)?.name || watchDepartmentId;
+    try {
+      const result = await generateJd({
+        toolType: 'JOB_DESCRIPTION',
+        promptInput: {
+          title: (watchTitle || '').trim(),
+          department: departmentName,
+          location: (watchLocation || '').trim(),
+          jobType: watchJobType,
+          openingsCount: Number.isFinite(watchOpenings) ? watchOpenings : undefined,
+          expMin: Number.isFinite(watchExpMin) ? Number(watchExpMin) : 0,
+          expMax: Number.isFinite(watchExpMax) ? Number(watchExpMax) : 0,
+          minSalary: Number.isFinite(watchMinSalary) ? Number(watchMinSalary) : undefined,
+          maxSalary: Number.isFinite(watchMaxSalary) ? Number(watchMaxSalary) : undefined,
+          currency: watchCurrency,
+          skills,
+        },
+      }).unwrap();
+      if (result?.generatedJd && result.generatedJd.trim().length > 0) {
+        setValue('description', result.generatedJd, { shouldValidate: true });
+        toast.success(
+          result.tokensUsed
+            ? `Job description generated (${result.tokensUsed} tokens). Review and edit before publishing.`
+            : 'Job description generated. Review and edit before publishing.',
+          'AI JD Ready'
+        );
+      } else {
+        toast.warning('The AI tool returned an empty description. Please try again.', 'Nothing Generated');
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'AI JD generation failed. Write it manually or retry.', 'AI Error');
+    }
   };
 
   const onSubmit = async (data: CreateJobFormData) => {
@@ -253,13 +309,39 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
           </Field>
 
           <div className="space-y-1.5">
-            <label htmlFor="job-description" className="text-xs font-semibold text-gray-900 dark:text-[#ececec]">
-              Job Description
-            </label>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <label htmlFor="job-description" className="text-xs font-semibold text-gray-900 dark:text-[#ececec]">
+                Job Description
+              </label>
+              <div className="flex items-center gap-2">
+                {!canGenerateJd && !isGenerating && (
+                  <span className="text-[10px] text-gray-400 dark:text-zinc-500">
+                    Fill title, department & location first
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleGenerateJd}
+                  isLoading={isGenerating}
+                  disabled={!canGenerateJd || isGenerating}
+                  leftIcon={isGenerating ? undefined : <Sparkles className="w-3.5 h-3.5 text-violet-500" />}
+                  className="text-xs"
+                  title="Generate a structured, publish-ready JD from the fields above"
+                >
+                  {isGenerating ? 'Generating JD...' : '✨ Generate JD with AI'}
+                </Button>
+              </div>
+            </div>
             <Textarea
               id="job-description"
               rows={4}
-              placeholder="Responsibilities, expectations, growth path… (min 20 characters)"
+              placeholder={
+                isGenerating
+                  ? 'AI is drafting your job description...'
+                  : 'Responsibilities, expectations, growth path… (min 20 characters) — or let AI draft it'
+              }
               error={Boolean(errors.description)}
               {...register('description')}
             />

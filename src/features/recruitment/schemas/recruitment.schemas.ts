@@ -47,7 +47,7 @@ export const createJobSchema = z
     maxSalary: z
       .number({ message: 'Enter the maximum salary' })
       .nonnegative('Maximum salary cannot be negative'),
-    currency: z.string().min(3, 'Currency code is required'),
+    currency: z.enum(['INR', 'USD', 'EUR', 'GBP'], { message: 'Please select a currency' }),
     description: z.string().min(20, 'Description must be at least 20 characters'),
     skills: z.array(z.string().min(1)).min(1, 'Add at least one required skill'),
     hiringManagerId: z.string().min(1, 'Please select a hiring manager'),

@@ -8,6 +8,9 @@
 /** Employment category for a job requisition. */
 export type JobType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERN';
 
+/** ISO-4217 currency codes supported on compensation bands. */
+export type CurrencyCode = 'INR' | 'USD' | 'EUR' | 'GBP';
+
 /** Lifecycle status of a job opening. */
 export type JobOpeningStatus = 'DRAFT' | 'PUBLISHED' | 'ON_HOLD' | 'CLOSED';
 
@@ -60,13 +63,13 @@ export interface CreateJobPayload {
   title: string;
   departmentId: string;
   location: string;
-  jobType: string;
+  jobType: JobType;
   openingsCount: number;
   experienceMinYears: number;
   experienceMaxYears: number;
   minSalary: number;
   maxSalary: number;
-  currency: string;
+  currency: CurrencyCode;
   description: string;
   skills: string[];
   hiringManagerId: string;
@@ -175,4 +178,36 @@ export interface RecruitmentStatsQueryParams {
 export interface InterviewFilterParams {
   date?: string;
   status?: string;
+}
+
+/**
+ * Request payload for the AI-powered automatic Job Description
+ * generator tool. Carries the requisition parameters the model uses to
+ * compose a structured, publish-ready JD.
+ */
+export interface GenerateJdRequestPayload {
+  toolType: 'JOB_DESCRIPTION';
+  promptInput: {
+    title: string;
+    department: string;
+    location: string;
+    jobType: JobType;
+    openingsCount?: number;
+    expMin: number;
+    expMax: number;
+    minSalary?: number;
+    maxSalary?: number;
+    currency: CurrencyCode;
+    skills: string[];
+  };
+}
+
+/**
+ * AI tool response holding the generated Job Description in Markdown /
+ * structured text (About the Role, Key Responsibilities, Qualifications,
+ * Nice-to-Have, Benefits).
+ */
+export interface GenerateJdResponse {
+  generatedJd: string;
+  tokensUsed?: number;
 }
