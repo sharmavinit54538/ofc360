@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Clock,
   MapPin,
-  Fingerprint,
+  ScanFace,
   Navigation,
   AlertTriangle,
   Building2,
@@ -21,6 +21,7 @@ import {
 } from '../api/attendanceApi';
 import { punchInSchema, punchOutSchema } from '../schemas/attendance.schemas';
 import type { WorkMode } from '../types/attendance.types';
+import { FaceAttendanceModal, type FaceAttendanceResult } from './FaceAttendanceModal';
 
 const WORK_MODES: { id: WorkMode; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'OFFICE', label: 'Office', icon: Building2 },
@@ -47,6 +48,7 @@ export const PunchInOutCard: React.FC = () => {
 
   const [workMode, setWorkMode] = useState<WorkMode>('OFFICE');
   const [workNotes, setWorkNotes] = useState('');
+  const [faceModalAction, setFaceModalAction] = useState<'IN' | 'OUT' | null>(null);
   const [geoState, setGeoState] = useState<{
     status: 'idle' | 'fetching' | 'ready' | 'denied';
     coords?: GeolocationCoordinates;
@@ -90,9 +92,9 @@ export const PunchInOutCard: React.FC = () => {
     );
   };
 
-  const handlePunchIn = async () => {
+  const handlePunchIn = async (faceData?: FaceAttendanceResult) => {
     const payload = {
-      timestamp: new Date().toISOString(),
+      timestamp: faceData?.verifiedAt || new Date().toISOString(),
       workMode,
       ...(geoState.coords
         ? { latitude: geoState.coords.latitude, longitude: geoState.coords.longitude }
@@ -109,7 +111,7 @@ export const PunchInOutCard: React.FC = () => {
     try {
       await punchIn(payload).unwrap();
       toast.success(
-        `Punched in at ${formatTime(payload.timestamp)} (${workMode === 'WFM' ? 'Work From Home' : workMode})`,
+        `Face verified & punched in at ${formatTime(payload.timestamp)} (${workMode === 'WFM' ? 'Work From Home' : workMode})`,
         'Shift Started'
       );
     } catch (err: any) {
@@ -117,9 +119,9 @@ export const PunchInOutCard: React.FC = () => {
     }
   };
 
-  const handlePunchOut = async () => {
+  const handlePunchOut = async (faceData?: FaceAttendanceResult) => {
     const payload = {
-      timestamp: new Date().toISOString(),
+      timestamp: faceData?.verifiedAt || new Date().toISOString(),
       workNotes: workNotes.trim() || undefined,
       ...(geoState.coords
         ? { latitude: geoState.coords.latitude, longitude: geoState.coords.longitude }
@@ -135,7 +137,7 @@ export const PunchInOutCard: React.FC = () => {
     try {
       await punchOut(payload).unwrap();
       toast.success(
-        `Punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`,
+        `Face verified & punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`,
         'Shift Ended'
       );
       setWorkNotes('');
@@ -309,23 +311,23 @@ export const PunchInOutCard: React.FC = () => {
               <Button
                 variant="danger"
                 size="md"
-                onClick={handlePunchOut}
+                onClick={() => setFaceModalAction('OUT')}
                 isLoading={isBusy}
-                leftIcon={<Clock className="w-4 h-4" />}
-                className="whitespace-nowrap font-bold px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-lg"
+                leftIcon={<ScanFace className="w-4 h-4" />}
+                className="whitespace-nowrap font-bold px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-lg text-sm"
               >
-                Punch Out
+                Punch Out (Face ID)
               </Button>
             ) : !isShiftCompleted ? (
               <Button
                 variant="primary"
                 size="md"
-                onClick={handlePunchIn}
+                onClick={() => setFaceModalAction('IN')}
                 isLoading={isBusy}
-                leftIcon={<Fingerprint className="w-4 h-4" />}
+                leftIcon={<ScanFace className="w-4 h-4 text-blue-600" />}
                 className="whitespace-nowrap font-bold px-6 py-2.5 bg-white text-blue-800 hover:bg-blue-50 border-0 shadow-lg text-sm"
               >
-                Punch In Now
+                Punch In (Face ID)
               </Button>
             ) : (
               <div className="text-xs font-semibold text-emerald-300 bg-emerald-500/20 px-3 py-1.5 rounded-lg border border-emerald-400/30">
@@ -350,6 +352,22 @@ export const PunchInOutCard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Biometric Face Attendance Modal */}
+      <FaceAttendanceModal
+        isOpen={faceModalAction !== null}
+        action={faceModalAction || 'IN'}
+        onClose={() => setFaceModalAction(null)}
+        workMode={workMode}
+        hasLocation={geoState.status === 'ready'}
+        onVerified={async (faceResult) => {
+          if (faceModalAction === 'IN') {
+            await handlePunchIn(faceResult);
+          } else {
+            await handlePunchOut(faceResult);
+          }
+        }}
+      />
     </div>
   );
 };
