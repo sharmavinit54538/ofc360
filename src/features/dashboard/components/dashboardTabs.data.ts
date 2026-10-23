@@ -163,8 +163,7 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     id: 'documents',
     label: 'Documents & Compliance',
     icon: FolderKanban,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 9,
   },
   {
@@ -197,6 +196,7 @@ const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPa
 const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentHubPage'));
 const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
 const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
+const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
 const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/AnalyticsCenterPage'));
 const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
 const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
@@ -375,47 +375,16 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 10. DOCUMENTS & COMPLIANCE (5 tabs) - Collapsible group
+  // 10. DOCUMENTS & COMPLIANCE (1 tab - links to /dashboard/documents)
   // ==========================================
   {
     id: 'documents',
-    label: 'Documents',
+    label: 'Documents & Compliance',
     icon: FolderKanban,
     group: 'documents',
     section: 'documents',
-    component: ComingSoonView,
-  },
-  {
-    id: 'recruitment-compliance',
-    label: 'Recruitment Compliance',
-    icon: ShieldCheck,
-    group: 'documents',
-    section: 'documents',
-    component: ComingSoonView,
-  },
-  {
-    id: 'compliance-monitor',
-    label: 'Compliance Monitor',
-    icon: ShieldAlert,
-    group: 'documents',
-    section: 'documents',
-    component: ComingSoonView,
-  },
-  {
-    id: 'policy-assistant',
-    label: 'Policy Assistant',
-    icon: BookOpen,
-    group: 'documents',
-    section: 'documents',
-    component: ComingSoonView,
-  },
-  {
-    id: 'document-generator',
-    label: 'Document Generator',
-    icon: FilePlus2,
-    group: 'documents',
-    section: 'documents',
-    component: ComingSoonView,
+    path: '/dashboard/documents',
+    component: DocumentsComplianceHubPage,
   },
 
   // ==========================================
@@ -463,6 +432,10 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'analytics-center': 'reports',
   'hiring-reports': 'reports',
   'recruitment-analytics': 'reports',
+  'recruitment-compliance': 'documents',
+  'compliance-monitor': 'documents',
+  'policy-assistant': 'documents',
+  'document-generator': 'documents',
 };
 
 /**

@@ -21,6 +21,7 @@ import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-manageme
 import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
 import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
+import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
 import { AIAnalyticsCenterRoute } from '@/routes/ai.analytics-center';
 import { DashboardReportsRoute } from '@/routes/dashboard.reports';
 import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
@@ -323,6 +324,40 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardHrOpsRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Recruitment Hub & Applicant Pipeline */}
+      <Route
+        path="/dashboard/recruitment"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardRecruitmentRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Documents & Compliance Hub */}
+      <Route
+        path="/dashboard/documents"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardDocumentsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/compliance"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardDocumentsRoute />
           </ProtectedRoute>
         }
       />
