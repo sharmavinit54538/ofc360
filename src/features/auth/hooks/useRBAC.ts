@@ -15,8 +15,8 @@ export const useRBAC = () => {
   const canonicalActiveRole = currentRole ? normalizeRole(currentRole) : null;
   const normalizedRoles = Array.from(
     new Set([
-      ...(roles || []).map((r) => normalizeRole(r)),
-      ...(user?.roles || []).map((r) => normalizeRole(r)),
+      ...(roles || []).map((r: string) => normalizeRole(r)),
+      ...(user?.roles || []).map((r: string) => normalizeRole(r)),
       ...(canonicalActiveRole ? [canonicalActiveRole] : []),
     ])
   );

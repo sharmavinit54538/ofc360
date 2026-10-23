@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate, Outlet, NavLink } from 'react-router-dom';
+import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -22,10 +22,13 @@ import {
   RotateCcw,
   HelpCircle,
   Settings as SettingsIcon,
+  ArrowLeft,
 } from 'lucide-react';
-import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { useAppSelector } from '@/app/hooks';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/Badge';
+import { DashboardShell } from '@/shared/layout/DashboardShell';
+import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 import { useGetCompanySettingsQuery } from '@/features/settings/api/settingsApi';
@@ -35,7 +38,7 @@ import type { SettingCategory, SettingsSection } from '@/features/settings/types
 // Section Configuration
 // ==========================================
 
-const SETTINGS_SECTIONS: SettingsSection[] = [
+export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: 'company',
     label: 'Company',
@@ -110,7 +113,7 @@ const SETTINGS_SECTIONS: SettingsSection[] = [
   },
 ];
 
-const SECTION_ICONS: Record<SettingCategory, React.ComponentType<{ className?: string }>> = {
+export const SECTION_ICONS: Record<SettingCategory, React.ComponentType<{ className?: string }>> = {
   company: Building2,
   employees: Users,
   attendance: Clock,
@@ -204,7 +207,6 @@ const UnsavedChangesBanner: React.FC<UnsavedChangesBannerProps> = ({
 // ==========================================
 
 const ApiUnavailableAlert: React.FC<ApiUnavailableAlertProps> = ({ onRetry, message }) => {
-  const { error } = useToast();
 
   const handleRetry = useCallback(() => {
     onRetry();
@@ -249,7 +251,7 @@ interface SettingsSidebarProps {
   userPermissions: string[];
 }
 
-const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
+export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   activeSection,
   onSectionChange,
   dirtySections,
@@ -379,23 +381,44 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
 export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, hasPermission } = useAppSelector((state) => ({
-    user: state.auth.user,
-    hasPermission: (perm: string) => state.auth.user?.permissions.includes(perm as any) ?? false,
-  }));
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const user = useAppSelector((state) => state.auth.user);
   const { success, error: toastError } = useToast();
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, []);
+
+  const handleSidebarTabChange = useCallback(
+    (tabId: string) => {
+      if (tabId === 'settings') {
+        navigate('/settings');
+      } else {
+        navigate(`/dashboard/hr-admin#${tabId}`);
+      }
+    },
+    [navigate]
+  );
 
   const [activeSection, setActiveSection] = useState<SettingCategory>('company');
   const [dirtySections, setDirtySections] = useState<SettingCategory[]>([]);
-  const [apiError, setApiError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Get user permissions
   const userPermissions = useMemo(() => user?.permissions || [], [user?.permissions]);
 
+  const filteredSections = useMemo(() => {
+    return SETTINGS_SECTIONS.filter((section) => {
+      if (section.requiredPermissions.length === 0) return true;
+      return section.requiredPermissions.some((perm) => userPermissions.includes(perm));
+    });
+  }, [userPermissions]);
+
+  const isOverview = location.pathname === '/settings' || location.pathname === '/settings/';
+
   // Determine current section from URL
   const currentSectionFromUrl = useMemo(() => {
-    const path = location.pathname.replace('/settings/', '');
+    const path = location.pathname.replace('/settings/', '').replace('/settings', '');
     const section = SETTINGS_SECTIONS.find((s) => s.id === path);
     return section?.id || 'company';
   }, [location.pathname]);
@@ -414,7 +437,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   const hasApiError = companyError !== undefined;
 
   const handleRetry = useCallback(() => {
-    setApiError(null);
     navigate(location.pathname, { replace: true });
   }, [location.pathname, navigate]);
 
@@ -429,8 +451,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   const handleSaveAll = useCallback(async () => {
     setIsSaving(true);
     try {
-      // Each section handles its own save via its form submit
-      // This triggers a custom event that sections can listen to
       window.dispatchEvent(new CustomEvent('settings:save-all'));
       setDirtySections([]);
       success('All changes saved successfully', 'Settings Saved');
@@ -462,76 +482,117 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   }), [activeSection, dirtySections, isSaving, userPermissions, markDirty, markClean]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex">
-      {/* Sidebar */}
-      <SettingsSidebar
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        dirtySections={dirtySections}
-        isLoading={isLoading}
-        apiError={apiError}
-        onRetry={handleRetry}
-        userPermissions={userPermissions}
-      />
+    <DashboardShell
+      sidebar={
+        <DashboardSidebar
+          activeTab="settings"
+          onTabChange={handleSidebarTabChange}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
+      }
+      sidebarCollapsed={sidebarCollapsed}
+      onSidebarToggle={toggleSidebar}
+    >
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-[#121212]">
+        {/* If inside a specific section, show sub-header with Back to Settings button, breadcrumb, pills, and export/import */}
+        {!isOverview && (
+          <div className="sticky top-0 z-20 bg-white/95 dark:bg-[#171717]/95 backdrop-blur border-b border-slate-200 dark:border-zinc-800 px-4 md:px-8 py-3">
+            <div className="flex flex-col gap-3 max-w-7xl mx-auto">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/settings')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>All Settings</span>
+                  </button>
+                  <span className="text-slate-300 dark:text-zinc-700">/</span>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-base font-semibold text-slate-900 dark:text-white capitalize">
+                      {SETTINGS_SECTIONS.find((s) => s.id === activeSection)?.label || 'Settings'}
+                    </h1>
+                    {dirtySections.length > 0 && (
+                      <Badge variant="warning" size="sm" className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                        {dirtySections.length} unsaved
+                      </Badge>
+                    )}
+                  </div>
+                </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="h-16 border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-950/95 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white capitalize">
-              {SETTINGS_SECTIONS.find((s) => s.id === activeSection)?.label || 'Settings'}
-            </h1>
-            {dirtySections.length > 0 && (
-              <Badge variant="warning" size="sm" className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                {dirtySections.length} unsaved
-              </Badge>
-            )}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.dispatchEvent(new CustomEvent('settings:export'))}
+                    disabled={isLoading}
+                  >
+                    Export
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => document.getElementById('settings-import')?.click()}
+                    disabled={isLoading}
+                  >
+                    Import
+                  </Button>
+                  <input
+                    id="settings-import"
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        window.dispatchEvent(new CustomEvent('settings:import', { detail: formData }));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Horizontal Pill Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {filteredSections.map((sec) => {
+                  const SecIcon = sec.icon;
+                  const isActive = activeSection === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      type="button"
+                      onClick={() => navigate(`/settings/${sec.id}`)}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all duration-150',
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                          : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white'
+                      )}
+                    >
+                      <SecIcon className="w-3.5 h-3.5" />
+                      <span>{sec.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => window.dispatchEvent(new CustomEvent('settings:export'))}
-              disabled={isLoading}
-            >
-              Export
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => document.getElementById('settings-import')?.click()}
-              disabled={isLoading}
-            >
-              Import
-            </Button>
-            <input
-              id="settings-import"
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  window.dispatchEvent(new CustomEvent('settings:import', { detail: formData }));
-                }
-              }}
-            />
-          </div>
-        </header>
+        )}
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <SettingsContext.Provider value={settingsContext}>
               {children || <Outlet />}
             </SettingsContext.Provider>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Global Alerts */}
       <UnsavedChangesBanner
@@ -544,10 +605,16 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
       {hasApiError && (
         <ApiUnavailableAlert
           onRetry={handleRetry}
-          message={companyError?.message || 'Failed to load settings. Please check your connection.'}
+          message={
+            (companyError && 'data' in companyError && typeof (companyError.data as any)?.message === 'string'
+              ? (companyError.data as any).message
+              : (companyError && 'message' in companyError && typeof (companyError as any).message === 'string'
+                ? (companyError as any).message
+                : 'Failed to load settings. Please check your connection.'))
+          }
         />
       )}
-    </div>
+    </DashboardShell>
   );
 };
 

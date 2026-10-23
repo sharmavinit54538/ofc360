@@ -20,9 +20,12 @@ import { DashboardVisitorsRoute } from '@/routes/dashboard.visitors';
 import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-management';
 import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
+import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { AIAnalyticsCenterRoute } from '@/routes/ai.analytics-center';
+import { DashboardReportsRoute } from '@/routes/dashboard.reports';
 import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
 import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
+import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
 import { DashboardAttendanceRostersRoute } from '@/routes/dashboard.attendance.rosters';
 import { DashboardAttendanceHolidaysRoute } from '@/routes/dashboard.attendance.holidays';
@@ -31,6 +34,7 @@ import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
 // Settings Module
 import { SettingsLayout } from '@/features/settings/components/SettingsLayout';
+import { SettingsOverview } from '@/features/settings/components/SettingsOverview';
 import { CompanySection } from '@/features/settings/components/CompanySection';
 import { EmployeesSection } from '@/features/settings/components/EmployeesSection';
 import { AttendanceSection } from '@/features/settings/components/AttendanceSection';
@@ -175,6 +179,18 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
+      {/* Recruitment & Talent Acquisition Hub */}
+      <Route
+        path="/dashboard/recruitment"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}
+          >
+            <DashboardRecruitmentRoute />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Corporate Travel Requests & Approvals */}
       <Route
         path="/dashboard/travel"
@@ -313,6 +329,16 @@ export const AppRoutes: React.FC = () => {
 
       {/* Workforce Analytics & AI Intelligence Center */}
       <Route
+        path="/dashboard/reports"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardReportsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/analytics"
         element={
           <ProtectedRoute
@@ -407,6 +433,38 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
+      {/* AI Intelligence Hub Control Center */}
+      <Route
+        path="/dashboard/ai-hub"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAIHubRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/aihub"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAIHubRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai/hub"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAIHubRoute />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Workforce Attendance: Shifts, Rosters & Holidays */}
       <Route
         path="/dashboard/attendance/shifts"
@@ -450,7 +508,7 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/settings/company" replace />} />
+        <Route index element={<SettingsOverview />} />
         <Route path="company" element={<CompanySection />} />
         <Route path="employees" element={<EmployeesSection />} />
         <Route path="attendance" element={<AttendanceSection />} />

@@ -7,7 +7,7 @@
 import { fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { Mutex } from 'async-mutex';
 import { RootState } from '@/app/store';
-import { setAccessToken, logout } from '@/features/auth/slices/authSlice';
+import { setAccessToken } from '@/features/auth/slices/authSlice';
 
 /**
  * Global mutex instance to synchronize concurrent 401 token refresh requests.

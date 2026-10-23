@@ -8,7 +8,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
-import { HrOpsPage } from '@/features/hr-ops/pages/HrOpsPage';
+import { HrOpsHubPage } from '@/features/hr-ops/pages/HrOpsHubPage';
 
 export const DashboardHrOpsRoute: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export const DashboardHrOpsRoute: React.FC = () => {
     <DashboardShell
       sidebar={
         <DashboardSidebar
-          activeTab="hrops-dashboard"
+          activeTab="hrops"
           onTabChange={handleTabChange}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebar}
@@ -39,7 +39,7 @@ export const DashboardHrOpsRoute: React.FC = () => {
       sidebarCollapsed={sidebarCollapsed}
       onSidebarToggle={toggleSidebar}
     >
-      <HrOpsPage />
+      <HrOpsHubPage />
     </DashboardShell>
   );
 };

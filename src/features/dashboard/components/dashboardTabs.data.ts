@@ -110,8 +110,7 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     id: 'recruitment',
     label: 'Recruitment',
     icon: Briefcase,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 2,
   },
   {
@@ -150,16 +149,14 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     id: 'reports',
     label: 'Reports & Analytics',
     icon: LineChart,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 7,
   },
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
     icon: Bot,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 8,
   },
   {
@@ -174,16 +171,14 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     id: 'hrops',
     label: 'HR Operations',
     icon: Activity,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 10,
   },
   {
     id: 'settings',
-    label: 'Settings & Integrations',
+    label: 'Settings',
     icon: Settings,
-    collapsible: true,
-    defaultExpanded: false,
+    collapsible: false,
     order: 11,
   },
 ];
@@ -198,6 +193,10 @@ const VisitorsPage = React.lazy(() => import('@/features/visitors/pages/Visitors
 const AssetManagementPage = React.lazy(() => import('@/features/assets/pages/AssetManagementPage'));
 const TimelinePage = React.lazy(() => import('@/features/timeline/pages/TimelinePage'));
 const HrOpsPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsPage'));
+const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPage'));
+const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentHubPage'));
+const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
+const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
 const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/AnalyticsCenterPage'));
 const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
 const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
@@ -255,191 +254,16 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 3. RECRUITMENT (27 tabs) - Collapsible group
+  // 3. RECRUITMENT (1 tab - links to /dashboard/recruitment)
   // ==========================================
   {
-    id: 'recruitment-dashboard',
-    label: 'Dashboard',
-    icon: LayoutGrid,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'requisitions',
-    label: 'Requisitions',
-    icon: FileSpreadsheet,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'all-jobs',
-    label: 'All Jobs',
+    id: 'recruitment',
+    label: 'Recruitment',
     icon: Briefcase,
     group: 'recruitment',
     section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'create-job',
-    label: 'Create Job',
-    icon: FilePlus,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'candidates',
-    label: 'Candidates',
-    icon: UserSearch,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'talent-pool',
-    label: 'Talent Pool',
-    icon: UserCheck,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'pipeline',
-    label: 'Pipeline',
-    icon: Layers,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'interviews',
-    label: 'Interviews',
-    icon: CalendarCheck,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'interview-calendar',
-    label: 'Interview Calendar',
-    icon: CalendarDays,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'scorecards',
-    label: 'Scorecards',
-    icon: ClipboardCheck,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'offers',
-    label: 'Offers',
-    icon: FileText,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'recruitment-onboarding',
-    label: 'Onboarding',
-    icon: UserCheck,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'candidate-crm',
-    label: 'Candidate CRM',
-    icon: MessageSquare,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'resume-intelligence',
-    label: 'Resume Intelligence',
-    icon: ScanText,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'email-templates',
-    label: 'Email Templates',
-    icon: Mail,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'referrals',
-    label: 'Referrals',
-    icon: Gift,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'vendors',
-    label: 'Vendors',
-    icon: Building2,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'career-site',
-    label: 'Career Site',
-    icon: Globe,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'automation',
-    label: 'Automation',
-    icon: Workflow,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'compliance',
-    label: 'Compliance',
-    icon: ShieldCheck,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'global-search',
-    label: 'Global Search',
-    icon: Search,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    icon: Bell,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'import-export',
-    label: 'Import/Export',
-    icon: Download,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
+    path: '/dashboard/recruitment',
+    component: RecruitmentHubPage,
   },
 
   // ==========================================
@@ -525,139 +349,29 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 8. REPORTS & ANALYTICS (3 tabs) - Collapsible group
+  // 8. REPORTS & ANALYTICS (1 tab - links to /dashboard/reports)
   // ==========================================
   {
-    id: 'analytics-center',
-    label: 'Analytics Center',
+    id: 'reports',
+    label: 'Reports & Analytics',
     icon: LineChart,
     group: 'reports',
     section: 'reports',
-    component: AnalyticsCenterPage,
-  },
-  {
-    id: 'hiring-reports',
-    label: 'Hiring Reports',
-    icon: BarChart2,
-    group: 'reports',
-    section: 'reports',
-    component: ComingSoonView,
-  },
-  {
-    id: 'recruitment-analytics',
-    label: 'Recruitment Analytics',
-    icon: LineChart,
-    group: 'reports',
-    section: 'reports',
-    component: ComingSoonView,
+    path: '/dashboard/reports',
+    component: ReportsAnalyticsHubPage,
   },
 
   // ==========================================
-  // 9. AI INTELLIGENCE HUB (17 tabs) - Collapsible group
+  // 9. AI INTELLIGENCE HUB (1 tab - links to /dashboard/ai-hub)
   // ==========================================
   {
-    id: 'aihub-dashboard',
-    label: 'Hub Dashboard',
-    icon: LayoutGrid,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'workforce-insights',
-    label: 'Workforce Insights',
-    icon: Brain,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'ai-recruiter',
-    label: 'AI Recruiter',
-    icon: Briefcase,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'attendance-monitor',
-    label: 'Attendance Monitor',
-    icon: Clock,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'leave-assistant',
-    label: 'Leave Assistant',
-    icon: FileText,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'performance-coach',
-    label: 'Performance Coach',
-    icon: Gauge,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'payroll-insights',
-    label: 'Payroll Insights',
-    icon: CreditCard,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'workforce-planning',
-    label: 'Workforce Planning',
-    icon: Target,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'employee-health',
-    label: 'Employee Health',
-    icon: HeartPulse,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'meeting-intelligence',
-    label: 'Meeting Intelligence',
-    icon: Video,
-    group: 'aihub',
-    section: 'aihub',
-    component: MeetingIntelligencePage,
-  },
-  {
-    id: 'chat-assistant',
-    label: 'Chat Assistant',
-    icon: GeminiIcon,
-    group: 'aihub',
-    section: 'aihub',
-    component: ChatAssistantPage,
-  },
-  {
-    id: 'recruitment-ai',
-    label: 'Recruitment AI',
-    icon: Sparkles,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'ai-copilot',
-    label: 'AI Copilot',
+    id: 'aihub',
+    label: 'AI Intelligence Hub',
     icon: Bot,
     group: 'aihub',
     section: 'aihub',
-    component: ComingSoonView,
+    path: '/dashboard/ai-hub',
+    component: AIHubPage,
   },
 
   // ==========================================
@@ -705,79 +419,24 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 11. HR OPERATIONS (9 tabs) - Collapsible group
+  // 11. HR OPERATIONS (1 tab - links to /dashboard/hr-ops)
   // ==========================================
   {
-    id: 'hrops-dashboard',
-    label: 'HR Ops Dashboard',
-    icon: LayoutDashboard,
-    group: 'hrops',
-    section: 'hrops',
-    component: HrOpsPage,
-  },
-  {
-    id: 'employee-timeline',
-    label: 'Employee Timeline',
+    id: 'hrops',
+    label: 'HR Operations',
     icon: Activity,
     group: 'hrops',
     section: 'hrops',
-    component: TimelinePage,
-  },
-  {
-    id: 'asset-management',
-    label: 'Asset Management',
-    icon: Box,
-    group: 'hrops',
-    section: 'hrops',
-    component: AssetManagementPage,
-  },
-  {
-    id: 'visitor-management',
-    label: 'Visitor Management',
-    icon: Users,
-    group: 'hrops',
-    section: 'hrops',
-    component: VisitorsPage,
-  },
-  {
-    id: 'expense-claims',
-    label: 'Expense Claims',
-    icon: Receipt,
-    group: 'hrops',
-    section: 'hrops',
-    component: ExpenseClaimsPage,
-  },
-  {
-    id: 'travel-requests',
-    label: 'Travel Requests',
-    icon: Plane,
-    group: 'hrops',
-    section: 'hrops',
-    component: TravelRequestsPage,
-  },
-  {
-    id: 'onboarding-checklist',
-    label: 'Onboarding Checklist',
-    icon: UserCheck,
-    group: 'hrops',
-    section: 'hrops',
-    component: OnboardingChecklistPage,
-  },
-  {
-    id: 'exit-management',
-    label: 'Exit Management',
-    icon: LogOut,
-    group: 'hrops',
-    section: 'hrops',
-    component: ExitManagementPage,
+    path: '/dashboard/hr-ops',
+    component: HrOpsHubPage,
   },
 
   // ==========================================
-  // 12. SETTINGS & INTEGRATIONS (1 tab - links to /settings)
+  // 12. SETTINGS (1 tab - links to /settings)
   // ==========================================
   {
     id: 'settings',
-    label: 'Settings & Integrations',
+    label: 'Settings',
     icon: Settings,
     group: 'settings',
     section: 'settings',
@@ -788,6 +447,22 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
 
 export const LEGACY_ALIASES: Record<string, string> = {
   'ai-insights': 'analytics-center',
+  'hrops-dashboard': 'hrops',
+  'recruitment-dashboard': 'recruitment',
+  'all-jobs': 'recruitment',
+  'requisitions': 'recruitment',
+  'candidates': 'recruitment',
+  'pipeline': 'recruitment',
+  'interviews': 'recruitment',
+  'offers': 'recruitment',
+  'aihub-dashboard': 'aihub',
+  'chat-assistant': 'aihub',
+  'meeting-intelligence': 'aihub',
+  'ai-recruiter': 'aihub',
+  'workforce-insights': 'aihub',
+  'analytics-center': 'reports',
+  'hiring-reports': 'reports',
+  'recruitment-analytics': 'reports',
 };
 
 /**

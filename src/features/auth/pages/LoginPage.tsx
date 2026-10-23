@@ -96,24 +96,23 @@ export const LoginPage: React.FC = () => {
       const normalized = normalizeAuthResponse(rawResponse, data.email);
       console.log('[LoginPage] Normalized auth payload:', normalized);
 
-      // Check if multi-step email verification / OTP is required by FastAPI
-      // Only redirect to verify-email if user is NOT already verified
-      const isVerificationRequired = Boolean(
-        normalized.requiresEmailVerification &&
-        !normalized.user.isEmailVerified &&
-        (rawResponse.verification_id || rawResponse.data?.verification_id)
-      );
+      // Backend may ask for an email OTP step (multi-step login).
+      // Go to verify-email when no token was issued, or when the user is still unverified.
+      const verificationId =
+        rawResponse.data?.verification_id ||
+        rawResponse.verification_id ||
+        '';
 
-      if (isVerificationRequired) {
+      if (
+        normalized.requiresEmailVerification &&
+        verificationId &&
+        (!normalized.tokens.accessToken || !normalized.user.isEmailVerified)
+      ) {
         const emailToVerify =
           rawResponse.data?.email ||
           rawResponse.email ||
           rawResponse.data?.masked_email ||
           data.email;
-        const verificationId =
-          rawResponse.data?.verification_id ||
-          rawResponse.verification_id ||
-          '';
 
         toast.info(
           rawResponse.message || 'Email verification is required. An OTP has been dispatched to your email.',
@@ -122,6 +121,16 @@ export const LoginPage: React.FC = () => {
         navigate(
           `/auth/verify-email?email=${encodeURIComponent(emailToVerify)}&vid=${encodeURIComponent(verificationId)}`
         );
+        return;
+      }
+
+      // Never navigate without a token: ProtectedRoute would just bounce back to /auth/login
+      if (!normalized.tokens.accessToken) {
+        console.error(
+          '[LoginPage] 200 OK but no access token. Response keys:',
+          Object.keys(rawResponse?.data ?? rawResponse ?? {})
+        );
+        toast.error('Login succeeded but the server returned no access token.', 'Login Failed');
         return;
       }
 

@@ -20,7 +20,7 @@ import {
   logout as logoutAction,
 } from '../slices/authSlice';
 import { useLoginMutation, useLogoutMutation } from '../api/authApi';
-import { UserRole, Permission, LoginRequest, LoginResponse, normalizeRole, normalizeAuthResponse, normalizeUser, parseJwtPayload } from '../types/auth.types';
+import { User, UserRole, Permission, LoginRequest, LoginResponse, normalizeRole, normalizeAuthResponse, normalizeUser, parseJwtPayload } from '../types/auth.types';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -158,7 +158,7 @@ export const useAuth = () => {
     (permission: Permission): boolean => {
       if (!user) return false;
       const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
-      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r: string) => normalizeRole(r)).includes('SUPER_ADMIN')) {
         return true;
       }
       return permissions.includes(permission);
@@ -170,7 +170,7 @@ export const useAuth = () => {
     (perms: Permission[]): boolean => {
       if (!user) return false;
       const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
-      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r: string) => normalizeRole(r)).includes('SUPER_ADMIN')) {
         return true;
       }
       return perms.some((p) => permissions.includes(p));
@@ -182,7 +182,7 @@ export const useAuth = () => {
     (perms: Permission[]): boolean => {
       if (!user) return false;
       const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
-      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r: string) => normalizeRole(r)).includes('SUPER_ADMIN')) {
         return true;
       }
       return perms.every((p) => permissions.includes(p));

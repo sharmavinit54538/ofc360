@@ -1,4 +1,5 @@
-export { SettingsLayout, useSettingsContext } from './SettingsLayout';
+export { SettingsLayout, useSettingsContext, SETTINGS_SECTIONS } from './SettingsLayout';
+export { SettingsOverview } from './SettingsOverview';
 export { CompanySection } from './CompanySection';
 export { EmployeesSection } from './EmployeesSection';
 export { AttendanceSection } from './AttendanceSection';
