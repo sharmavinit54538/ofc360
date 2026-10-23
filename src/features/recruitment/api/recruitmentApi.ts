@@ -23,6 +23,8 @@ import type {
   ScheduleInterviewPayload,
   RecruitmentFilterParams,
   InterviewFilterParams,
+  GenerateJdRequestPayload,
+  GenerateJdResponse,
 } from '../types/recruitment.types';
 
 const transformResponse = <T>(response: any): T => {
@@ -232,6 +234,21 @@ export const recruitmentApi = createApi({
       transformResponse: (response: any) => transformResponse<InterviewSchedule>(response),
       invalidatesTags: ['InterviewsList', 'CandidatesList', 'RecruitmentStats'],
     }),
+
+    /**
+     * AI-powered automatic Job Description generator. Sends the current
+     * requisition parameters to the AI tool and returns a structured,
+     * publish-ready JD in Markdown. Read-only — does not mutate server
+     * state, so no cache tags are invalidated.
+     */
+    generateJobDescription: builder.mutation<GenerateJdResponse, GenerateJdRequestPayload>({
+      query: (payload) => ({
+        url: '/recruitment/ai/generate-jd',
+        method: 'POST',
+        body: payload,
+      }),
+      transformResponse: (response: any) => transformResponse<GenerateJdResponse>(response),
+    }),
   }),
 });
 
@@ -247,4 +264,5 @@ export const {
   useUpdateCandidateStageMutation,
   useGetInterviewsQuery,
   useScheduleInterviewMutation,
+  useGenerateJobDescriptionMutation,
 } = recruitmentApi;
