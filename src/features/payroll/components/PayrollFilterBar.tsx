@@ -1,6 +1,5 @@
 import React from 'react';
-import { Building2, RefreshCw, Search } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { Building2, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { DepartmentItem } from '@/features/workforce/types/workforce.types';
 import type { PayrollScope } from '../types/payroll.types';
@@ -19,9 +18,9 @@ interface PayrollFilterBarProps {
   onStatusChange: (value: string) => void;
   search: string;
   onSearchChange: (value: string) => void;
-  onReset: () => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
+  onReset?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const selectClassName =
@@ -49,9 +48,6 @@ export const PayrollFilterBar: React.FC<PayrollFilterBarProps> = ({
   onStatusChange,
   search,
   onSearchChange,
-  onReset,
-  onRefresh,
-  isRefreshing,
 }) => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 2020 + 2 }, (_, index) => currentYear + 1 - index);
@@ -131,11 +127,6 @@ export const PayrollFilterBar: React.FC<PayrollFilterBarProps> = ({
               ))}
             </select>
           </div>
-          <Button variant="ghost" size="sm" onClick={onReset}>Reset</Button>
-          <Button variant="outline" size="sm" onClick={onRefresh} disabled={isRefreshing}>
-            <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
-            Refresh
-          </Button>
         </div>
       </div>
 

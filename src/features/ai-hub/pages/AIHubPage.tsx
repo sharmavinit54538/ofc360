@@ -15,7 +15,6 @@ import {
   Activity,
   Layers,
   CheckCircle2,
-  Lock,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { GeminiIcon } from '@/shared/ui/GeminiIcon';
@@ -239,28 +238,6 @@ export const AIHubPage: React.FC = () => {
               <Video className="w-4 h-4" />
               <span>Meeting AI</span>
             </Button>
-          </div>
-        </div>
-
-        {/* Live System Capabilities */}
-        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Primary Model</span>
-            <span className="text-sm font-bold text-white mt-0.5 block">Gemini 1.5 Pro</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Reasoning Latency</span>
-            <span className="text-sm font-bold text-emerald-400 mt-0.5 block">&lt; 180ms</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Active AI Engines</span>
-            <span className="text-sm font-bold text-indigo-300 mt-0.5 block">9 Active</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Security & Privacy</span>
-            <span className="text-sm font-bold text-cyan-300 mt-0.5 block flex items-center gap-1">
-              <Lock className="w-3 h-3" /> Zero Data Retention
-            </span>
           </div>
         </div>
       </div>

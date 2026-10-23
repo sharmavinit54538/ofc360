@@ -253,26 +253,18 @@ export const PayrollHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Payroll Operations</h1>
-          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-            Process live payroll batches, reconcile payslips, and manage employee compensation.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link to="/settings/payroll">
-            <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>Payroll Settings</Button>
-          </Link>
-          {activeTab === 'payslips' && (
-            <Button variant="outline" size="sm" onClick={() => setIsAdjustmentOpen(true)} leftIcon={<CirclePlus className="w-3.5 h-3.5" />}>
-              Add Adjustment
-            </Button>
-          )}
-          <Button size="sm" onClick={() => setIsInitiateOpen(true)} leftIcon={<Play className="w-3.5 h-3.5" />}>
-            Initiate Payroll
+      <header className="flex flex-wrap items-center justify-end gap-2">
+        <Link to="/settings/payroll">
+          <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>Payroll Settings</Button>
+        </Link>
+        {activeTab === 'payslips' && (
+          <Button variant="outline" size="sm" onClick={() => setIsAdjustmentOpen(true)} leftIcon={<CirclePlus className="w-3.5 h-3.5" />}>
+            Add Adjustment
           </Button>
-        </div>
+        )}
+        <Button size="sm" onClick={() => setIsInitiateOpen(true)} leftIcon={<Play className="w-3.5 h-3.5" />}>
+          Initiate Payroll
+        </Button>
       </header>
 
       {statsError && (

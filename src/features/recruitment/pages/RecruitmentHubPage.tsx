@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Briefcase,
-  RefreshCw,
   Plus,
   Users,
   CalendarPlus,
@@ -18,7 +16,6 @@ import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
-import { useToast } from '@/shared/ui/Toast';
 
 import { useGetDepartmentsQuery, useGetEmployeesQuery } from '@/features/workforce/api/workforceApi';
 import {
@@ -64,7 +61,6 @@ const INTERVIEW_STATUS_BADGE: Record<InterviewStatus, { variant: BadgeVariant; l
  * schedule — all backed by the live recruitment API.
  */
 export const RecruitmentHubPage: React.FC = () => {
-  const toast = useToast();
 
   const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'interviews'>('jobs');
   const [isCreateJobOpen, setIsCreateJobOpen] = useState(false);
@@ -187,24 +183,11 @@ export const RecruitmentHubPage: React.FC = () => {
     setCandidatesPage(1);
   };
 
-  const handleRefresh = () => {
-    if (activeTab === 'jobs') refetchJobs();
-    else if (activeTab === 'candidates') refetchCandidates();
-    else refetchInterviews();
-    toast.info('Recruitment data refreshed.', 'Refreshed');
-  };
-
-  const isTabRefreshing =
-    activeTab === 'jobs' ? jobsFetching : activeTab === 'candidates' ? candidatesFetching : false;
-
   const tabs = [
     { id: 'jobs' as const, label: 'Job Openings', icon: LayoutList },
     { id: 'candidates' as const, label: 'Candidates Pipeline', icon: Workflow },
     { id: 'interviews' as const, label: 'Interview Schedule', icon: CalendarDays },
   ];
-
-  const stickySelectClass =
-    'px-3 py-2 rounded-lg text-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0d0d0d] text-gray-900 dark:text-[#ececec]">
@@ -215,56 +198,33 @@ export const RecruitmentHubPage: React.FC = () => {
       </div>
 
       <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto space-y-6">
-        {/* Page header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-[#ececec] tracking-tight">
-                Recruitment Hub
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">
-                Job requisitions, candidate pipeline and interviews — driven by live hiring data.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<RefreshCw className={`w-4 h-4 ${isTabRefreshing ? 'animate-spin' : ''}`} />}
-              onClick={handleRefresh}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<Users className="w-4 h-4" />}
-              onClick={() => setIsAddCandidateOpen(true)}
-            >
-              Add Candidate
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<CalendarPlus className="w-4 h-4" />}
-              onClick={() => setIsScheduleOpen(true)}
-            >
-              Schedule Interview
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => setIsCreateJobOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
-            >
-              Create Job
-            </Button>
-          </div>
+        {/* Page header actions */}
+        <div className="flex items-center justify-end gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Users className="w-4 h-4" />}
+            onClick={() => setIsAddCandidateOpen(true)}
+          >
+            Add Candidate
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<CalendarPlus className="w-4 h-4" />}
+            onClick={() => setIsScheduleOpen(true)}
+          >
+            Schedule Interview
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsCreateJobOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
+          >
+            Create Job
+          </Button>
         </div>
 
         {/* KPI tiles */}
