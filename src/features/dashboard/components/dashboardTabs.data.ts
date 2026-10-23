@@ -2,7 +2,6 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
-  UserCog,
   Building2,
   CalendarDays,
   Clock,
@@ -115,34 +114,30 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
   },
   {
     id: 'attendance',
-    label: 'Attendance & Time',
+    label: 'Attendance',
     icon: CalendarDays,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 3,
   },
   {
     id: 'payroll',
     label: 'Payroll & Benefits',
     icon: CreditCard,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 4,
   },
   {
     id: 'leave',
-    label: 'Leave Management',
-    icon: FileText,
-    collapsible: true,
-    defaultExpanded: true,
+    label: 'Leave',
+    icon: Palmtree,
+    collapsible: false,
     order: 5,
   },
   {
     id: 'performance',
     label: 'Performance',
     icon: Gauge,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 6,
   },
   {
@@ -197,9 +192,12 @@ const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages
 const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
 const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
 const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
+const LeaveManagementHubPage = React.lazy(() => import('@/features/leave/pages/LeaveManagementHubPage'));
+const PerformanceHubPage = React.lazy(() => import('@/features/performance/pages/PerformanceHubPage'));
 const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/AnalyticsCenterPage'));
 const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
 const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
+const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
 const ShiftsView = React.lazy(() => import('./views/ShiftsView'));
 const RostersView = React.lazy(() => import('./views/RostersView'));
 const HolidaysView = React.lazy(() => import('./views/HolidaysView'));
@@ -218,20 +216,12 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 2. WORKFORCE (4 tabs) - Collapsible group
+  // 2. WORKFORCE (3 tabs) - Collapsible group
   // ==========================================
   {
     id: 'employees',
     label: 'Employees',
     icon: Users,
-    group: 'workforce',
-    section: 'workforce',
-    component: ComingSoonView,
-  },
-  {
-    id: 'hr-management',
-    label: 'HR Management',
-    icon: UserCog,
     group: 'workforce',
     section: 'workforce',
     component: ComingSoonView,
@@ -267,49 +257,16 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 4. ATTENDANCE & TIME (5 tabs: 1 parent + 4 children) - Collapsible group
+  // 4. ATTENDANCE (1 tab - links to /dashboard/attendance)
   // ==========================================
   {
     id: 'attendance',
-    label: 'Overview',
+    label: 'Attendance',
     icon: CalendarDays,
     group: 'attendance',
     section: 'attendance',
-    component: ComingSoonView,
-    children: [
-      {
-        id: 'attendance-shifts',
-        label: 'Shifts',
-        icon: Clock,
-        group: 'attendance',
-        section: 'attendance',
-        component: ShiftsView,
-      },
-      {
-        id: 'attendance-rosters',
-        label: 'Rosters',
-        icon: ScrollText,
-        group: 'attendance',
-        section: 'attendance',
-        component: RostersView,
-      },
-      {
-        id: 'attendance-holidays',
-        label: 'Holidays',
-        icon: Palmtree,
-        group: 'attendance',
-        section: 'attendance',
-        component: HolidaysView,
-      },
-      {
-        id: 'timesheets',
-        label: 'Timesheets',
-        icon: Timer,
-        group: 'attendance',
-        section: 'attendance',
-        component: ComingSoonView,
-      },
-    ],
+    path: '/dashboard/attendance',
+    component: AttendanceHubPage,
   },
 
   // ==========================================
@@ -324,20 +281,23 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     component: ComingSoonView,
   },
 
+
+
   // ==========================================
-  // 6. LEAVE MANAGEMENT (1 tab) - Collapsible group
+  // 6. LEAVE (1 tab - links to /dashboard/leave)
   // ==========================================
   {
-    id: 'leaves',
-    label: 'Leaves',
-    icon: FileText,
+    id: 'leave',
+    label: 'Leave',
+    icon: Palmtree,
     group: 'leave',
     section: 'leave',
-    component: ComingSoonView,
+    path: '/dashboard/leave',
+    component: LeaveManagementHubPage,
   },
 
   // ==========================================
-  // 7. PERFORMANCE (1 tab) - Collapsible group
+  // 7. PERFORMANCE (1 tab - links to /dashboard/performance)
   // ==========================================
   {
     id: 'performance',
@@ -345,7 +305,8 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: Gauge,
     group: 'performance',
     section: 'performance',
-    component: ComingSoonView,
+    path: '/dashboard/performance',
+    component: PerformanceHubPage,
   },
 
   // ==========================================
@@ -436,6 +397,16 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'compliance-monitor': 'documents',
   'policy-assistant': 'documents',
   'document-generator': 'documents',
+  'leaves': 'leave',
+  'hr-management': 'employees',
+  'attendance-shifts': 'attendance',
+  'attendance-rosters': 'attendance',
+  'attendance-holidays': 'attendance',
+  'attendance-timesheet': 'attendance',
+  'shifts': 'attendance',
+  'rosters': 'attendance',
+  'holidays': 'attendance',
+  'timesheets': 'attendance',
 };
 
 /**

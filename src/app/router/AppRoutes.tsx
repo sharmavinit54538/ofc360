@@ -22,11 +22,14 @@ import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
 import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
+import { DashboardLeaveRoute } from '@/routes/dashboard.leave';
+import { DashboardPerformanceRoute } from '@/routes/dashboard.performance';
 import { AIAnalyticsCenterRoute } from '@/routes/ai.analytics-center';
 import { DashboardReportsRoute } from '@/routes/dashboard.reports';
 import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
 import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
 import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
+import { DashboardAttendanceRoute } from '@/routes/dashboard.attendance';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
 import { DashboardAttendanceRostersRoute } from '@/routes/dashboard.attendance.rosters';
 import { DashboardAttendanceHolidaysRoute } from '@/routes/dashboard.attendance.holidays';
@@ -351,13 +354,36 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      {/* Leave Management & Time Off */}
       <Route
-        path="/dashboard/compliance"
+        path="/dashboard/leave"
         element={
           <ProtectedRoute
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
-            <DashboardDocumentsRoute />
+            <DashboardLeaveRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/leaves"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardLeaveRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Performance Reviews, OKRs & Appraisals */}
+      <Route
+        path="/dashboard/performance"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardPerformanceRoute />
           </ProtectedRoute>
         }
       />
@@ -496,6 +522,18 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardAIHubRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Attendance Hub & Workforce Time */}
+      <Route
+        path="/dashboard/attendance"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardAttendanceRoute />
           </ProtectedRoute>
         }
       />
