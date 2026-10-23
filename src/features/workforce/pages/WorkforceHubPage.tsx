@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Users,
-  RefreshCw,
   Plus,
   LayoutList,
   Network,
@@ -12,7 +10,6 @@ import {
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
-import { useToast } from '@/shared/ui/Toast';
 
 import {
   useGetWorkforceStatsQuery,
@@ -44,8 +41,6 @@ const PAGE_SIZE = 10;
  * department breakdown — all backed by the live workforce API.
  */
 export const WorkforceHubPage: React.FC = () => {
-  const toast = useToast();
-
   const [activeTab, setActiveTab] = useState<'directory' | 'orgchart' | 'departments'>('directory');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [statusTarget, setStatusTarget] = useState<EmployeeItem | null>(null);
@@ -153,56 +148,7 @@ export const WorkforceHubPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0d0d0d] text-gray-900 dark:text-[#ececec]">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-emerald-500/5 dark:bg-emerald-500/5 rounded-full blur-[120px]" />
-      </div>
-
       <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto space-y-6">
-        {/* Page header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-[#ececec] tracking-tight">
-                Workforce Hub
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">
-                Manage people structure, org hierarchy, and department composition from live data.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<RefreshCw className={`w-4 h-4 ${employeesFetching ? 'animate-spin' : ''}`} />}
-              onClick={() => {
-                refetchEmployees();
-                toast.info('Workforce data refreshed.', 'Refreshed');
-              }}
-              disabled={employeesFetching && activeTab === 'directory'}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => {
-                setEditTarget(null);
-                setIsAddOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
-            >
-              Add Employee
-            </Button>
-          </div>
-        </div>
-
         {/* KPI tiles */}
         <WorkforceKpiCards stats={stats} isLoading={statsLoading} />
 
@@ -232,13 +178,27 @@ export const WorkforceHubPage: React.FC = () => {
         {/* Tab content */}
         {activeTab === 'directory' && (
           <Card className="overflow-hidden border-gray-200 dark:border-zinc-800 shadow-lg shadow-gray-200/50 dark:shadow-none">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
-                Employee Directory
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-                {total} employee{total === 1 ? '' : 's'} in the organization
-              </p>
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
+                  Employee Directory
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                  {total} employee{total === 1 ? '' : 's'} in the organization
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  setEditTarget(null);
+                  setIsAddOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
+              >
+                Add Employee
+              </Button>
             </div>
 
             {employeesError ? (
