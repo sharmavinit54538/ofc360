@@ -600,19 +600,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
         onDiscard={handleDiscardAll}
         onCancel={handleCancel}
       />
-
-      {hasApiError && (
-        <ApiUnavailableAlert
-          onRetry={handleRetry}
-          message={
-            (companyError && 'data' in companyError && typeof (companyError.data as any)?.message === 'string'
-              ? (companyError.data as any).message
-              : (companyError && 'message' in companyError && typeof (companyError as any).message === 'string'
-                ? (companyError as any).message
-                : 'Failed to load settings. Please check your connection.'))
-          }
-        />
-      )}
     </DashboardShell>
   );
 };
