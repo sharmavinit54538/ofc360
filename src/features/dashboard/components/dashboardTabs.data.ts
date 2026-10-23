@@ -143,6 +143,7 @@ const ComingSoonView = React.lazy(() => import('./views/ComingSoonView'));
 const WorkforceHubPage = React.lazy(() => import('@/features/workforce/pages/WorkforceHubPage'));
 const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentHubPage'));
 const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
+const PayrollHubPage = React.lazy(() => import('@/features/payroll/pages/PayrollHubPage'));
 const LeaveManagementHubPage = React.lazy(() => import('@/features/leave/pages/LeaveManagementHubPage'));
 const PerformanceHubPage = React.lazy(() => import('@/features/performance/pages/PerformanceHubPage'));
 const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
@@ -211,7 +212,8 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     icon: CreditCard,
     group: 'payroll',
     section: 'payroll',
-    component: ComingSoonView,
+    path: '/dashboard/payroll',
+    component: PayrollHubPage,
   },
 
 

@@ -24,6 +24,7 @@ import { DashboardWorkforceRoute } from '@/routes/dashboard.workforce';
 import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
 import { DashboardLeaveRoute } from '@/routes/dashboard.leave';
+import { DashboardPayrollRoute } from '@/routes/dashboard.payroll';
 import { DashboardPerformanceRoute } from '@/routes/dashboard.performance';
 import { AIAnalyticsCenterRoute } from '@/routes/ai.analytics-center';
 import { DashboardReportsRoute } from '@/routes/dashboard.reports';
@@ -397,6 +398,18 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      {/* Payroll Processing & Payslips */}
+      <Route
+        path="/dashboard/payroll"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardPayrollRoute />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Leave Management & Time Off */}
       <Route
         path="/dashboard/leave"

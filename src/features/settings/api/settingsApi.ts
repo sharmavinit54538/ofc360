@@ -213,6 +213,7 @@ export const settingsApi = createApi({
         method: 'PATCH',
         body,
       }),
+      transformResponse: (response: any) => transformResponse<PayrollSettings>(response),
       invalidatesTags: ['PayrollSettings'],
     }),
 
