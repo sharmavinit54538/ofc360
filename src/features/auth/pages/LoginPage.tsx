@@ -45,11 +45,37 @@ export const LoginPage: React.FC = () => {
 
   // Automatically redirect if already authenticated with valid user session
   useEffect(() => {
-    if (isAuthenticated && isInitialized && user) {
-      const canonicalRole = normalizeRole(user.activeRole || (user as any).role);
-      const dest = redirectUrl
-        ? decodeURIComponent(redirectUrl)
-        : ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+    const hasToken =
+      Boolean(
+        typeof window !== 'undefined' &&
+          (localStorage.getItem('ofc360_access_token') || sessionStorage.getItem('ofc360_access_token'))
+      );
+    if ((isAuthenticated || hasToken) && isInitialized) {
+      const storedRole =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('ofc360_active_role') || sessionStorage.getItem('ofc360_active_role')
+          : null;
+      const effectiveRole =
+        user?.activeRole ||
+        (user as any)?.role ||
+        (user?.roles && user.roles[0]) ||
+        storedRole ||
+        'EMPLOYEE';
+      const canonicalRole = normalizeRole(effectiveRole);
+      let dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+
+      if (redirectUrl) {
+        try {
+          const decoded = decodeURIComponent(redirectUrl);
+          if (decoded && !decoded.startsWith('/auth') && decoded !== '/' && decoded !== '/dashboard') {
+            dest = decoded;
+          }
+        } catch {
+          // ignore malformed URI
+        }
+      }
+
+      console.log('[LoginPage] Session already active -> navigating to destination:', dest);
       navigate(dest, { replace: true });
     }
   }, [isAuthenticated, isInitialized, user, redirectUrl, navigate]);
@@ -115,11 +141,24 @@ export const LoginPage: React.FC = () => {
         'Authenticated Successfully'
       );
 
-      // 2. Explicitly navigate to the correct target dashboard path immediately
-      const canonicalRole = normalizeRole(normalized.user.activeRole || (normalized.user as any).role);
-      const dest = redirectUrl
-        ? decodeURIComponent(redirectUrl)
-        : ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+      // 2. Explicitly navigate to the correct target dashboard path immediately with replace: true
+      const canonicalRole = normalizeRole(
+        normalized.user.activeRole ||
+        (normalized.user as any).role ||
+        (normalized.user.roles && normalized.user.roles[0])
+      );
+      let dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+
+      if (redirectUrl) {
+        try {
+          const decoded = decodeURIComponent(redirectUrl);
+          if (decoded && !decoded.startsWith('/auth') && decoded !== '/' && decoded !== '/dashboard') {
+            dest = decoded;
+          }
+        } catch {
+          // ignore malformed URI
+        }
+      }
 
       console.log('[LoginPage] Navigating to destination dashboard:', dest, 'Canonical role:', canonicalRole);
       navigate(dest, { replace: true });

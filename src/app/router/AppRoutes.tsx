@@ -45,21 +45,59 @@ import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ROLE_DASHBOARD_ROUTES, normalizeRole } from '@/features/auth/types/auth.types';
 
+// Helper to resolve role-based dashboard destination
+export const getDashboardRouteForRole = (role?: string | null): string => {
+  if (!role) return '/dashboard/employee';
+  const canonical = normalizeRole(role);
+  return (
+    ROLE_DASHBOARD_ROUTES[canonical] ||
+    ROLE_DASHBOARD_ROUTES[role] ||
+    ROLE_DASHBOARD_ROUTES[role.toLowerCase()] ||
+    '/dashboard/employee'
+  );
+};
+
 // Dynamic Index Root Redirection based on Auth State
 const RootRedirect: React.FC = () => {
   const { isAuthenticated, activeRole, role, user, accessToken } = useAuth();
 
-  const isAuthed =
-    isAuthenticated ||
-    Boolean(accessToken) ||
-    Boolean(typeof window !== 'undefined' && localStorage.getItem('ofc360_access_token'));
+  const storedToken =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('ofc360_access_token') || sessionStorage.getItem('ofc360_access_token')
+      : null;
+  const hasToken = Boolean(accessToken) || Boolean(storedToken);
+  const isAuthed = isAuthenticated || hasToken;
 
   if (!isAuthed) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  const effectiveRole = activeRole || role || user?.activeRole || 'EMPLOYEE';
-  const destination = ROLE_DASHBOARD_ROUTES[normalizeRole(effectiveRole)] || '/dashboard/employee';
+  let storedRole: string | null = null;
+  if (typeof window !== 'undefined') {
+    storedRole =
+      localStorage.getItem('ofc360_active_role') || sessionStorage.getItem('ofc360_active_role');
+    if (!storedRole) {
+      try {
+        const rawUser =
+          localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');
+        if (rawUser) {
+          const parsed = JSON.parse(rawUser);
+          storedRole = parsed.activeRole || parsed.role || (parsed.roles && parsed.roles[0]);
+        }
+      } catch {}
+    }
+  }
+
+  const effectiveRole =
+    activeRole ||
+    role ||
+    user?.activeRole ||
+    (user as any)?.role ||
+    (user?.roles && user.roles[0]) ||
+    storedRole ||
+    'EMPLOYEE';
+
+  const destination = getDashboardRouteForRole(effectiveRole);
   return <Navigate to={destination} replace />;
 };
 
@@ -72,7 +110,11 @@ export const AppRoutes: React.FC = () => {
 
       {/* Top-Level Route Aliases */}
       <Route path="/super-admin" element={<Navigate to="/dashboard/super-admin" replace />} />
+      <Route path="/superadmin" element={<Navigate to="/dashboard/super-admin" replace />} />
+      <Route path="/dashboard/superadmin" element={<Navigate to="/dashboard/super-admin" replace />} />
       <Route path="/hr-admin" element={<Navigate to="/dashboard/hr-admin" replace />} />
+      <Route path="/admin" element={<Navigate to="/dashboard/hr-admin" replace />} />
+      <Route path="/dashboard/admin" element={<Navigate to="/dashboard/hr-admin" replace />} />
       <Route path="/manager" element={<Navigate to="/dashboard/manager" replace />} />
       <Route path="/employee" element={<Navigate to="/dashboard/employee" replace />} />
       <Route path="/it-admin" element={<Navigate to="/dashboard/it-admin" replace />} />

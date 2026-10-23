@@ -336,6 +336,10 @@ export const ROLE_DASHBOARD_ROUTES: Record<string, string> = {
   manager: '/dashboard/manager',
   employee: '/dashboard/employee',
   it_admin: '/dashboard/it-admin',
+  admin: '/dashboard/hr-admin',
+  ADMIN: '/dashboard/hr-admin',
+  superadmin: '/dashboard/super-admin',
+  SUPERADMIN: '/dashboard/super-admin',
 };
 
 /**

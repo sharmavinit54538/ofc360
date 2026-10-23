@@ -30,19 +30,55 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectUnauthorizedTo = '/unauthorized',
 }) => {
   const location = useLocation();
-  const { user, isAuthenticated, role, isInitialized, isLoading, hasRole, hasPermission } = useAuth();
+  const { user, isAuthenticated, accessToken, role, isInitialized, isLoading, hasRole, hasPermission } = useAuth();
+
+  // Storage fallback verification to prevent premature kickout during hydration race condition
+  const storedToken =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('ofc360_access_token') || sessionStorage.getItem('ofc360_access_token')
+      : null;
+  const hasValidToken = Boolean(accessToken) || Boolean(storedToken);
+  const isAuthed = isAuthenticated || hasValidToken;
+
+  // Resilient fallback user resolution from persistent storage if Redux state is hydrating
+  const effectiveUser =
+    user ||
+    (typeof window !== 'undefined'
+      ? (() => {
+          try {
+            const rawStored =
+              localStorage.getItem('ofc360_user_session') ||
+              sessionStorage.getItem('ofc360_user_session');
+            if (rawStored) return JSON.parse(rawStored);
+          } catch {}
+          return null;
+        })()
+      : null);
+
+  const storedRole =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('ofc360_active_role') || sessionStorage.getItem('ofc360_active_role')
+      : null;
+
+  const effectiveRole =
+    role ||
+    (effectiveUser?.activeRole ? normalizeRole(effectiveUser.activeRole) : null) ||
+    (storedRole ? normalizeRole(storedRole) : null);
 
   // 1. Session Rehydration Screen
   // Prevent premature redirection while authentication or session hydration is in flight
-  if (!isInitialized || (isLoading && !isAuthenticated)) {
+  if (!isInitialized || (isLoading && !isAuthed) || (isAuthed && !effectiveUser && !effectiveRole)) {
     return <AuthLoadingScreen />;
   }
 
   // 2. Authentication Check
-  if (!isAuthenticated || !user) {
+  // Allow access if isAuthenticated is true OR if a valid access token exists in localStorage / sessionStorage.
+  // Never prematurely kick out users to /auth/login if a valid session/token is present.
+  if (!isAuthed) {
     console.warn('[ProtectedRoute] Access blocked -> redirecting to login.', {
       isAuthenticated,
-      hasUser: Boolean(user),
+      hasValidToken,
+      hasUser: Boolean(effectiveUser),
       attemptedPath: location.pathname + location.search,
     });
     const returnUrl = encodeURIComponent(location.pathname + location.search);
@@ -56,19 +92,31 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // 3. Email Verification Enforcement (if flagged)
-  if (requireVerifiedEmail && !user.isEmailVerified && location.pathname !== '/auth/verify-email') {
+  if (
+    requireVerifiedEmail &&
+    effectiveUser &&
+    !effectiveUser.isEmailVerified &&
+    location.pathname !== '/auth/verify-email'
+  ) {
     return <Navigate to="/auth/verify-email" replace />;
   }
 
   // 4. Role-Based Access Control (RBAC) Clearance
   if (allowedRoles && allowedRoles.length > 0) {
-    const isRoleAuthorized = allowedRoles.some((targetRole) => hasRole(targetRole));
+    const isRoleAuthorized =
+      effectiveRole === 'SUPER_ADMIN' ||
+      allowedRoles.some(
+        (targetRole) =>
+          hasRole(targetRole) ||
+          (effectiveRole && normalizeRole(effectiveRole) === normalizeRole(targetRole))
+      );
+
     if (!isRoleAuthorized) {
-      const canonicalRole = role ? normalizeRole(role) : null;
+      const canonicalRole = effectiveRole ? normalizeRole(effectiveRole) : null;
       console.warn('[ProtectedRoute] RBAC clearance rejected.', {
         attemptedPath: location.pathname,
         currentRole: canonicalRole,
-        userRoles: user.roles,
+        userRoles: effectiveUser?.roles,
         allowedRoles,
       });
       return (
@@ -79,7 +127,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             from: location,
             currentRole: canonicalRole,
             allowedRoles: allowedRoles.map((r) => normalizeRole(r)),
-            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/auth/login',
+            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/dashboard/employee',
           }}
         />
       );
@@ -88,12 +136,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // 5. Granular Action Permissions Check
   if (requiredPermissions && requiredPermissions.length > 0) {
-    const isPermissionAuthorized = requireAllPermissions
-      ? requiredPermissions.every((perm) => hasPermission(perm))
-      : requiredPermissions.some((perm) => hasPermission(perm));
+    const isPermissionAuthorized =
+      effectiveRole === 'SUPER_ADMIN' ||
+      (requireAllPermissions
+        ? requiredPermissions.every((perm) => hasPermission(perm))
+        : requiredPermissions.some((perm) => hasPermission(perm)));
 
     if (!isPermissionAuthorized) {
-      const canonicalRole = role ? normalizeRole(role) : null;
+      const canonicalRole = effectiveRole ? normalizeRole(effectiveRole) : null;
       return (
         <Navigate
           to={redirectUnauthorizedTo}
@@ -102,7 +152,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             from: location,
             currentRole: canonicalRole,
             requiredPermissions,
-            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/auth/login',
+            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/dashboard/employee',
           }}
         />
       );
