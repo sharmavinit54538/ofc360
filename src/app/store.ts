@@ -10,6 +10,7 @@ import { leaveApi } from '../features/leave/api/leaveApi';
 import { attendanceApi } from '../features/attendance/api/attendanceApi';
 import { performanceApi } from '../features/performance/api/performanceApi';
 import { workforceApi } from '../features/workforce/api/workforceApi';
+import { recruitmentApi } from '../features/recruitment/api/recruitmentApi';
 import { exitsApi } from '../features/exit-management/api/exitsApi';
 import { onboardingApi } from '../features/employee-onboarding/api/onboardingApi';
 import { visitorsApi } from '../services/visitorsApi';
@@ -32,6 +33,7 @@ export const store = configureStore({
     [attendanceApi.reducerPath]: attendanceApi.reducer,
     [performanceApi.reducerPath]: performanceApi.reducer,
     [workforceApi.reducerPath]: workforceApi.reducer,
+    [recruitmentApi.reducerPath]: recruitmentApi.reducer,
     [exitsApi.reducerPath]: exitsApi.reducer,
     [onboardingApi.reducerPath]: onboardingApi.reducer,
     [visitorsApi.reducerPath]: visitorsApi.reducer,
@@ -58,6 +60,7 @@ export const store = configureStore({
       attendanceApi.middleware,
       performanceApi.middleware,
       workforceApi.middleware,
+      recruitmentApi.middleware,
       exitsApi.middleware,
       onboardingApi.middleware,
       visitorsApi.middleware,
