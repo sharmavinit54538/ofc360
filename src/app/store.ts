@@ -8,6 +8,7 @@ import { expensesApi } from '../features/expenses/api/expensesApi';
 import { settingsApi } from '../features/settings/api/settingsApi';
 import { leaveApi } from '../features/leave/api/leaveApi';
 import { attendanceApi } from '../features/attendance/api/attendanceApi';
+import { performanceApi } from '../features/performance/api/performanceApi';
 import { exitsApi } from '../features/exit-management/api/exitsApi';
 import { onboardingApi } from '../features/employee-onboarding/api/onboardingApi';
 import { visitorsApi } from '../services/visitorsApi';
@@ -28,6 +29,7 @@ export const store = configureStore({
     [settingsApi.reducerPath]: settingsApi.reducer,
     [leaveApi.reducerPath]: leaveApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer,
+    [performanceApi.reducerPath]: performanceApi.reducer,
     [exitsApi.reducerPath]: exitsApi.reducer,
     [onboardingApi.reducerPath]: onboardingApi.reducer,
     [visitorsApi.reducerPath]: visitorsApi.reducer,
@@ -52,6 +54,7 @@ export const store = configureStore({
       settingsApi.middleware,
       leaveApi.middleware,
       attendanceApi.middleware,
+      performanceApi.middleware,
       exitsApi.middleware,
       onboardingApi.middleware,
       visitorsApi.middleware,
