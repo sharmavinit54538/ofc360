@@ -42,11 +42,7 @@ export const PayrollRunsTable: React.FC<PayrollRunsTableProps> = ({
       </Button>
     </div>
 
-    {isLoading ? (
-      <div className="p-5 space-y-3">
-        {Array.from({ length: 5 }).map((_, index) => <SkeletonTableRow key={index} columns={5} />)}
-      </div>
-    ) : runs.length === 0 ? (
+    {runs.length === 0 && !isLoading ? (
       <div className="p-12 text-center">
         <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4">
           <CircleDollarSign className="w-7 h-7" />
@@ -73,9 +69,11 @@ export const PayrollRunsTable: React.FC<PayrollRunsTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-            {runs.map((run) => {
-              const status = statusConfig[run.status];
-              return (
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, index) => <SkeletonTableRow key={index} columns={8} />)
+              : runs.map((run) => {
+                  const status = statusConfig[run.status];
+                  return (
                 <tr key={run.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                   <td className="px-5 py-4">
                     <div className="font-semibold text-gray-900 dark:text-[#ececec] whitespace-nowrap">

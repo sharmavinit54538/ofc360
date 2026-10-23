@@ -71,10 +71,15 @@ export const SkeletonListItem: React.FC = () => (
   </div>
 );
 
-export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 4 }) => (
-  <div className="grid grid-cols-12 gap-4 py-3 animate-pulse">
+export const SkeletonTableRow: React.FC<{ columns?: number; className?: string }> = ({
+  columns = 4,
+  className = '',
+}) => (
+  <tr className={`animate-pulse border-b border-gray-100 dark:border-zinc-800/80 ${className}`}>
     {Array.from({ length: columns }).map((_, i) => (
-      <div key={i} className={`col-span-${Math.max(1, Math.floor(12 / columns))} h-4 bg-gray-200 dark:bg-zinc-800 rounded`} />
+      <td key={i} className="px-4 py-3.5">
+        <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded" />
+      </td>
     ))}
-  </div>
+  </tr>
 );

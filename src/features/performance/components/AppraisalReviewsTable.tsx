@@ -61,13 +61,7 @@ export const AppraisalReviewsTable: React.FC<AppraisalReviewsTableProps> = ({
         </Badge>
       </div>
 
-      {isLoading ? (
-        <div className="p-4 space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <SkeletonTableRow key={i} columns={4} />
-          ))}
-        </div>
-      ) : reviews.length === 0 ? (
+      {reviews.length === 0 && !isLoading ? (
         <div className="p-12 text-center">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
             <ClipboardList className="w-7 h-7" />
@@ -95,7 +89,11 @@ export const AppraisalReviewsTable: React.FC<AppraisalReviewsTableProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-              {reviews.map((review) => {
+              {isLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <SkeletonTableRow key={i} columns={showEmployeeColumn ? 8 : 7} />
+                  ))
+                : reviews.map((review) => {
                 const badge = STATUS_BADGE[review.status];
                 const isActionable = review.status !== 'COMPLETED';
                 return (

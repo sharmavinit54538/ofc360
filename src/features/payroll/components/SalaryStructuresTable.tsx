@@ -150,9 +150,7 @@ export const SalaryStructuresTable: React.FC<SalaryStructuresTableProps> = ({
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="p-5 space-y-3">{Array.from({ length: 7 }).map((_, index) => <SkeletonTableRow key={index} columns={6} />)}</div>
-        ) : structures.length === 0 ? (
+        {structures.length === 0 && !isLoading ? (
           <div className="p-12 text-center">
             <WalletCards className="w-8 h-8 mx-auto text-indigo-500 mb-3" />
             <h3 className="font-semibold text-gray-900 dark:text-white">No salary structures found</h3>
@@ -176,7 +174,9 @@ export const SalaryStructuresTable: React.FC<SalaryStructuresTableProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-                {structures.map((structure) => (
+                {isLoading
+                  ? Array.from({ length: 7 }).map((_, index) => <SkeletonTableRow key={index} columns={10} />)
+                  : structures.map((structure) => (
                   <tr key={structure.employeeId} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40">
                     <td className="px-5 py-4">
                       <div className="font-semibold text-gray-900 dark:text-white">{structure.employeeName}</div>

@@ -57,13 +57,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
         </Badge>
       </div>
 
-      {isLoading ? (
-        <div className="p-4 space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonTableRow key={i} columns={3} />
-          ))}
-        </div>
-      ) : employees.length === 0 ? (
+      {employees.length === 0 && !isLoading ? (
         <div className="p-12 text-center">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4">
             <Users className="w-7 h-7" />
@@ -92,7 +86,11 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-              {employees.map((emp) => {
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <SkeletonTableRow key={i} columns={8} />
+                  ))
+                : employees.map((emp) => {
                 const badge = STATUS_BADGE[emp.status];
                 return (
                   <tr key={emp.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">

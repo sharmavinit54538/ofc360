@@ -16,9 +16,7 @@ export const TaxDeclarationsTable: React.FC<TaxDeclarationsTableProps> = ({ decl
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">Investment & Rent Declarations</h2>
       <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Live employee tax declarations and verification status</p>
     </div>
-    {isLoading ? (
-      <div className="p-5 space-y-3">{Array.from({ length: 6 }).map((_, index) => <SkeletonTableRow key={index} columns={5} />)}</div>
-    ) : declarations.length === 0 ? (
+    {declarations.length === 0 && !isLoading ? (
       <div className="p-12 text-center">
         <FileCheck2 className="w-8 h-8 mx-auto text-indigo-500 mb-3" />
         <h3 className="font-semibold text-gray-900 dark:text-white">No tax declarations found</h3>
@@ -39,7 +37,9 @@ export const TaxDeclarationsTable: React.FC<TaxDeclarationsTableProps> = ({ decl
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-            {declarations.map((declaration) => (
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, index) => <SkeletonTableRow key={index} columns={7} />)
+              : declarations.map((declaration) => (
               <tr key={declaration.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40">
                 <td className="px-5 py-4">
                   <div className="font-semibold text-gray-900 dark:text-white">{declaration.employeeName}</div>

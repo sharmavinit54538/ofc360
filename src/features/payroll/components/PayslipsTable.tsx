@@ -31,11 +31,7 @@ export const PayslipsTable: React.FC<PayslipsTableProps> = ({ payslips, isLoadin
       <Badge variant="slate" size="sm">{payslips.length} on this page</Badge>
     </div>
 
-    {isLoading ? (
-      <div className="p-5 space-y-3">
-        {Array.from({ length: 7 }).map((_, index) => <SkeletonTableRow key={index} columns={6} />)}
-      </div>
-    ) : payslips.length === 0 ? (
+    {payslips.length === 0 && !isLoading ? (
       <div className="p-12 text-center">
         <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4">
           <FileSpreadsheet className="w-7 h-7" />
@@ -60,9 +56,11 @@ export const PayslipsTable: React.FC<PayslipsTableProps> = ({ payslips, isLoadin
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-            {payslips.map((payslip) => {
-              const status = statusConfig[payslip.status];
-              return (
+            {isLoading
+              ? Array.from({ length: 7 }).map((_, index) => <SkeletonTableRow key={index} columns={7} />)
+              : payslips.map((payslip) => {
+                  const status = statusConfig[payslip.status];
+                  return (
                 <tr key={payslip.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                   <td className="px-5 py-4">
                     <div className="font-semibold text-gray-900 dark:text-[#ececec]">{payslip.employee.name}</div>
