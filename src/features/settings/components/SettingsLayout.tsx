@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useNavigate, Outlet, NavLink } from 'react-router-dom';
+import { useLocation, useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   Building2,
   Users,
