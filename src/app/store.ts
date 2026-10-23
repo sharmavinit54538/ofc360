@@ -6,6 +6,7 @@ import { hrDashboardApi } from '../features/hr-dashboard/api/hrDashboardApi';
 import { travelApi } from '../features/travel/api/travelApi';
 import { expensesApi } from '../features/expenses/api/expensesApi';
 import { settingsApi } from '../features/settings/api/settingsApi';
+import { leaveApi } from '../features/leave/api/leaveApi';
 import { exitsApi } from '../features/exit-management/api/exitsApi';
 import { onboardingApi } from '../features/employee-onboarding/api/onboardingApi';
 import { visitorsApi } from '../services/visitorsApi';
@@ -24,6 +25,7 @@ export const store = configureStore({
     [travelApi.reducerPath]: travelApi.reducer,
     [expensesApi.reducerPath]: expensesApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [leaveApi.reducerPath]: leaveApi.reducer,
     [exitsApi.reducerPath]: exitsApi.reducer,
     [onboardingApi.reducerPath]: onboardingApi.reducer,
     [visitorsApi.reducerPath]: visitorsApi.reducer,
@@ -46,6 +48,7 @@ export const store = configureStore({
       travelApi.middleware,
       expensesApi.middleware,
       settingsApi.middleware,
+      leaveApi.middleware,
       exitsApi.middleware,
       onboardingApi.middleware,
       visitorsApi.middleware,
