@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -21,6 +22,7 @@ import {
   Shield,
   Percent,
   Building2,
+  ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -170,13 +172,14 @@ export const PayrollSection: React.FC = () => {
 
   const onSubmit = useCallback(async (data: PayrollSettingsFormData) => {
     try {
-      await updatePayrollSettings(data).unwrap();
+      const updatedSettings = await updatePayrollSettings(data).unwrap();
+      reset(updatedSettings);
       markClean('payroll');
       success('Payroll settings updated successfully', 'Settings Saved');
     } catch (err: any) {
       toastError(err?.data?.message || 'Failed to update payroll settings', 'Save Failed');
     }
-  }, [updatePayrollSettings, markClean, success, toastError]);
+  }, [updatePayrollSettings, reset, markClean, success, toastError]);
 
   const handleReset = useCallback(() => {
     if (payrollSettings) refetch();
@@ -239,6 +242,15 @@ export const PayrollSection: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-indigo-200/70 dark:border-indigo-900/40 bg-indigo-50/60 dark:bg-indigo-950/20">
+        <div>
+          <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">Payroll configuration is connected to the live payroll hub</p>
+          <p className="text-xs text-indigo-700/80 dark:text-indigo-300/80 mt-0.5">Review runs, payslips, CTC structures, and declarations from one workspace.</p>
+        </div>
+        <Link to="/dashboard/payroll" className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:underline shrink-0">
+          Open Payroll Hub <ArrowUpRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
       <Tabs defaultValue="components" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 mb-6">
           <TabsTrigger value="components" className="data-[state=active]:bg-white data-[state=active]:dark:bg-neutral-900 data-[state=active]:shadow-sm">
