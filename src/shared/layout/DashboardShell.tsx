@@ -7,6 +7,7 @@ import {
   Shield,
   Sun,
   Moon,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/ui/Toast';
@@ -63,6 +64,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     };
   }, [profileMenuOpen]);
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     toast.success('You have been securely signed out', 'Session Terminated');
@@ -83,13 +92,25 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation Bar - Clean & Minimal */}
         <header className="h-16 border-b border-gray-200 dark:border-zinc-800 bg-white/95 dark:bg-[#171717]/95 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-6 gap-4">
-          {/* Left: Brand logo only when page has no sidebar */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Left: Brand logo & Global Back Button */}
+          <div className="flex items-center gap-2.5 flex-shrink-0">
             {!sidebar && (
-              <Link to="/" className="flex items-center flex-shrink-0" title="OFC360 Home">
+              <Link to="/" className="flex items-center flex-shrink-0 mr-1" title="OFC360 Home">
                 <img src="/logo.png" alt="OFC360" className="h-8 w-auto object-contain hover:opacity-90 transition-opacity" />
               </Link>
             )}
+
+            {/* Global Back Button */}
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200/90 dark:border-zinc-700/80 transition-all duration-150 active:scale-95 shadow-sm"
+              title="Go back to previous page"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-150 group-hover:-translate-x-0.5" />
+              <span>Back</span>
+            </button>
           </div>
 
           {/* CENTER-RIGHT: Search, Notifications, User Profile */}

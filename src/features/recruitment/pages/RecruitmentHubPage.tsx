@@ -19,7 +19,6 @@ import {
   Workflow,
   ShieldCheck,
   Search,
-  Sparkles,
   ArrowRight,
   Plus,
   Filter,
@@ -192,35 +191,21 @@ const RECRUITMENT_MODULES: RecruitmentModule[] = [
   },
 ];
 
-const CATEGORIES = [
-  { id: 'all', label: 'All Modules' },
-  { id: 'jobs', label: 'Jobs & Requisitions' },
-  { id: 'pipeline', label: 'Candidate Pipeline' },
-  { id: 'interviews', label: 'Interviews & Reviews' },
-  { id: 'offers', label: 'Offers & Approvals' },
-  { id: 'operations', label: 'Operations & Brand' },
-];
-
 export const RecruitmentHubPage: React.FC = () => {
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedModule, setSelectedModule] = useState<RecruitmentModule | null>(null);
 
   const filteredModules = useMemo(() => {
-    return RECRUITMENT_MODULES.filter((m) => {
-      if (selectedCategory !== 'all' && m.category !== selectedCategory) {
-        return false;
-      }
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
+    if (!searchQuery.trim()) return RECRUITMENT_MODULES;
+    const q = searchQuery.toLowerCase();
+    return RECRUITMENT_MODULES.filter(
+      (m) =>
         m.title.toLowerCase().includes(q) ||
         m.description.toLowerCase().includes(q) ||
         m.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    });
-  }, [selectedCategory, searchQuery]);
+    );
+  }, [searchQuery]);
 
   const handleOpenModule = (mod: RecruitmentModule) => {
     setSelectedModule(mod);
@@ -229,96 +214,16 @@ export const RecruitmentHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 md:p-8 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur border border-white/10 text-xs font-medium text-indigo-200">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-              <span>Enterprise Talent Acquisition Suite</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Recruitment & Hiring Hub
-            </h1>
-            <p className="text-sm md:text-base text-slate-300">
-              Centralized platform for talent requisitions, pipeline management, automated screening, interview panels, and offer signoffs.
-            </p>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => toast.success('New Job Creation Form initialized', 'Create Job')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Job</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toast.info('Candidate upload ready', 'Add Candidate')}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-            >
-              <Users className="w-4 h-4 mr-1.5" />
-              <span>Add Candidate</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick KPI Strip */}
-        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Active Job Openings</span>
-            <span className="text-xl font-bold text-white mt-0.5 block">24</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Pipeline Candidates</span>
-            <span className="text-xl font-bold text-indigo-300 mt-0.5 block">142</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Interviews Scheduled</span>
-            <span className="text-xl font-bold text-emerald-400 mt-0.5 block">18</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Pending Offers</span>
-            <span className="text-xl font-bold text-amber-400 mt-0.5 block">6</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                'px-3.5 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all duration-150',
-                selectedCategory === cat.id
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm font-semibold'
-                  : 'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 hover:text-slate-900 dark:hover:text-white'
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
+      {/* Top Controls: Search & Actions */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Search Input */}
-        <div className="relative w-full lg:w-72 shrink-0">
+        <div className="relative w-full sm:w-80 shrink-0">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search recruitment tools..."
+            placeholder="Search all recruitment modules..."
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
           />
           {searchQuery && (
@@ -330,6 +235,28 @@ export const RecruitmentHubPage: React.FC = () => {
               Clear
             </button>
           )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => toast.success('New Job Creation Form initialized', 'Create Job')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-1.5 text-xs whitespace-nowrap"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Job</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toast.info('Candidate upload ready', 'Add Candidate')}
+            className="text-xs whitespace-nowrap"
+          >
+            <Users className="w-3.5 h-3.5 mr-1" />
+            <span>Add Candidate</span>
+          </Button>
         </div>
       </div>
 
@@ -436,13 +363,10 @@ export const RecruitmentHubPage: React.FC = () => {
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
+            onClick={() => setSearchQuery('')}
             className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
           >
-            Reset Filters
+            Clear Search
           </button>
         </div>
       )}
@@ -458,7 +382,7 @@ export const RecruitmentHubPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{selectedModule.title}</h3>
-                  <Badge variant="outline" size="sm" className="mt-1">
+                  <Badge variant="brand" size="sm" className="mt-1">
                     {selectedModule.category.toUpperCase()}
                   </Badge>
                 </div>
