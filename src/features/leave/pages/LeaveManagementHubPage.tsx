@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Palmtree, CalendarCheck } from 'lucide-react';
+import { CalendarCheck } from 'lucide-react';
 import { useToast } from '@/shared/ui/Toast';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
-import { SkeletonStatCard } from '@/shared/ui/Skeleton';
 import {
   useGetLeaveStatsQuery,
   useGetLeaveBalancesQuery,
@@ -103,62 +102,9 @@ export const LeaveManagementHubPage: React.FC = () => {
   };
 
   const requests = requestsData?.items || [];
-  const totalAvailableDays = (balances || []).reduce((sum, b) => sum + (b.availableDays || 0), 0);
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Hero Banner — all counters stream from the leave stats service */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 text-white p-6 md:p-8 border border-emerald-500/20 shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-8 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-              <Palmtree className="w-3.5 h-3.5" />
-              <span>Leave & Absence Management Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Workforce Leave & Time Off Center
-            </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              Track balances, apply for time off, review team approvals, and monitor
-              who's out — all synced live with the leave service.
-            </p>
-          </div>
-
-          {/* Live KPI strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/5 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shrink-0 min-w-[280px]">
-            {isStatsLoading ? (
-              <>
-                <SkeletonStatCard />
-                <SkeletonStatCard />
-                <SkeletonStatCard />
-                <SkeletonStatCard />
-              </>
-            ) : (
-              <>
-                <div className="text-center px-3 py-1.5 border-r border-white/10">
-                  <p className="text-xs text-slate-400 font-medium">On Leave Today</p>
-                  <p className="text-xl font-bold text-emerald-400">{stats?.onLeaveToday ?? 0}</p>
-                </div>
-                <div className="text-center px-3 py-1.5 border-r border-white/10">
-                  <p className="text-xs text-slate-400 font-medium">Pending</p>
-                  <p className="text-xl font-bold text-amber-400">{stats?.pendingRequests ?? 0}</p>
-                </div>
-                <div className="text-center px-3 py-1.5 border-r border-white/10">
-                  <p className="text-xs text-slate-400 font-medium">My Balance</p>
-                  <p className="text-xl font-bold text-blue-400">{totalAvailableDays}d</p>
-                </div>
-                <div className="text-center px-3 py-1.5">
-                  <p className="text-xs text-slate-400 font-medium">Holidays Left</p>
-                  <p className="text-xl font-bold text-purple-400">{stats?.upcomingHolidays ?? 0}</p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Stats error (non-blocking) */}
       {statsError && (
