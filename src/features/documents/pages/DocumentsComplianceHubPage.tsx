@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
-  FileText,
   ShieldCheck,
   ShieldAlert,
   BookOpen,
@@ -11,12 +9,9 @@ import {
   Search,
   Sparkles,
   ArrowRight,
-  Download,
   Upload,
   CheckCircle2,
-  AlertTriangle,
   FileCheck,
-  Award,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -154,7 +149,6 @@ const CATEGORIES = [
 ];
 
 export const DocumentsComplianceHubPage: React.FC = () => {
-  const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -414,7 +408,7 @@ export const DocumentsComplianceHubPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{activeModal.title}</h3>
-                  <Badge variant="outline" size="sm" className="mt-1">
+                  <Badge variant="slate" size="sm" className="mt-1">
                     {activeModal.category.toUpperCase()}
                   </Badge>
                 </div>

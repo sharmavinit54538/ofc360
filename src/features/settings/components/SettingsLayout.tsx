@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -255,13 +255,12 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   activeSection,
   onSectionChange,
   dirtySections,
-  isLoading,
+  isLoading: _isLoading,
   apiError,
   onRetry,
   userPermissions,
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const filteredSections = useMemo(() => {
     return SETTINGS_SECTIONS.filter((section) => {

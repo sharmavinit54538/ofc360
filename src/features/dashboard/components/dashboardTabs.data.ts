@@ -2,55 +2,17 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
-  Building2,
-  CalendarDays,
-  Clock,
-  FileText,
-  CreditCard,
-  Gauge,
-  FolderKanban,
   Briefcase,
-  FileSpreadsheet,
-  FilePlus,
-  UserSearch,
-  UserCheck,
-  Layers,
-  CalendarCheck,
-  ClipboardCheck,
-  MessageSquare,
-  ScanText,
-  Mail,
-  Gift,
-  Globe,
-  Workflow,
-  ShieldCheck,
-  Search,
-  Bell,
-  Download,
-  BarChart2,
+  CalendarDays,
+  CreditCard,
+  Palmtree,
+  Gauge,
   LineChart,
   Bot,
-  Brain,
-  Target,
-  HeartPulse,
-  BookOpen,
-  FilePlus2,
-  Video,
-  LogOut,
-  Receipt,
-  Plane,
-  ShieldAlert,
-  Settings,
+  FolderKanban,
   Activity,
-  Box,
-  UserPlus,
-  Timer,
-  Palmtree,
-  ScrollText,
-  Sparkles,
-  LayoutGrid,
+  Settings,
 } from 'lucide-react';
-import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
 export type SidebarSection =
   | 'overview'
@@ -178,29 +140,15 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
 
 const OverviewView = React.lazy(() => import('./views/OverviewView'));
 const ComingSoonView = React.lazy(() => import('./views/ComingSoonView'));
-const TravelRequestsPage = React.lazy(() => import('@/features/travel/pages/TravelRequestsPage'));
-const ExpenseClaimsPage = React.lazy(() => import('@/features/expenses/pages/ExpenseClaimsPage'));
-const ExitManagementPage = React.lazy(() => import('@/features/exit-management/pages/ExitManagementPage'));
-const OnboardingChecklistPage = React.lazy(() => import('@/features/employee-onboarding/pages/OnboardingChecklistPage'));
-const VisitorsPage = React.lazy(() => import('@/features/visitors/pages/VisitorsPage'));
-const AssetManagementPage = React.lazy(() => import('@/features/assets/pages/AssetManagementPage'));
-const TimelinePage = React.lazy(() => import('@/features/timeline/pages/TimelinePage'));
-const HrOpsPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsPage'));
-const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPage'));
+const WorkforceHubPage = React.lazy(() => import('@/features/workforce/pages/WorkforceHubPage'));
 const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentHubPage'));
-const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
-const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
-const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
+const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
 const LeaveManagementHubPage = React.lazy(() => import('@/features/leave/pages/LeaveManagementHubPage'));
 const PerformanceHubPage = React.lazy(() => import('@/features/performance/pages/PerformanceHubPage'));
-const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/AnalyticsCenterPage'));
-const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
-const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
-const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
-const WorkforceHubPage = React.lazy(() => import('@/features/workforce/pages/WorkforceHubPage'));
-const ShiftsView = React.lazy(() => import('./views/ShiftsView'));
-const RostersView = React.lazy(() => import('./views/RostersView'));
-const HolidaysView = React.lazy(() => import('./views/HolidaysView'));
+const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
+const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
+const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
+const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPage'));
 
 export const DASHBOARD_TABS: DashboardTabItem[] = [
   // ==========================================

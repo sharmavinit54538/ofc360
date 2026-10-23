@@ -1,22 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Gauge,
   Target,
   Trophy,
-  Award,
   Users2,
   TrendingUp,
   MessagesSquare,
   ClipboardList,
   AlertOctagon,
   Search,
-  Sparkles,
   ArrowRight,
   CheckCircle2,
-  FileCheck,
-  Star,
-  Zap,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -155,7 +149,6 @@ const CATEGORIES = [
 ];
 
 export const PerformanceHubPage: React.FC = () => {
-  const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -275,7 +268,7 @@ export const PerformanceHubPage: React.FC = () => {
                     <Icon className={cn('w-5 h-5', module.iconColor)} />
                   </div>
                   {module.badge ? (
-                    <Badge variant="outline" className="text-[11px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20">
+                    <Badge variant="brand" className="text-[11px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20">
                       {module.badge}
                     </Badge>
                   ) : module.metric ? (
