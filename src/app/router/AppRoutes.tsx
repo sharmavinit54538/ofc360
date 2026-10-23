@@ -30,6 +30,7 @@ import { DashboardReportsRoute } from '@/routes/dashboard.reports';
 import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
 import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
 import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
+import { DashboardConnectRoute } from '@/routes/dashboard.connect';
 import { DashboardAttendanceRoute } from '@/routes/dashboard.attendance';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
 import { DashboardAttendanceRostersRoute } from '@/routes/dashboard.attendance.rosters';
@@ -565,6 +566,18 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardAIHubRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* OFC360 Connect - Employee-to-Employee Real-Time Chat */}
+      <Route
+        path="/dashboard/connect"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardConnectRoute />
           </ProtectedRoute>
         }
       />

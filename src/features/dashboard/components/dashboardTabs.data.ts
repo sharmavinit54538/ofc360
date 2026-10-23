@@ -12,6 +12,7 @@ import {
   FolderKanban,
   Activity,
   Settings,
+  MessageSquare,
 } from 'lucide-react';
 
 export type SidebarSection =
@@ -384,6 +385,10 @@ export const getModuleOfTab = (id: string): SidebarSection | undefined => {
     }
   }
 
+  if (resolvedId === 'connect') {
+    return 'workforce';
+  }
+
   return undefined;
 };
 
@@ -400,6 +405,17 @@ export const getTabConfig = (id: string): DashboardTabItem | undefined => {
       const child = tab.children.find((c) => c.id === resolvedId);
       if (child) return child;
     }
+  }
+
+  if (resolvedId === 'connect') {
+    return {
+      id: 'connect',
+      label: 'OFC Connect',
+      icon: MessageSquare,
+      group: 'workforce',
+      section: 'workforce',
+      path: '/dashboard/connect',
+    };
   }
 
   return undefined;

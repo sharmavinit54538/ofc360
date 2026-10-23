@@ -5,3 +5,10 @@
  */
 
 export * from '@/features/dashboard/components/dashboardTabs.data';
+
+export const CONNECT_NAV_ITEM = {
+  id: 'connect',
+  label: 'OFC Connect',
+  path: '/dashboard/connect',
+  section: 'workforce' as const,
+};

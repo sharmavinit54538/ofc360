@@ -2,7 +2,7 @@
  * @file types.ts
  * @description Enterprise TypeScript models and interfaces for the AI Chat Assistant Module,
  * supporting conversational threads, multi-role message exchange, contextual scopes,
- * action chips, and prompt recommendations.
+ * action chips, suggestions, and backend contract normalization.
  */
 
 export type MessageRole = 'user' | 'assistant' | 'system';
@@ -41,14 +41,22 @@ export interface ConversationThread {
 
 export interface SendMessagePayload {
   conversationId?: string;
-  prompt: string;
+  conversation_id?: string;
+  prompt?: string;
+  message?: string;
+  query?: string;
   contextScope?: ChatContextScope;
+  context?: string;
 }
 
 export interface CreateConversationPayload {
   title?: string;
   initialPrompt?: string;
+  initialMessage?: string;
+  message?: string;
+  query?: string;
   contextScope?: ChatContextScope;
+  context?: string;
 }
 
 export interface SendMessageResponse {
@@ -60,4 +68,10 @@ export interface SendMessageResponse {
 
 export interface ClearConversationHistoryPayload {
   conversationId: string;
+}
+
+export interface ChatSuggestionsResponse {
+  suggestedPrompts: string[];
+  popularQueries: string[];
+  roleBasedPrompts: string[];
 }

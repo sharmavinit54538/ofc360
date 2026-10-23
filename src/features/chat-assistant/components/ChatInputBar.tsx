@@ -13,7 +13,6 @@ import {
   Calendar,
   DollarSign,
   FileText,
-  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import type { ChatContextScope } from '../types';

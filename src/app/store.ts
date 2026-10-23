@@ -20,6 +20,7 @@ import { hrOpsApi } from '../services/hrOpsApi';
 import { analyticsApi } from '../services/analytics.api';
 import { chatAssistantApi } from '../services/chatAssistantApi';
 import { meetingIntelligenceApi } from '../services/meetingIntelligenceApi';
+import { connectApi } from '../features/connect/api/connectApi';
 
 export const store = configureStore({
   reducer: {
@@ -43,6 +44,7 @@ export const store = configureStore({
     [analyticsApi.reducerPath]: analyticsApi.reducer,
     [chatAssistantApi.reducerPath]: chatAssistantApi.reducer,
     [meetingIntelligenceApi.reducerPath]: meetingIntelligenceApi.reducer,
+    [connectApi.reducerPath]: connectApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -69,7 +71,8 @@ export const store = configureStore({
       hrOpsApi.middleware,
       analyticsApi.middleware,
       chatAssistantApi.middleware,
-      meetingIntelligenceApi.middleware
+      meetingIntelligenceApi.middleware,
+      connectApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });

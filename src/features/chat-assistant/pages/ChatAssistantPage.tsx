@@ -16,7 +16,6 @@ import {
   useDeleteConversationMutation,
 } from '../api/chatAssistantApi';
 import type {
-  ConversationThread,
   ChatMessage,
   ChatContextScope,
   ChatActionChip,
