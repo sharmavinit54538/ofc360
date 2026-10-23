@@ -34,6 +34,7 @@ import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
 import { useSettingsContext } from './SettingsLayout';
 import {
@@ -464,10 +465,10 @@ export const AttendanceSection: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <SectionCard title="Loading..." icon={<Clock className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<MapPin className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<Wifi className="w-5 h-5" />} />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
       </div>
     );
   }

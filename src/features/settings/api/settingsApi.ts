@@ -39,6 +39,11 @@ import type {
   RevokeAllSessionsRequest,
   UpdateSecuritySettingsRequest,
   PasskeyInfo,
+  UserProfileSettings,
+  UpdateProfileRequest,
+  LeaveType,
+  RolePermissionItem,
+  UpdateRolePermissionsRequest,
 } from '../types/settings.types';
 
 // Transform helper for backend response envelopes
@@ -51,14 +56,17 @@ export const settingsApi = createApi({
   reducerPath: 'settingsApi',
   baseQuery: baseQueryWithReauth,
   tagTypes: [
+    'ProfileSettings',
     'CompanySettings',
     'EmployeeSettings',
     'AttendanceSettings',
     'LeaveSettings',
+    'LeavePolicies',
     'PayrollSettings',
     'DocumentsSettings',
     'AssetsSettings',
     'NotificationsSettings',
+    'RoleSettings',
     'UserNotificationPreferences',
     'SecuritySettings',
     'Passkeys',
@@ -160,7 +168,34 @@ export const settingsApi = createApi({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: ['LeaveSettings'],
+      invalidatesTags: ['LeaveSettings', 'LeavePolicies'],
+    }),
+
+    /**
+     * Retrieve configured leave policies (leave types) as individual policy items.
+     */
+    getLeavePolicies: builder.query<LeaveType[], void>({
+      query: () => '/settings/leave',
+      transformResponse: (response: any) => {
+        const data = transformResponse<any>(response);
+        if (Array.isArray(data)) return data as LeaveType[];
+        const typed = data as Partial<LeaveSettings> | undefined;
+        return (typed?.leaveTypes || []) as LeaveType[];
+      },
+      providesTags: ['LeavePolicies'],
+    }),
+
+    /**
+     * Update a single leave policy by id.
+     */
+    updateLeavePolicy: builder.mutation<LeaveType, { id: string; data: Partial<LeaveType> }>({
+      query: ({ id, data }) => ({
+        url: `/settings/leave/${encodeURIComponent(id)}`,
+        method: 'PUT',
+        body: data,
+      }),
+      transformResponse: (response: any) => transformResponse<LeaveType>(response),
+      invalidatesTags: ['LeavePolicies', 'LeaveSettings'],
     }),
 
     // ==========================================
@@ -263,6 +298,22 @@ export const settingsApi = createApi({
     // ==========================================
     // Profile / Security Settings
     // ==========================================
+    getProfile: builder.query<UserProfileSettings, void>({
+      query: () => '/settings/profile',
+      transformResponse: (response: any) => transformResponse<UserProfileSettings>(response),
+      providesTags: ['ProfileSettings'],
+    }),
+
+    updateProfile: builder.mutation<UserProfileSettings, UpdateProfileRequest>({
+      query: (body) => ({
+        url: '/settings/profile',
+        method: 'PUT',
+        body,
+      }),
+      transformResponse: (response: any) => transformResponse<UserProfileSettings>(response),
+      invalidatesTags: ['ProfileSettings'],
+    }),
+
     getSecuritySettings: builder.query<SecuritySettings, void>({
       query: () => '/settings/profile/security',
       transformResponse: (response: any) => transformResponse<SecuritySettings>(response),
@@ -272,7 +323,7 @@ export const settingsApi = createApi({
     changePassword: builder.mutation<{ success: boolean; message: string }, ChangePasswordRequest>({
       query: (body) => ({
         url: '/settings/profile/password',
-        method: 'POST',
+        method: 'PUT',
         body,
       }),
       invalidatesTags: ['SecuritySettings'],
@@ -371,6 +422,28 @@ export const settingsApi = createApi({
     }),
 
     // ==========================================
+    // Roles & Permissions (RBAC)
+    // ==========================================
+    getRolesPermissions: builder.query<RolePermissionItem[], void>({
+      query: () => '/settings/roles',
+      transformResponse: (response: any) => {
+        const data = transformResponse<any>(response);
+        return Array.isArray(data) ? data : data?.items || data?.roles || [];
+      },
+      providesTags: ['RoleSettings'],
+    }),
+
+    updateRolePermissions: builder.mutation<RolePermissionItem, UpdateRolePermissionsRequest>({
+      query: ({ id, ...body }) => ({
+        url: `/settings/roles/${encodeURIComponent(id)}`,
+        method: 'PUT',
+        body,
+      }),
+      transformResponse: (response: any) => transformResponse<RolePermissionItem>(response),
+      invalidatesTags: ['RoleSettings'],
+    }),
+
+    // ==========================================
     // Bulk Operations
     // ==========================================
     bulkUpdateSettings: builder.mutation<BulkSettingsUpdateResponse, BulkSettingsUpdateRequest>({
@@ -429,7 +502,7 @@ export const settingsApi = createApi({
         url: `/settings/${category}/reset`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, category) => [{ type: `${category.charAt(0).toUpperCase() + category.slice(1)}Settings` as any }],
+      invalidatesTags: (_result, _error, category) => [{ type: `${category.charAt(0).toUpperCase() + category.slice(1)}Settings` as any }],
     }),
   }),
 });
@@ -453,6 +526,13 @@ export const {
   useGetLeaveSettingsQuery,
   useLazyGetLeaveSettingsQuery,
   useUpdateLeaveSettingsMutation,
+  useGetLeavePoliciesQuery,
+  useLazyGetLeavePoliciesQuery,
+  useUpdateLeavePolicyMutation,
+  // Roles & Permissions
+  useGetRolesPermissionsQuery,
+  useLazyGetRolesPermissionsQuery,
+  useUpdateRolePermissionsMutation,
   // Payroll
   useGetPayrollSettingsQuery,
   useLazyGetPayrollSettingsQuery,
@@ -474,6 +554,9 @@ export const {
   useUpdateUserNotificationPreferenceMutation,
   useBulkUpdateUserNotificationPreferencesMutation,
   // Profile / Security
+  useGetProfileQuery,
+  useLazyGetProfileQuery,
+  useUpdateProfileMutation,
   useGetSecuritySettingsQuery,
   useLazyGetSecuritySettingsQuery,
   useChangePasswordMutation,

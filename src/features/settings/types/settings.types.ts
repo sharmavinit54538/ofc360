@@ -806,3 +806,103 @@ export const LANGUAGES = [
   { code: 'ja', name: 'Japanese' },
   { code: 'ar', name: 'Arabic' },
 ] as const;
+// ==========================================
+// User Profile Settings DTOs
+// ==========================================
+
+/**
+ * Personal profile information for the authenticated user,
+ * served by GET /settings/profile.
+ */
+export interface UserProfileSettings {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  personalEmail?: string;
+  avatarUrl?: string;
+  department?: string;
+  designation?: string;
+  emergencyContact?: string;
+}
+
+/**
+ * Payload for PUT /settings/profile.
+ */
+export type UpdateProfileRequest = Partial<Omit<UserProfileSettings, 'id' | 'email'>>;
+
+/**
+ * Payload for PUT /settings/profile/password.
+ * Mirrors {@link ChangePasswordRequest}.
+ */
+export type ChangePasswordPayload = ChangePasswordRequest;
+
+// ==========================================
+// Attendance Rules DTO (rules-focused projection)
+// ==========================================
+
+export interface GeofenceCoordinate {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface AttendanceRulesSettings {
+  workHours: {
+    fullDayMinMinutes: number;
+    halfDayMinMinutes: number;
+    gracePeriodMinutes: number;
+  };
+  geofencing: {
+    isEnabled: boolean;
+    radiusMeters: number;
+    coordinates: GeofenceCoordinate[];
+  };
+  ipRestriction: {
+    isEnabled: boolean;
+    whitelistedIps: string[];
+  };
+  autoClockOut: {
+    isEnabled: boolean;
+    atTime: string;
+  };
+}
+
+// ==========================================
+// Role Permissions DTO (served by /settings/roles)
+// ==========================================
+
+export interface RolePermissionActions {
+  read: boolean;
+  write: boolean;
+  delete: boolean;
+}
+
+export interface RolePermissionItem {
+  id: string;
+  roleName: string;
+  roleCode: string;
+  permissions: Record<string, RolePermissionActions>;
+}
+
+export interface UpdateRolePermissionsRequest {
+  id: string;
+  permissions: Record<string, RolePermissionActions>;
+}
+
+// ==========================================
+// Assets & Documents Config DTOs
+// ==========================================
+
+export interface AssetsSettingsConfig {
+  categories: string[];
+  defaultWarrantyReminderDays: number;
+  autoTagPrefix: string;
+}
+
+export interface DocumentsComplianceSettings {
+  mandatoryDocTypes: string[];
+  expiryAlertDays: number;
+  autoRejectAfterDays: number;
+}

@@ -6,10 +6,21 @@ import {
   Sparkles,
   HelpCircle,
   ExternalLink,
+  Building2,
+  CalendarDays,
+  ShieldCheck,
+  Bell,
 } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
 import { cn } from '@/shared/lib/utils';
+import { Skeleton } from '@/shared/ui/Skeleton';
 import type { SettingCategory } from '@/features/settings/types/settings.types';
+import {
+  useGetCompanySettingsQuery,
+  useGetLeaveSettingsQuery,
+  useGetRolesPermissionsQuery,
+  useGetNotificationsSettingsQuery,
+} from '../api/settingsApi';
 import { SETTINGS_SECTIONS } from './SettingsLayout';
 
 interface SettingsCardMeta {
@@ -83,6 +94,53 @@ export const SettingsOverview: React.FC = () => {
   const user = useAppSelector((state) => state.auth.user);
   const userPermissions = useMemo(() => user?.permissions || [], [user?.permissions]);
 
+  // Live configuration status across settings domains
+  const { data: companySettings, isLoading: companyLoading } = useGetCompanySettingsQuery();
+  const { data: leaveSettings, isLoading: leaveLoading } = useGetLeaveSettingsQuery();
+  const { data: roles, isLoading: rolesLoading } = useGetRolesPermissionsQuery();
+  const { data: notificationsSettings, isLoading: notificationsLoading } = useGetNotificationsSettingsQuery();
+
+  const statusTiles = useMemo(() => {
+    const enabledChannels = (notificationsSettings?.channels || []).filter((c) => c.enabled).length;
+    const totalChannels = notificationsSettings?.channels?.length ?? 0;
+    return [
+      {
+        id: 'organization',
+        label: 'Organization',
+        value: companySettings?.details?.displayName || 'Not configured',
+        hint: companySettings?.timezone
+          ? `${companySettings.timezone} • ${companySettings.currency}`
+          : 'Timezone & currency pending',
+        icon: Building2,
+        isLoading: companyLoading,
+      },
+      {
+        id: 'leave-policies',
+        label: 'Leave Policies',
+        value: `${leaveSettings?.leaveTypes?.length ?? 0}`,
+        hint: 'Configured leave types',
+        icon: CalendarDays,
+        isLoading: leaveLoading,
+      },
+      {
+        id: 'roles',
+        label: 'RBAC Roles',
+        value: `${roles?.length ?? 0}`,
+        hint: 'Roles synced from RBAC service',
+        icon: ShieldCheck,
+        isLoading: rolesLoading,
+      },
+      {
+        id: 'channels',
+        label: 'Notification Channels',
+        value: `${enabledChannels}/${totalChannels}`,
+        hint: 'Channels enabled',
+        icon: Bell,
+        isLoading: notificationsLoading,
+      },
+    ];
+  }, [companySettings, leaveSettings, roles, notificationsSettings, companyLoading, leaveLoading, rolesLoading, notificationsLoading]);
+
   // Filter sections by permissions and search query
   const visibleSections = useMemo(() => {
     return SETTINGS_SECTIONS.filter((section) => {
@@ -146,6 +204,41 @@ export const SettingsOverview: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Live Configuration Status */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statusTiles.map((tile) => {
+          const Icon = tile.icon;
+          return (
+            <div
+              key={tile.id}
+              className="p-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-zinc-400 tracking-wider">
+                  {tile.label}
+                </span>
+                <div className="p-1.5 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              {tile.isLoading ? (
+                <div className="mt-2 space-y-1.5">
+                  <Skeleton className="h-5 w-2/3" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              ) : (
+                <>
+                  <div className="text-lg font-bold text-slate-900 dark:text-white mt-1.5 truncate">
+                    {tile.value}
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 truncate">{tile.hint}</p>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Grid of Setting Cards */}
