@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  CalendarDays,
   Clock,
   ScrollText,
   CalendarCheck,
@@ -172,62 +171,11 @@ export const AttendanceHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Hero Banner with live KPIs */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 text-white p-6 md:p-8 border border-blue-500/20 shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-8 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+      {/* Live Punch Console */}
+      <PunchInOutCard />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-              <CalendarDays className="w-3.5 h-3.5" />
-              <span>Attendance Management Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Workforce Attendance Control Center
-            </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              Unified command center for shift scheduling, real-time punch tracking,
-              regularization workflows, and attendance compliance.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/5 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shrink-0">
-            <div className="text-center px-3 py-1.5 border-r border-white/10">
-              <p className="text-xs text-slate-400 font-medium">Present Today</p>
-              <p className="text-xl font-bold text-emerald-400">
-                {isStatsLoading ? '—' : stats?.presentToday ?? 0}
-              </p>
-            </div>
-            <div className="text-center px-3 py-1.5 border-r border-white/10">
-              <p className="text-xs text-slate-400 font-medium">On Leave</p>
-              <p className="text-xl font-bold text-amber-400">
-                {isStatsLoading ? '—' : stats?.onLeaveToday ?? 0}
-              </p>
-            </div>
-            <div className="text-center px-3 py-1.5 border-r border-white/10">
-              <p className="text-xs text-slate-400 font-medium">Late Arrivals</p>
-              <p className="text-xl font-bold text-rose-400">
-                {isStatsLoading ? '—' : stats?.lateArrivals ?? 0}
-              </p>
-            </div>
-            <div className="text-center px-3 py-1.5">
-              <p className="text-xs text-slate-400 font-medium">Avg Hours</p>
-              <p className="text-xl font-bold text-blue-400">
-                {isStatsLoading ? '—' : `${(stats?.avgWorkHours ?? 0).toFixed(1)}h`}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Punch clock + KPI strip */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 items-start">
-        <PunchInOutCard />
-        <div className="lg:col-span-2">
-          <AttendanceKpiCards stats={stats} isLoading={isStatsLoading} />
-        </div>
-      </div>
+      {/* Attendance KPI Overview */}
+      <AttendanceKpiCards stats={stats} isLoading={isStatsLoading} />
 
       {/* Module navigation */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">

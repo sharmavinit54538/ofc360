@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Users,
   UserPlus,
@@ -10,13 +9,9 @@ import {
   Search,
   ArrowRight,
   Sparkles,
-  CheckCircle2,
   Filter,
   Plus,
-  Mail,
-  Phone,
   BadgeCheck,
-  ChevronRight,
   TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
@@ -146,7 +141,6 @@ const SAMPLE_DEPARTMENTS = [
 ];
 
 export const WorkforceHubPage: React.FC = () => {
-  const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -167,15 +161,15 @@ export const WorkforceHubPage: React.FC = () => {
   const handleAction = (moduleId: string) => {
     if (moduleId === 'employees') {
       setActiveTab('employees');
-      toast.show('Opened Employees Directory', 'success');
+      toast.success('Opened Employees Directory');
     } else if (moduleId === 'managers') {
       setActiveTab('managers');
-      toast.show('Opened Managers Overview', 'success');
+      toast.success('Opened Managers Overview');
     } else if (moduleId === 'departments') {
       setActiveTab('departments');
-      toast.show('Opened Departments List', 'success');
+      toast.success('Opened Departments List');
     } else {
-      toast.show(`Accessing ${moduleId.toUpperCase()} module...`, 'info');
+      toast.info(`Accessing ${moduleId.toUpperCase()} module...`);
     }
   };
 
@@ -203,7 +197,7 @@ export const WorkforceHubPage: React.FC = () => {
               size="sm"
               onClick={() => {
                 setActiveTab('employees');
-                toast.show('Filter applied: Employees Directory', 'info');
+                toast.info('Filter applied: Employees Directory');
               }}
               className="gap-2 text-xs"
             >
@@ -215,7 +209,7 @@ export const WorkforceHubPage: React.FC = () => {
               size="sm"
               onClick={() => {
                 setActiveTab('managers');
-                toast.show('Filter applied: Managers', 'info');
+                toast.info('Filter applied: Managers');
               }}
               className="gap-2 text-xs"
             >
@@ -227,7 +221,7 @@ export const WorkforceHubPage: React.FC = () => {
               size="sm"
               onClick={() => {
                 setActiveTab('departments');
-                toast.show('Filter applied: Departments', 'info');
+                toast.info('Filter applied: Departments');
               }}
               className="gap-2 text-xs"
             >
@@ -236,7 +230,7 @@ export const WorkforceHubPage: React.FC = () => {
             </Button>
             <Button
               size="sm"
-              onClick={() => toast.show('Add Employee workflow initialized', 'success')}
+              onClick={() => toast.success('Add Employee workflow initialized')}
               className="gap-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4" />
@@ -405,7 +399,7 @@ export const WorkforceHubPage: React.FC = () => {
                         <Icon className={cn('w-6 h-6', module.iconColor)} />
                       </div>
                       {module.badge && (
-                        <Badge variant="outline" className="text-[11px] font-semibold border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40">
+                        <Badge variant="brand" className="text-[11px] font-semibold border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40">
                           {module.badge}
                         </Badge>
                       )}
@@ -479,7 +473,7 @@ export const WorkforceHubPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
-                onClick={() => toast.show('Exporting workforce directory to CSV...', 'info')}
+                onClick={() => toast.info('Exporting workforce directory to CSV...')}
                 variant="outline"
                 className="text-xs"
               >
@@ -487,7 +481,7 @@ export const WorkforceHubPage: React.FC = () => {
               </Button>
               <Button
                 size="sm"
-                onClick={() => toast.show('Add Employee wizard ready', 'success')}
+                onClick={() => toast.success('Add Employee wizard ready')}
                 className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="w-3.5 h-3.5 mr-1" />
@@ -549,7 +543,7 @@ export const WorkforceHubPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => toast.show(`Viewing profile for ${emp.name}`, 'info')}
+                        onClick={() => toast.info(`Viewing profile for ${emp.name}`)}
                         className="text-xs text-blue-600 hover:text-blue-700"
                       >
                         View Profile
@@ -578,7 +572,7 @@ export const WorkforceHubPage: React.FC = () => {
             </div>
             <Button
               size="sm"
-              onClick={() => toast.show('Assign Manager drawer opened', 'info')}
+              onClick={() => toast.info('Assign Manager drawer opened')}
               className="text-xs bg-violet-600 hover:bg-violet-700 text-white"
             >
               <UserPlus className="w-3.5 h-3.5 mr-1" />
@@ -595,7 +589,7 @@ export const WorkforceHubPage: React.FC = () => {
                 <div className="space-y-1">
                   <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     {mgr.name}
-                    <Badge variant="outline" className="text-[10px] text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800">
+                    <Badge variant="slate" className="text-[10px] text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800">
                       {mgr.dept}
                     </Badge>
                   </div>
@@ -609,7 +603,7 @@ export const WorkforceHubPage: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => toast.show(`Viewing team hierarchy for ${mgr.name}`, 'info')}
+                  onClick={() => toast.info(`Viewing team hierarchy for ${mgr.name}`)}
                   className="text-xs"
                 >
                   View Team
@@ -635,7 +629,7 @@ export const WorkforceHubPage: React.FC = () => {
             </div>
             <Button
               size="sm"
-              onClick={() => toast.show('Create Department modal ready', 'success')}
+              onClick={() => toast.success('Create Department modal ready')}
               className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
@@ -651,7 +645,7 @@ export const WorkforceHubPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-slate-900 dark:text-white">{dept.name}</div>
-                  <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200 dark:border-emerald-800">
+                  <Badge variant="success" className="text-[10px] text-emerald-600 border-emerald-200 dark:border-emerald-800">
                     {dept.id}
                   </Badge>
                 </div>
@@ -677,7 +671,7 @@ export const WorkforceHubPage: React.FC = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => toast.show(`Viewing department details for ${dept.name}`, 'info')}
+                    onClick={() => toast.info(`Viewing department details for ${dept.name}`)}
                     className="text-xs text-emerald-600 hover:text-emerald-700 p-0 h-auto font-medium"
                   >
                     Manage Department →

@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Clock, MapPin, Fingerprint, Navigation, AlertTriangle } from 'lucide-react';
+import {
+  Clock,
+  MapPin,
+  Fingerprint,
+  Navigation,
+  AlertTriangle,
+  Building2,
+  Home,
+  Briefcase,
+  CheckCircle2,
+} from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
@@ -12,10 +22,10 @@ import {
 import { punchInSchema, punchOutSchema } from '../schemas/attendance.schemas';
 import type { WorkMode } from '../types/attendance.types';
 
-const WORK_MODES: { id: WorkMode; label: string }[] = [
-  { id: 'OFFICE', label: 'Office' },
-  { id: 'WFM', label: 'Work From Home' },
-  { id: 'FIELD', label: 'Field Duty' },
+const WORK_MODES: { id: WorkMode; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'OFFICE', label: 'Office', icon: Building2 },
+  { id: 'WFM', label: 'WFH', icon: Home },
+  { id: 'FIELD', label: 'Field Duty', icon: Briefcase },
 ];
 
 const formatElapsed = (minutes: number): string => {
@@ -37,36 +47,45 @@ export const PunchInOutCard: React.FC = () => {
 
   const [workMode, setWorkMode] = useState<WorkMode>('OFFICE');
   const [workNotes, setWorkNotes] = useState('');
-  const [geoState, setGeoState] = useState<{ status: 'idle' | 'fetching' | 'ready' | 'denied'; coords?: GeolocationCoordinates }>({
+  const [geoState, setGeoState] = useState<{
+    status: 'idle' | 'fetching' | 'ready' | 'denied';
+    coords?: GeolocationCoordinates;
+  }>({
     status: 'idle',
   });
 
-  // Live elapsed timer ticking every 30 seconds while punched in
-  const [now, setNow] = useState(() => Date.now());
+  // Live real-time clock ticking every second
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   useEffect(() => {
-    if (!todayStatus?.isPunchedIn) return;
-    const interval = window.setInterval(() => setNow(Date.now()), 30000);
-    return () => window.clearInterval(interval);
-  }, [todayStatus?.isPunchedIn]);
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
+  // Elapsed minutes calculation
   const elapsedMinutes = useMemo(() => {
     if (!todayStatus?.isPunchedIn || !todayStatus.punchInTime) {
       return todayStatus?.totalWorkedMinutes ?? 0;
     }
     const punchedAt = new Date(todayStatus.punchInTime).getTime();
-    return Math.max(0, Math.floor((now - punchedAt) / 60000));
-  }, [todayStatus, now]);
+    return Math.max(0, Math.floor((currentTime.getTime() - punchedAt) / 60000));
+  }, [todayStatus, currentTime]);
 
-  // Best-effort geolocation capture for punch metadata
   const captureLocation = () => {
     if (!navigator.geolocation) {
       setGeoState({ status: 'denied' });
+      toast.warning('Geolocation is not supported by your browser');
       return;
     }
     setGeoState((prev) => ({ ...prev, status: 'fetching' }));
     navigator.geolocation.getCurrentPosition(
-      (position) => setGeoState({ status: 'ready', coords: position.coords }),
-      () => setGeoState({ status: 'denied' }),
+      (position) => {
+        setGeoState({ status: 'ready', coords: position.coords });
+        toast.success('GPS Location verified & attached');
+      },
+      () => {
+        setGeoState({ status: 'denied' });
+        toast.info('Location access denied or unavailable');
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
@@ -89,7 +108,10 @@ export const PunchInOutCard: React.FC = () => {
 
     try {
       await punchIn(payload).unwrap();
-      toast.success(`Punched in at ${formatTime(payload.timestamp)} (${workMode.replace('WFM', 'WFH')})`, 'Shift Started');
+      toast.success(
+        `Punched in at ${formatTime(payload.timestamp)} (${workMode === 'WFM' ? 'Work From Home' : workMode})`,
+        'Shift Started'
+      );
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to punch in. Please try again.', 'Punch-In Error');
     }
@@ -112,7 +134,10 @@ export const PunchInOutCard: React.FC = () => {
 
     try {
       await punchOut(payload).unwrap();
-      toast.success(`Punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`, 'Shift Ended');
+      toast.success(
+        `Punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`,
+        'Shift Ended'
+      );
       setWorkNotes('');
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to punch out. Please try again.', 'Punch-Out Error');
@@ -130,76 +155,154 @@ export const PunchInOutCard: React.FC = () => {
   }
 
   const isPunchedIn = todayStatus?.isPunchedIn ?? false;
+  const isShiftCompleted = Boolean(todayStatus?.punchOutTime && !isPunchedIn);
   const isBusy = isPunchingIn || isPunchingOut;
 
+  const formattedDate = currentTime.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const formattedLiveClock = currentTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 border border-blue-600 shadow-lg text-white space-y-5">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-        {/* Status block */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                'w-2.5 h-2.5 rounded-full',
-                isPunchedIn ? 'bg-emerald-300 animate-pulse' : 'bg-blue-200/70'
-              )}
-            />
-            <h3 className="text-base font-bold">
-              {isPunchedIn ? 'Currently Punched In' : todayStatus?.punchOutTime ? 'Shift Completed For Today' : 'Not Punched In Yet'}
-            </h3>
-            {todayStatus?.isLate && isPunchedIn && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/40 text-[10px] font-semibold text-amber-200">
-                <AlertTriangle className="w-3 h-3" /> Late Arrival
-              </span>
-            )}
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-900 border border-blue-500/30 text-white shadow-xl p-5 md:p-6 transition-all duration-200">
+      {/* Decorative ambient backdrop */}
+      <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 -mb-10 w-48 h-48 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col gap-5">
+        {/* Top Header Row: Live Clock, Punch Status & Shift Info */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/15">
+          <div className="flex items-center gap-3.5">
+            <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 text-white backdrop-blur-md shrink-0">
+              <Clock className="w-6 h-6 text-blue-200" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl md:text-2xl font-extrabold tracking-tight font-mono text-white">
+                  {formattedLiveClock}
+                </span>
+                <span className="text-xs text-blue-200 font-medium bg-white/10 px-2 py-0.5 rounded-md">
+                  {formattedDate}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className={cn(
+                    'w-2 h-2 rounded-full shrink-0',
+                    isPunchedIn
+                      ? 'bg-emerald-300 animate-pulse'
+                      : isShiftCompleted
+                        ? 'bg-blue-300'
+                        : 'bg-amber-300'
+                  )}
+                />
+                <span className="text-xs font-semibold text-blue-100">
+                  {isPunchedIn
+                    ? 'Currently Punched In (Active)'
+                    : isShiftCompleted
+                      ? 'Shift Completed For Today'
+                      : 'Not Punched In Yet'}
+                </span>
+                {todayStatus?.isLate && isPunchedIn && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/40 text-[10px] font-semibold text-amber-200">
+                    <AlertTriangle className="w-3 h-3" /> Late Arrival
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-blue-100">
-            {todayStatus?.assignedShift
-              ? `Shift: ${todayStatus.assignedShift.name} • ${todayStatus.assignedShift.startTime} – ${todayStatus.assignedShift.endTime}`
-              : 'No shift assigned for today'}
-            {' • '}
-            In: {formatTime(todayStatus?.punchInTime)} / Out: {formatTime(todayStatus?.punchOutTime)}
-          </p>
-          <p className="text-xs text-blue-100 font-semibold">
-            Worked today: {formatElapsed(elapsedMinutes)}
-          </p>
+
+          {/* Quick Stats Pill Strip */}
+          <div className="grid grid-cols-3 gap-2 bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/15 text-center text-xs">
+            <div className="px-2 py-1 border-r border-white/15">
+              <span className="text-[10px] text-blue-200 block font-medium">Punch In</span>
+              <span className="font-bold text-white text-xs md:text-sm">
+                {formatTime(todayStatus?.punchInTime)}
+              </span>
+            </div>
+            <div className="px-2 py-1 border-r border-white/15">
+              <span className="text-[10px] text-blue-200 block font-medium">Punch Out</span>
+              <span className="font-bold text-white text-xs md:text-sm">
+                {formatTime(todayStatus?.punchOutTime)}
+              </span>
+            </div>
+            <div className="px-2 py-1">
+              <span className="text-[10px] text-blue-200 block font-medium">Worked Today</span>
+              <span className="font-bold text-emerald-300 text-xs md:text-sm">
+                {formatElapsed(elapsedMinutes)}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Controls */}
-        <div className="space-y-3 shrink-0">
-          {!isPunchedIn && !todayStatus?.punchOutTime && (
-            <div className="inline-flex p-1 rounded-xl bg-white/10 border border-white/15 text-xs font-semibold">
-              {WORK_MODES.map((mode) => (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => setWorkMode(mode.id)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg transition-all',
-                    workMode === mode.id
-                      ? 'bg-white text-blue-700 shadow-sm'
-                      : 'text-blue-100 hover:text-white'
-                  )}
-                >
-                  {mode.label}
-                </button>
-              ))}
+        {/* Bottom Action Controls */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Work Mode Selector (Office / WFH / Field) */}
+          {!isPunchedIn && !isShiftCompleted ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-xs text-blue-200 font-medium">Work Mode:</span>
+              <div className="inline-flex p-1 rounded-xl bg-white/10 border border-white/15 backdrop-blur-md">
+                {WORK_MODES.map((mode) => {
+                  const ModeIcon = mode.icon;
+                  const isSelected = workMode === mode.id;
+                  return (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setWorkMode(mode.id)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap',
+                        isSelected
+                          ? 'bg-white text-blue-800 shadow-sm'
+                          : 'text-blue-100 hover:text-white hover:bg-white/10'
+                      )}
+                    >
+                      <ModeIcon className="w-3.5 h-3.5" />
+                      <span>{mode.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-blue-100 flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 font-medium">
+                {todayStatus?.assignedShift
+                  ? `Shift: ${todayStatus.assignedShift.name} (${todayStatus.assignedShift.startTime} – ${todayStatus.assignedShift.endTime})`
+                  : 'Standard Shift: 09:00 AM – 06:00 PM'}
+              </span>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* Right Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={captureLocation}
               disabled={geoState.status === 'fetching'}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-xs font-medium text-blue-100 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition-all backdrop-blur-md disabled:opacity-60"
             >
-              <Navigation className={cn('w-3.5 h-3.5', geoState.status === 'fetching' && 'animate-spin')} />
-              {geoState.status === 'ready'
-                ? 'Location Attached'
-                : geoState.status === 'denied'
-                  ? 'Location Unavailable'
-                  : 'Attach Location'}
+              <Navigation
+                className={cn('w-3.5 h-3.5 text-blue-200', geoState.status === 'fetching' && 'animate-spin')}
+              />
+              <span className="whitespace-nowrap">
+                {geoState.status === 'ready'
+                  ? 'Location Attached'
+                  : geoState.status === 'denied'
+                    ? 'Location Denied'
+                    : 'Attach Location'}
+              </span>
+              {geoState.status === 'ready' && (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+              )}
             </button>
 
             {isPunchedIn ? (
@@ -209,39 +312,44 @@ export const PunchInOutCard: React.FC = () => {
                 onClick={handlePunchOut}
                 isLoading={isBusy}
                 leftIcon={<Clock className="w-4 h-4" />}
+                className="whitespace-nowrap font-bold px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-lg"
               >
                 Punch Out
               </Button>
-            ) : !todayStatus?.punchOutTime ? (
+            ) : !isShiftCompleted ? (
               <Button
                 variant="primary"
                 size="md"
                 onClick={handlePunchIn}
                 isLoading={isBusy}
                 leftIcon={<Fingerprint className="w-4 h-4" />}
-                className="bg-white text-blue-700 hover:bg-blue-50"
+                className="whitespace-nowrap font-bold px-6 py-2.5 bg-white text-blue-800 hover:bg-blue-50 border-0 shadow-lg text-sm"
               >
                 Punch In Now
               </Button>
-            ) : null}
+            ) : (
+              <div className="text-xs font-semibold text-emerald-300 bg-emerald-500/20 px-3 py-1.5 rounded-lg border border-emerald-400/30">
+                ✓ Attendance Recorded
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Optional work notes before punch-out */}
-      {isPunchedIn && (
-        <div className="relative">
-          <MapPin className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-200" />
-          <input
-            type="text"
-            value={workNotes}
-            onChange={(e) => setWorkNotes(e.target.value)}
-            placeholder="Optional: summarize today's work before punching out (max 500 chars)..."
-            maxLength={500}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/15 focus:border-blue-300 text-white placeholder-blue-200 text-xs focus:outline-none transition-colors"
-          />
-        </div>
-      )}
+        {/* Optional work notes input when punched in */}
+        {isPunchedIn && (
+          <div className="relative pt-1">
+            <MapPin className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-200 pointer-events-none" />
+            <input
+              type="text"
+              value={workNotes}
+              onChange={(e) => setWorkNotes(e.target.value)}
+              placeholder="Optional: summarize work accomplished today before punching out..."
+              maxLength={500}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 focus:border-white/50 text-white placeholder:text-blue-200 text-xs focus:outline-none transition-colors"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
