@@ -49,6 +49,8 @@ import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/Tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
+import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
 import { useSettingsContext } from './SettingsLayout';
 import {
@@ -434,29 +436,21 @@ export const NotificationsSection: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <SectionCard title="Loading..." icon={<Bell className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<Zap className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<Moon className="w-5 h-5" />} />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
       </div>
     );
   }
 
   if (fetchError) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">
-          Failed to Load Settings
-        </h3>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-4">
-          {fetchError.message || 'Unable to connect to the settings service.'}
-        </p>
-        <Button variant="primary" onClick={() => refetch()}>
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Retry
-        </Button>
-      </div>
+      <ErrorDisplay
+        title="Failed to Load Notification Settings"
+        error={fetchError}
+        onRetry={() => refetch()}
+      />
     );
   }
 

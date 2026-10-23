@@ -6,21 +6,13 @@
 
 import { z } from 'zod';
 import type {
-  CompanySettings,
   UpdateCompanySettingsRequest,
-  EmployeeSettings,
   UpdateEmployeeSettingsRequest,
-  AttendanceSettings,
   UpdateAttendanceSettingsRequest,
-  LeaveSettings,
   UpdateLeaveSettingsRequest,
-  PayrollSettings,
   UpdatePayrollSettingsRequest,
-  DocumentsSettings,
   UpdateDocumentsSettingsRequest,
-  AssetsSettings,
   UpdateAssetsSettingsRequest,
-  NotificationsSettings,
   UpdateNotificationsSettingsRequest,
   ChangePasswordRequest,
   Enable2FARequest,
@@ -135,7 +127,7 @@ export const geofenceConfigSchema = z.object({
   name: z.string().min(1, 'Geofence name is required').max(100),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  radiusMeters: z.number().int().min(10).max(5000).default(100),
+  radiusMeters: z.number().int().min(50, 'Geofence radius must be at least 50 meters').max(5000).default(100),
   address: z.string().max(500).optional(),
   isActive: z.boolean().default(true),
   allowedShiftIds: z.array(z.string()).optional(),
@@ -451,20 +443,64 @@ export const updateNotificationsSettingsSchema = z.object({
 // User Profile / Security Schemas
 // ==========================================
 
-export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128)
-    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-}) satisfies z.ZodType<ChangePasswordRequest>;
+// ==========================================
+// Profile Schemas
+// ==========================================
+
+const PHONE_REGEX = /^\+?[0-9][0-9\s\-()]{6,19}$/;
+
+/**
+ * Validates the personal profile info form (GET/PUT /settings/profile).
+ */
+export const profileFormSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters').max(60, 'First name cannot exceed 60 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters').max(60, 'Last name cannot exceed 60 characters'),
+  phone: z
+    .string()
+    .regex(PHONE_REGEX, 'Enter a valid phone number')
+    .optional()
+    .or(z.literal('')),
+  personalEmail: z
+    .string()
+    .email('Enter a valid email address')
+    .optional()
+    .or(z.literal('')),
+  department: z.string().max(80, 'Department cannot exceed 80 characters').optional().or(z.literal('')),
+  designation: z.string().max(80, 'Designation cannot exceed 80 characters').optional().or(z.literal('')),
+  emergencyContact: z
+    .string()
+    .regex(PHONE_REGEX, 'Enter a valid emergency contact number')
+    .optional()
+    .or(z.literal('')),
+});
+
+export type ProfileFormData = z.infer<typeof profileFormSchema>;
+
+/**
+ * Password change with strength rules and confirmation cross-check.
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(6, 'Current password must be at least 6 characters'),
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(128)
+      .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Must contain at least one number')
+      .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
+      });
+    }
+  }) satisfies z.ZodType<ChangePasswordRequest>;
 
 export const enable2FASchema = z.object({
   method: z.enum(['authenticator', 'sms', 'email']),
@@ -501,3 +537,17 @@ export type Enable2FAFormData = z.infer<typeof enable2FASchema>;
 export type Disable2FAFormData = z.infer<typeof disable2FASchema>;
 export type RegisterPasskeyFormData = z.infer<typeof registerPasskeySchema>;
 export type DeletePasskeyFormData = z.infer<typeof deletePasskeySchema>;
+// ==========================================
+// Rule-focused alias exports
+// ==========================================
+// These alias the section update schemas so rule-level validations
+// (positive minutes, geofence radius bounds, pay-cycle day bounds,
+// statutory percentage bounds) stay enforced from a single source.
+export const companySettingsSchema = updateCompanySettingsSchema;
+export const attendanceSettingsSchema = updateAttendanceSettingsSchema;
+export const payrollSettingsSchema = updatePayrollSettingsSchema.extend({
+  // Day-of-month pay cycle bounds (1-31) for day-based pay cycle configs
+  startDay: z.number().int().min(1, 'Pay cycle start day must be between 1 and 31').max(31, 'Pay cycle start day must be between 1 and 31').optional(),
+  endDay: z.number().int().min(1, 'Pay cycle end day must be between 1 and 31').max(31, 'Pay cycle end day must be between 1 and 31').optional(),
+  disbursementDay: z.number().int().min(1, 'Disbursement day must be between 1 and 31').max(31, 'Disbursement day must be between 1 and 31').optional(),
+});

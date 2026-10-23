@@ -3,7 +3,7 @@
  * @description Employee Settings section with ID formats, role defaults, and visibility rules.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -30,18 +30,21 @@ import { Badge } from '@/shared/ui/Badge';
 import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/Tooltip';
+import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
 import { useSettingsContext } from './SettingsLayout';
 import {
   useGetEmployeeSettingsQuery,
   useUpdateEmployeeSettingsMutation,
+  useGetRolesPermissionsQuery,
+  useUpdateRolePermissionsMutation,
 } from '../api/settingsApi';
 import {
   updateEmployeeSettingsSchema,
   type EmployeeSettingsFormData,
 } from '../schemas/settings.schemas';
-import type { EmployeeSettings, UserRole } from '../types/settings.types';
-import { ROLE_DEFAULT_PERMISSIONS } from '@/features/auth/types/auth.types';
+import type { EmployeeSettings, UserRole, RolePermissionItem, RolePermissionActions } from '../types/settings.types';
 
 const SectionCard: React.FC<{
   title: string;
@@ -161,6 +164,53 @@ export const EmployeesSection: React.FC = () => {
   const { data: employeeSettings, isLoading, error: fetchError, refetch } = useGetEmployeeSettingsQuery();
   const [updateEmployeeSettings] = useUpdateEmployeeSettingsMutation();
 
+  // Live RBAC role-permission management
+  const { data: roles, isLoading: rolesLoading, error: rolesError, refetch: refetchRoles } = useGetRolesPermissionsQuery();
+  const [updateRolePermissions] = useUpdateRolePermissionsMutation();
+  const [roleDrafts, setRoleDrafts] = useState<Record<string, RolePermissionItem['permissions']>>({});
+  const [savingRoleId, setSavingRoleId] = useState<string | null>(null);
+
+  const handleRolePermissionChange = useCallback(
+    (roleId: string, moduleKey: string, action: keyof RolePermissionActions, value: boolean) => {
+      setRoleDrafts((prev) => {
+        const base = prev[roleId] || roles?.find((r) => r.id === roleId)?.permissions || {};
+        return {
+          ...prev,
+          [roleId]: {
+            ...base,
+            [moduleKey]: {
+              ...(base[moduleKey] || { read: false, write: false, delete: false }),
+              [action]: value,
+            },
+          },
+        };
+      });
+    },
+    [roles]
+  );
+
+  const handleSaveRolePermissions = useCallback(
+    async (role: RolePermissionItem) => {
+      const permissions = roleDrafts[role.id];
+      if (!permissions) return;
+      setSavingRoleId(role.id);
+      try {
+        await updateRolePermissions({ id: role.id, permissions }).unwrap();
+        setRoleDrafts((prev) => {
+          const next = { ...prev };
+          delete next[role.id];
+          return next;
+        });
+        success(`Permissions updated for ${role.roleName}`, 'Permissions Saved');
+      } catch (err: any) {
+        toastError(err?.data?.message || 'Failed to update role permissions', 'Save Failed');
+      } finally {
+        setSavingRoleId(null);
+      }
+    },
+    [roleDrafts, updateRolePermissions, success, toastError]
+  );
+
   useEffect(() => {
     if (employeeSettings && !isLoading) {
       reset({
@@ -199,29 +249,21 @@ export const EmployeesSection: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <SectionCard title="Loading..." icon={<Users className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<BadgePercent className="w-5 h-5" />} />
-        <SectionCard title="Loading..." icon={<Eye className="w-5 h-5" />} />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
       </div>
     );
   }
 
   if (fetchError) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">
-          Failed to Load Settings
-        </h3>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-4">
-          {fetchError.message || 'Unable to connect to the settings service.'}
-        </p>
-        <Button variant="primary" onClick={() => refetch()}>
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Retry
-        </Button>
-      </div>
+      <ErrorDisplay
+        title="Failed to Load Employee Settings"
+        error={fetchError}
+        onRetry={() => refetch()}
+      />
     );
   }
 
@@ -450,36 +492,81 @@ export const EmployeesSection: React.FC = () => {
           </SectionCard>
 
           <SectionCard
-            title="Default Permissions by Role"
-            description="View the default permissions assigned to each role (configured in RBAC settings)"
+            title="Roles & Permissions"
+            description="Live role permission matrices synced with the RBAC service"
             icon={<BadgePercent className="w-5 h-5 text-indigo-600" />}
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                    <th className="text-left p-3 font-medium text-neutral-500 dark:text-neutral-400">Role</th>
-                    <th className="text-left p-3 font-medium text-neutral-500 dark:text-neutral-400">Default Permissions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ROLE_OPTIONS.map((role) => (
-                    <tr key={role.value} className="border-b border-neutral-100 dark:border-neutral-800">
-                      <td className="p-3 font-medium text-neutral-900 dark:text-white">{role.label}</td>
-                      <td className="p-3">
-                        <div className="flex flex-wrap gap-1">
-                          {ROLE_DEFAULT_PERMISSIONS[role.value].map((perm) => (
-                            <Badge key={perm} variant="outline" size="sm" className="text-xs">
-                              {perm}
-                            </Badge>
-                          ))}
+            {rolesLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonListItem key={i} />
+                ))}
+              </div>
+            ) : rolesError ? (
+              <ErrorDisplay
+                title="Failed to Load Roles"
+                error={rolesError}
+                onRetry={() => refetchRoles()}
+              />
+            ) : (roles || []).length === 0 ? (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                No roles are configured yet. Roles created in the RBAC service appear here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {(roles || []).map((role) => {
+                  const draft = roleDrafts[role.id] || role.permissions;
+                  return (
+                    <div
+                      key={role.id}
+                      className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-neutral-900 dark:text-white truncate">{role.roleName}</p>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{role.roleCode}</p>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          disabled={savingRoleId === role.id || roleDrafts[role.id] === undefined}
+                          onClick={() => handleSaveRolePermissions(role)}
+                        >
+                          {savingRoleId === role.id ? 'Saving...' : 'Save'}
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {Object.entries(draft).map(([moduleKey, perms]) => (
+                          <div key={moduleKey} className="flex items-center justify-between gap-3 text-sm">
+                            <span className="font-medium text-neutral-700 dark:text-neutral-300 capitalize">
+                              {moduleKey}
+                            </span>
+                            <div className="flex items-center gap-4">
+                              {(['read', 'write', 'delete'] as const).map((action) => (
+                                <label
+                                  key={action}
+                                  className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400 capitalize cursor-pointer"
+                                >
+                                  <Switch
+                                    checked={Boolean(perms?.[action])}
+                                    onChange={(e) =>
+                                      handleRolePermissionChange(role.id, moduleKey, action, e.target.checked)
+                                    }
+                                  />
+                                  {action}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </SectionCard>
         </TabsContent>
 

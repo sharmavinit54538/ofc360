@@ -11,10 +11,10 @@ import {
   Key,
   Smartphone,
   Fingerprint,
+  User,
   Users,
   LogOut,
   Save,
-  RotateCcw,
   Loader2,
   AlertCircle,
   Info,
@@ -42,9 +42,13 @@ import { Badge } from '@/shared/ui/Badge';
 import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
+import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
 import { useSettingsContext } from './SettingsLayout';
 import {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
   useGetSecuritySettingsQuery,
   useChangePasswordMutation,
   useEnable2FAMutation,
@@ -61,11 +65,13 @@ import {
   useUpdateSecuritySettingsMutation,
 } from '../api/settingsApi';
 import {
+  profileFormSchema,
   changePasswordSchema,
   enable2FASchema,
   disable2FASchema,
   registerPasskeySchema,
   deletePasskeySchema,
+  type ProfileFormData,
   type ChangePasswordFormData,
   type Enable2FAFormData,
   type Disable2FAFormData,
@@ -176,6 +182,21 @@ export const MyProfileSection: React.FC = () => {
   const { user } = useAuth();
   const { success, error: toastError, info } = useToast();
 
+  // Personal Profile Form
+  const profileForm = useForm<ProfileFormData>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      phone: '',
+      personalEmail: '',
+      department: '',
+      designation: '',
+      emergencyContact: '',
+    },
+    mode: 'onChange',
+  });
+
   // Password Form
   const passwordForm = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
@@ -210,6 +231,8 @@ export const MyProfileSection: React.FC = () => {
   });
 
   // API hooks
+  const { data: profile, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useGetProfileQuery();
+  const [updateProfile, { isLoading: profileSaving }] = useUpdateProfileMutation();
   const { data: securitySettings, isLoading: securityLoading, error: securityError, refetch: refetchSecurity } = useGetSecuritySettingsQuery();
   const { data: passkeys, isLoading: passkeysLoading } = useGetPasskeysQuery();
   const { data: sessions, isLoading: sessionsLoading } = useGetActiveSessionsQuery();
@@ -225,6 +248,38 @@ export const MyProfileSection: React.FC = () => {
   const [revokeAllSessions] = useRevokeAllSessionsMutation();
   const [updateSecuritySettings] = useUpdateSecuritySettingsMutation();
   const [get2FASetup] = useLazyGet2FASetupQuery();
+
+  // Hydrate the profile form from the live profile payload
+  useEffect(() => {
+    if (profile) {
+      profileForm.reset({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        phone: profile.phone || '',
+        personalEmail: profile.personalEmail || '',
+        department: profile.department || '',
+        designation: profile.designation || '',
+        emergencyContact: profile.emergencyContact || '',
+      });
+    }
+  }, [profile, profileForm]);
+
+  const handleProfileSubmit = profileForm.handleSubmit(async (data) => {
+    try {
+      await updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone || undefined,
+        personalEmail: data.personalEmail || undefined,
+        department: data.department || undefined,
+        designation: data.designation || undefined,
+        emergencyContact: data.emergencyContact || undefined,
+      }).unwrap();
+      success('Profile updated successfully', 'Profile Saved');
+    } catch (err: any) {
+      toastError(err?.data?.message || 'Failed to update profile', 'Save Failed');
+    }
+  });
 
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [showPasskeyRegistration, setShowPasskeyRegistration] = useState(false);
@@ -359,21 +414,34 @@ export const MyProfileSection: React.FC = () => {
     );
   }
 
+  if (securityLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
+      </div>
+    );
+  }
+
   if (securityError) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">Failed to Load Settings</h3>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-4">{securityError.message || 'Unable to connect to the settings service.'}</p>
-        <Button variant="primary" onClick={() => refetchSecurity()}><RotateCcw className="w-4 h-4 mr-2" />Retry</Button>
-      </div>
+      <ErrorDisplay
+        title="Failed to Load Profile Settings"
+        error={securityError}
+        onRetry={() => refetchSecurity()}
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="password" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 mb-6">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-6 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 mb-6">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:dark:bg-neutral-900 data-[state=active]:shadow-sm">
+            <User className="w-4 h-4 mr-2 inline" />
+            Profile
+          </TabsTrigger>
           <TabsTrigger value="password" className="data-[state=active]:bg-white data-[state=active]:dark:bg-neutral-900 data-[state=active]:shadow-sm">
             <Key className="w-4 h-4 mr-2 inline" />
             Password
@@ -395,6 +463,115 @@ export const MyProfileSection: React.FC = () => {
             Security
           </TabsTrigger>
         </TabsList>
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-6">
+          <SectionCard
+            title="Personal Information"
+            description="Your name, contact details, and organization placement"
+            icon={<User className="w-5 h-5 text-indigo-600" />}
+          >
+            {profileError ? (
+              <ErrorDisplay
+                title="Failed to Load Profile"
+                error={profileError}
+                onRetry={() => refetchProfile()}
+              />
+            ) : profileLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonListItem key={i} />
+                ))}
+              </div>
+            ) : (
+              <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-lg">
+                {profile?.email && (
+                  <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3 text-sm text-neutral-600 dark:text-neutral-300 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-neutral-400 shrink-0" />
+                    <span className="truncate">{profile.email}</span>
+                    <Badge variant="brand" size="sm" className="ml-auto text-[11px] shrink-0">
+                      Work Email
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="First Name"
+                    placeholder="Your first name"
+                    error={profileForm.formState.errors.firstName?.message}
+                    {...profileForm.register('firstName')}
+                  />
+                  <Input
+                    label="Last Name"
+                    placeholder="Your last name"
+                    error={profileForm.formState.errors.lastName?.message}
+                    {...profileForm.register('lastName')}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Phone"
+                    placeholder="+91 98765 43210"
+                    error={profileForm.formState.errors.phone?.message}
+                    {...profileForm.register('phone')}
+                  />
+                  <Input
+                    label="Personal Email"
+                    type="email"
+                    placeholder="you@personal-mail.com"
+                    error={profileForm.formState.errors.personalEmail?.message}
+                    {...profileForm.register('personalEmail')}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Department"
+                    placeholder="e.g. Engineering"
+                    error={profileForm.formState.errors.department?.message}
+                    {...profileForm.register('department')}
+                  />
+                  <Input
+                    label="Designation"
+                    placeholder="e.g. Senior Engineer"
+                    error={profileForm.formState.errors.designation?.message}
+                    {...profileForm.register('designation')}
+                  />
+                </div>
+
+                <Input
+                  label="Emergency Contact"
+                  placeholder="+91 91234 56780"
+                  error={profileForm.formState.errors.emergencyContact?.message}
+                  {...profileForm.register('emergencyContact')}
+                />
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={profileSaving}
+                    className="min-w-[140px]"
+                  >
+                    {profileSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Profile
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </SectionCard>
+        </TabsContent>
 
         {/* Password Tab */}
         <TabsContent value="password" className="space-y-6">
