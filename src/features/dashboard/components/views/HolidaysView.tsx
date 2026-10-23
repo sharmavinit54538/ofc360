@@ -1,24 +1,53 @@
 /**
  * @file HolidaysView.tsx
- * @description Production-ready view for Company Holidays and Public Observances.
- * Displays annual official holiday calendars, regional observances, and floating days.
+ * @description Live view for Company Holidays and Public Observances.
+ * Renders the annual official holiday calendar from the attendance service.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Palmtree,
   Calendar,
-  Plus,
   Search,
-  Filter,
-  CheckCircle2,
   CalendarDays,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { Badge } from '@/shared/ui/Badge';
+import { SkeletonListItem } from '@/shared/ui/Skeleton';
+import { useGetHolidaysQuery } from '@/features/attendance/api/attendanceApi';
+
+const formatHolidayDate = (dateStr: string): string =>
+  new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
 export const HolidaysView: React.FC = () => {
+  const currentYear = new Date().getFullYear();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
+
+  const { data: holidays, isLoading } = useGetHolidaysQuery({ year: Number(selectedYear) });
+
+  const filteredHolidays = useMemo(() => {
+    const items = [...(holidays || [])].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return items;
+    return items.filter((holiday) => holiday.name.toLowerCase().includes(query));
+  }, [holidays, searchTerm]);
+
+  const optionalCount = (holidays || []).filter((h) => h.isOptional).length;
+
+  // The upcoming holiday marker is always derived from the live API payload
+  const upcomingHoliday = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (holidays || [])
+      .filter((h) => new Date(h.date) >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+  }, [holidays]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -38,20 +67,9 @@ export const HolidaysView: React.FC = () => {
             Official paid holidays, statutory non-working days, and optional floating leave entitlements.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Holiday</span>
-          </Button>
-        </div>
       </div>
 
-      {/* Metric Cards */}
+      {/* Metric Cards — derived from the live holiday payload */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between">
@@ -63,10 +81,10 @@ export const HolidaysView: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            12 Days
+            {isLoading ? '—' : `${holidays?.length ?? 0} Days`}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Statutory paid office closures
+            Published office closures for the year
           </p>
         </div>
 
@@ -80,10 +98,10 @@ export const HolidaysView: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            2 Days
+            {isLoading ? '—' : `${optionalCount} Days`}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Employee choice optional days
+            Employee-choice optional observances
           </p>
         </div>
 
@@ -96,11 +114,13 @@ export const HolidaysView: React.FC = () => {
               <Calendar className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            Scheduled
+          <div className="text-lg font-bold text-gray-900 dark:text-[#ececec] mt-2 truncate">
+            {isLoading ? '—' : upcomingHoliday?.name || 'None scheduled'}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Refer to organization annual schedule
+            {upcomingHoliday
+              ? `${formatHolidayDate(upcomingHoliday.date)} • ${upcomingHoliday.day}`
+              : `No remaining holidays in ${selectedYear}`}
           </p>
         </div>
       </div>
@@ -124,24 +144,81 @@ export const HolidaysView: React.FC = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             className="px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-[#ececec] focus:outline-none focus:ring-1 focus:ring-brand-500"
           >
-            <option value="2025">Year 2025</option>
-            <option value="2026">Year 2026</option>
-            <option value="2027">Year 2027</option>
+            {[currentYear - 1, currentYear, currentYear + 1].map((y) => (
+              <option key={y} value={String(y)}>
+                Year {y}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Empty State / Calendar View */}
-      <div className="rounded-2xl border border-dashed border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#171717] p-12 text-center shadow-sm">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-950/30 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-4 border border-brand-200/50 dark:border-brand-900/30">
-          <Palmtree className="w-7 h-7" />
+      {/* Live holiday calendar */}
+      <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
+        <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-[#ececec] flex items-center gap-2">
+            <Palmtree className="w-5 h-5 text-emerald-600" />
+            {selectedYear} Holiday Calendar
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+            Holidays synchronise with payroll attendance calculations and employee leave calendars
+          </p>
         </div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
-          Official Organization Holidays
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
-          Holidays synchronise with payroll attendance calculations and employee leave request calendars.
-        </p>
+
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonListItem key={i} />
+            ))}
+          </div>
+        ) : filteredHolidays.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4">
+              <Palmtree className="w-7 h-7" />
+            </div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
+              No holidays found for {selectedYear}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
+              {searchTerm
+                ? 'Try a different search term or switch the selected year.'
+                : `The organization has not published any observances for ${selectedYear} yet.`}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
+            {filteredHolidays.map((holiday) => (
+              <div
+                key={holiday.id}
+                className="px-4 md:px-6 py-3.5 flex items-center gap-4 hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+              >
+                <div className="w-14 shrink-0 text-center rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-200/60 dark:border-emerald-800/50 py-1.5">
+                  <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-300 leading-tight">
+                    {new Date(holiday.date).getDate()}
+                  </div>
+                  <div className="text-[10px] font-semibold uppercase text-emerald-600/80 dark:text-emerald-400/80">
+                    {new Date(holiday.date).toLocaleDateString('en-IN', { month: 'short' })}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[#ececec] truncate">
+                    {holiday.name}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-zinc-400">
+                    {holiday.day} • {formatHolidayDate(holiday.date)}
+                  </div>
+                </div>
+                <Badge
+                  variant={holiday.isOptional ? 'brand' : 'slate'}
+                  size="sm"
+                  className="font-semibold text-[11px] shrink-0"
+                >
+                  {holiday.isOptional ? 'Floating' : 'Gazetted'}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

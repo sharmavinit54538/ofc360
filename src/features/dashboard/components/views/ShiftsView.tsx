@@ -1,25 +1,65 @@
 /**
  * @file ShiftsView.tsx
- * @description Production-ready view for Work Shifts and Shift Schedules.
- * Displays shift configurations, grace periods, break durations, and timing details.
+ * @description Live view for Work Shifts and Shift Schedules.
+ * Lists configured shifts from the attendance engine with create/edit workflows.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Clock,
   Plus,
   Search,
   CheckCircle2,
-  AlertCircle,
   Settings,
-  Calendar,
   Layers,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Link } from 'react-router-dom';
+import { useGetShiftsQuery } from '@/features/attendance/api/attendanceApi';
+import { ShiftsTable } from '@/features/attendance/components/ShiftsTable';
+import { ShiftFormModal } from '@/features/attendance/components/ShiftFormModal';
+import type { ShiftItem } from '@/features/attendance/types/attendance.types';
 
 export const ShiftsView: React.FC = () => {
+  const { data: shifts, isLoading } = useGetShiftsQuery();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
+
+  const filteredShifts = useMemo(() => {
+    const items = shifts || [];
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return items;
+    return items.filter(
+      (shift) =>
+        shift.name.toLowerCase().includes(query) ||
+        shift.code.toLowerCase().includes(query) ||
+        shift.startTime.includes(query) ||
+        shift.endTime.includes(query)
+    );
+  }, [shifts, searchTerm]);
+
+  const metrics = useMemo(() => {
+    const items = shifts || [];
+    const active = items.filter((s) => s.isActive).length;
+    const avgGrace = items.length
+      ? Math.round(items.reduce((sum, s) => sum + s.gracePeriodMinutes, 0) / items.length)
+      : 0;
+    const avgFullDay = items.length
+      ? (items.reduce((sum, s) => sum + s.fullDayMinimumHours, 0) / items.length).toFixed(1)
+      : '0.0';
+    return { total: items.length, active, avgGrace, avgFullDay };
+  }, [shifts]);
+
+  const handleCreate = () => {
+    setEditingShift(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (shift: ShiftItem) => {
+    setEditingShift(shift);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -51,20 +91,19 @@ export const ShiftsView: React.FC = () => {
               <span>Shift Settings</span>
             </Button>
           </Link>
-          <Link to="/settings/attendance">
-            <Button
-              variant="primary"
-              size="sm"
-              className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Configure New Shift</span>
-            </Button>
-          </Link>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleCreate}
+            className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Configure New Shift</span>
+          </Button>
         </div>
       </div>
 
-      {/* Metric Cards */}
+      {/* Metric Cards — derived from live shift definitions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between">
@@ -76,44 +115,44 @@ export const ShiftsView: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            Active
+            {isLoading ? '—' : `${metrics.active} / ${metrics.total}`}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Day, Evening, and Night rotation cycles
+            Active shifts out of total definitions
           </p>
         </div>
 
         <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
-              Grace Period
+              Avg Grace Period
             </span>
             <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            15 mins
+            {isLoading ? '—' : `${metrics.avgGrace} mins`}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Standard arrival grace before late flag
+            Mean arrival grace across configured shifts
           </p>
         </div>
 
         <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
-              Standard Hours
+              Avg Full-Day Hours
             </span>
             <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
-            8.0h / day
+            {isLoading ? '—' : `${metrics.avgFullDay}h / day`}
           </div>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            40-hour regular workweek threshold
+            Mean full-day minimum work threshold
           </p>
         </div>
       </div>
@@ -132,25 +171,19 @@ export const ShiftsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Empty State / Integration Notice */}
-      <div className="rounded-2xl border border-dashed border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#171717] p-12 text-center shadow-sm">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-950/30 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-4 border border-brand-200/50 dark:border-brand-900/30">
-          <Clock className="w-7 h-7" />
-        </div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
-          Enterprise Shift Configurations
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
-          Shift policies and rosters synchronize automatically with attendance tracking and biometric geofence logs.
-        </p>
-        <div className="mt-5">
-          <Link to="/settings/attendance">
-            <Button variant="primary" size="sm" className="rounded-xl text-xs">
-              Open Attendance Settings
-            </Button>
-          </Link>
-        </div>
-      </div>
+      {/* Live shifts table */}
+      <ShiftsTable
+        shifts={filteredShifts}
+        isLoading={isLoading}
+        onCreateShift={handleCreate}
+        onEditShift={handleEdit}
+      />
+
+      <ShiftFormModal
+        shift={editingShift}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

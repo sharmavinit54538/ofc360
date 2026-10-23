@@ -1,25 +1,50 @@
 /**
  * @file RostersView.tsx
- * @description Production-ready view for Employee Shift Rosters and Weekly Schedules.
- * Displays rotation tables, staff assignments, and duty coverage.
+ * @description Live view for Employee Shift Rosters and Monthly Schedules.
+ * Renders the published duty roster calendar with month and department navigation.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ScrollText,
-  Calendar,
-  Filter,
   Users,
-  Search,
-  Download,
-  Plus,
-  Clock,
+  Building2,
+  CalendarRange,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { useGetRostersQuery } from '@/features/attendance/api/attendanceApi';
+import { RosterCalendarView } from '@/features/attendance/components/RosterCalendarView';
 
 export const RostersView: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedWeek, setSelectedWeek] = useState('CURRENT');
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [departmentFilter, setDepartmentFilter] = useState('ALL');
+
+  const { month, year, periodLabel } = useMemo(() => {
+    const base = new Date();
+    const target = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+    return {
+      month: target.getMonth() + 1,
+      year: target.getFullYear(),
+      periodLabel: target.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+    };
+  }, [monthOffset]);
+
+  const { data: rosters, isLoading } = useGetRostersQuery({ month, year });
+  const items = rosters?.items || [];
+
+  // Department choices are always derived from the live roster payload
+  const departments = useMemo(() => {
+    const set = new Set<string>();
+    for (const item of items) {
+      const dept = item.department || item.employee.department;
+      if (dept) set.add(dept);
+    }
+    return Array.from(set).sort();
+  }, [items]);
+
+  const uniqueEmployeeCount = useMemo(
+    () => new Set(items.map((item) => item.employee.id)).size,
+    [items]
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -36,86 +61,121 @@ export const RostersView: React.FC = () => {
             Workforce Duty Rosters
           </h1>
           <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-            Weekly and monthly department rotation rosters, on-call schedules, and shift coverage plans.
+            Monthly department rotation rosters and published shift coverage plans.
+          </p>
+        </div>
+      </div>
+
+      {/* Metric Cards — derived from the live roster payload */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
+              Duty Assignments
+            </span>
+            <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+              <CalendarRange className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
+            {isLoading ? '—' : items.length}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+            Published cells for {periodLabel}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            className="rounded-xl flex items-center gap-1.5 shadow-sm shadow-brand-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generate New Roster</span>
-          </Button>
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
+              Employees Scheduled
+            </span>
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
+            {isLoading ? '—' : uniqueEmployeeCount}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+            Distinct staff on the {periodLabel} roster
+          </p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
+              Departments Covered
+            </span>
+            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <Building2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-[#ececec] mt-2">
+            {isLoading ? '—' : departments.length}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+            Units with at least one assigned duty
+          </p>
         </div>
       </div>
 
       {/* Roster Controls Bar */}
       <div className="p-4 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search roster by employee or department..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs bg-gray-50 dark:bg-zinc-900/70 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-[#ececec] placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
+        <div className="inline-flex p-1 rounded-xl bg-gray-100 dark:bg-zinc-800 border border-gray-200/60 dark:border-zinc-700/60 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setMonthOffset((prev) => prev - 1)}
+            className={`px-3 py-1 rounded-lg transition-all ${
+              monthOffset < 0
+                ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
+                : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            Previous Month
+          </button>
+          <button
+            type="button"
+            onClick={() => setMonthOffset(0)}
+            className={`px-3 py-1 rounded-lg transition-all ${
+              monthOffset === 0
+                ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
+                : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            Current Month
+          </button>
+          <button
+            type="button"
+            onClick={() => setMonthOffset((prev) => prev + 1)}
+            className={`px-3 py-1 rounded-lg transition-all ${
+              monthOffset > 0
+                ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
+                : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            Next Month
+          </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="inline-flex p-1 rounded-xl bg-gray-100 dark:bg-zinc-800 border border-gray-200/60 dark:border-zinc-700/60 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setSelectedWeek('PREV')}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                selectedWeek === 'PREV'
-                  ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
-                  : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              Previous Week
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedWeek('CURRENT')}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                selectedWeek === 'CURRENT'
-                  ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
-                  : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              Current Week
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedWeek('NEXT')}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                selectedWeek === 'NEXT'
-                  ? 'bg-white dark:bg-zinc-900 text-gray-900 dark:text-white shadow-2xs'
-                  : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              Next Week
-            </button>
-          </div>
-        </div>
+        <select
+          value={departmentFilter}
+          onChange={(e) => setDepartmentFilter(e.target.value)}
+          className="px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-[#ececec] focus:outline-none focus:ring-1 focus:ring-brand-500"
+        >
+          <option value="ALL">All Departments</option>
+          {departments.map((dept) => (
+            <option key={dept} value={dept}>
+              {dept}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Empty State */}
-      <div className="rounded-2xl border border-dashed border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#171717] p-12 text-center shadow-sm">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-950/30 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-4 border border-brand-200/50 dark:border-brand-900/30">
-          <ScrollText className="w-7 h-7" />
-        </div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-[#ececec]">
-          No Duty Rosters Published
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
-          Departmental duty allocations and shift rotations will populate here once active staff schedules are assigned.
-        </p>
-      </div>
+      {/* Live roster calendar */}
+      <RosterCalendarView
+        params={{ month, year, departmentId: departmentFilter !== 'ALL' ? departmentFilter : undefined }}
+      />
     </div>
   );
 };
