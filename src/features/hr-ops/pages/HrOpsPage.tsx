@@ -128,30 +128,19 @@ export const HrOpsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[#ececec]">
-            HR Operations Command Center
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-            Real-time operations dispatch, high-priority clearances, onboarding verification, and task routing.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isQueueFetching}
-            className="rounded-xl flex items-center gap-1.5"
-            title="Refresh operational queue from server"
-          >
-            <RefreshCw className={`w-4 h-4 ${isQueueFetching ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh Queue</span>
-          </Button>
-        </div>
+      {/* Header Actions */}
+      <div className="flex items-center justify-end">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isQueueFetching}
+          className="rounded-xl flex items-center gap-1.5"
+          title="Refresh operational queue from server"
+        >
+          <RefreshCw className={`w-4 h-4 ${isQueueFetching ? 'animate-spin' : ''}`} />
+          <span>Refresh Queue</span>
+        </Button>
       </div>
 
       {/* Top Metrics Cards */}

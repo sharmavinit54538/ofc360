@@ -11,7 +11,6 @@ import {
   CreditCard,
   ArrowRight,
   Search,
-  Zap,
   Activity,
   Layers,
   CheckCircle2,
@@ -200,46 +199,26 @@ export const AIHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-6 md:p-8 shadow-xl border border-indigo-500/20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(129,140,248,0.25),transparent_50%)]" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 backdrop-blur border border-indigo-400/30 text-xs font-medium text-indigo-200">
-              <Zap className="w-3.5 h-3.5 text-indigo-300" />
-              <span>Google Gemini Powered Intelligence Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <span>AI Intelligence Hub</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" title="AI Services Online" />
-            </h1>
-            <p className="text-sm md:text-base text-slate-300">
-              Harness multimodal reasoning, real-time speech intelligence, predictive attrition forecasting, and generative HR automation.
-            </p>
-          </div>
-
-          {/* Quick Launch Buttons */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/ai/chat-assistant')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
-            >
-              <GeminiIcon className="w-4 h-4" />
-              <span>Chat Assistant</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/ai/meeting-intelligence')}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white flex items-center gap-1.5"
-            >
-              <Video className="w-4 h-4" />
-              <span>Meeting AI</span>
-            </Button>
-          </div>
-        </div>
+      {/* Quick Launch Buttons */}
+      <div className="flex items-center justify-end gap-2.5 flex-wrap">
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => navigate('/ai/chat-assistant')}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
+        >
+          <GeminiIcon className="w-4 h-4" />
+          <span>Chat Assistant</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/ai/meeting-intelligence')}
+          className="flex items-center gap-1.5"
+        >
+          <Video className="w-4 h-4" />
+          <span>Meeting AI</span>
+        </Button>
       </div>
 
       {/* Filter & Search Bar */}
