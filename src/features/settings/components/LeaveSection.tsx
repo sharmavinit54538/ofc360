@@ -33,6 +33,7 @@ import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
 import { Textarea } from '@/shared/ui/Textarea';
+import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { useToast } from '@/shared/ui/Toast';
 import { useSettingsContext } from './SettingsLayout';
 import {
@@ -659,12 +660,11 @@ export const LeaveSection: React.FC = () => {
 
   if (fetchError) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">Failed to Load Settings</h3>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-4">{fetchError.message || 'Unable to connect to the settings service.'}</p>
-        <Button variant="primary" onClick={() => refetch()}><RotateCcw className="w-4 h-4 mr-2" />Retry</Button>
-      </div>
+      <ErrorDisplay
+        title="Failed to Load Leave Settings"
+        error={fetchError}
+        onRetry={() => refetch()}
+      />
     );
   }
 
