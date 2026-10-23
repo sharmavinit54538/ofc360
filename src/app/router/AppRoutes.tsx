@@ -20,6 +20,7 @@ import { DashboardVisitorsRoute } from '@/routes/dashboard.visitors';
 import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-management';
 import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
+import { DashboardWorkforceRoute } from '@/routes/dashboard.workforce';
 import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
 import { DashboardLeaveRoute } from '@/routes/dashboard.leave';
@@ -327,6 +328,48 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardHrOpsRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Workforce Management Hub (Employees, Managers, Departments) */}
+      <Route
+        path="/dashboard/workforce"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardWorkforceRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/employees"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardWorkforceRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/managers"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardWorkforceRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/departments"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardWorkforceRoute />
           </ProtectedRoute>
         }
       />

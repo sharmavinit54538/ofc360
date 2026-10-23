@@ -101,8 +101,7 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     id: 'workforce',
     label: 'Workforce',
     icon: Users,
-    collapsible: true,
-    defaultExpanded: true,
+    collapsible: false,
     order: 1,
   },
   {
@@ -198,6 +197,7 @@ const AnalyticsCenterPage = React.lazy(() => import('@/features/analytics/pages/
 const ChatAssistantPage = React.lazy(() => import('@/features/chat-assistant/pages/ChatAssistantPage'));
 const MeetingIntelligencePage = React.lazy(() => import('@/features/meeting-intelligence/pages/MeetingIntelligencePage'));
 const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
+const WorkforceHubPage = React.lazy(() => import('@/features/workforce/pages/WorkforceHubPage'));
 const ShiftsView = React.lazy(() => import('./views/ShiftsView'));
 const RostersView = React.lazy(() => import('./views/RostersView'));
 const HolidaysView = React.lazy(() => import('./views/HolidaysView'));
@@ -216,31 +216,16 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 2. WORKFORCE (3 tabs) - Collapsible group
+  // 2. WORKFORCE (1 tab - links to /dashboard/workforce)
   // ==========================================
   {
-    id: 'employees',
-    label: 'Employees',
+    id: 'workforce',
+    label: 'Workforce',
     icon: Users,
     group: 'workforce',
     section: 'workforce',
-    component: ComingSoonView,
-  },
-  {
-    id: 'managers',
-    label: 'Managers',
-    icon: UserPlus,
-    group: 'workforce',
-    section: 'workforce',
-    component: ComingSoonView,
-  },
-  {
-    id: 'departments',
-    label: 'Departments',
-    icon: Building2,
-    group: 'workforce',
-    section: 'workforce',
-    component: ComingSoonView,
+    path: '/dashboard/workforce',
+    component: WorkforceHubPage,
   },
 
   // ==========================================
@@ -398,7 +383,10 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'policy-assistant': 'documents',
   'document-generator': 'documents',
   'leaves': 'leave',
-  'hr-management': 'employees',
+  'employees': 'workforce',
+  'managers': 'workforce',
+  'departments': 'workforce',
+  'hr-management': 'workforce',
   'attendance-shifts': 'attendance',
   'attendance-rosters': 'attendance',
   'attendance-holidays': 'attendance',
