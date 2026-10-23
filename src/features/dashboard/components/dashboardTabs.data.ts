@@ -8,12 +8,12 @@ import {
   Palmtree,
   Gauge,
   LineChart,
-  Bot,
   FolderKanban,
   Activity,
   Settings,
   MessageSquare,
 } from 'lucide-react';
+import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
 export type SidebarSection =
   | 'overview'
@@ -112,7 +112,7 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
-    icon: Bot,
+    icon: GeminiIcon,
     collapsible: false,
     order: 8,
   },
@@ -264,7 +264,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
-    icon: Bot,
+    icon: GeminiIcon,
     group: 'aihub',
     section: 'aihub',
     path: '/dashboard/ai-hub',

@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Search,
-  HelpCircle,
-  ExternalLink,
   Building2,
   CalendarDays,
   ShieldCheck,
@@ -325,32 +323,6 @@ export const SettingsOverview: React.FC = () => {
           </button>
         </div>
       )}
-
-      {/* Need Help / Documentation Card */}
-      <div className="p-5 rounded-2xl bg-slate-100 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center text-slate-600 dark:text-zinc-300 shadow-sm shrink-0">
-            <HelpCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
-              Need help configuring settings?
-            </h4>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
-              Read comprehensive documentation for enterprise configuration, API integrations, and policies.
-            </p>
-          </div>
-        </div>
-        <a
-          href="/docs/settings"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 text-xs font-semibold border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700/80 transition-all shrink-0 shadow-sm"
-        >
-          <span>View documentation</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
-      </div>
     </div>
   );
 };
