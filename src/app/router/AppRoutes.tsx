@@ -47,13 +47,19 @@ import { ROLE_DASHBOARD_ROUTES, normalizeRole } from '@/features/auth/types/auth
 
 // Dynamic Index Root Redirection based on Auth State
 const RootRedirect: React.FC = () => {
-  const { isAuthenticated, activeRole } = useAuth();
+  const { isAuthenticated, activeRole, role, user, accessToken } = useAuth();
 
-  if (!isAuthenticated) {
+  const isAuthed =
+    isAuthenticated ||
+    Boolean(accessToken) ||
+    Boolean(typeof window !== 'undefined' && localStorage.getItem('ofc360_access_token'));
+
+  if (!isAuthed) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  const destination = (activeRole && ROLE_DASHBOARD_ROUTES[normalizeRole(activeRole)]) || '/dashboard/employee';
+  const effectiveRole = activeRole || role || user?.activeRole || 'EMPLOYEE';
+  const destination = ROLE_DASHBOARD_ROUTES[normalizeRole(effectiveRole)] || '/dashboard/employee';
   return <Navigate to={destination} replace />;
 };
 
@@ -62,6 +68,14 @@ export const AppRoutes: React.FC = () => {
     <Routes>
       {/* Root Redirection */}
       <Route path="/" element={<RootRedirect />} />
+      <Route path="/dashboard" element={<RootRedirect />} />
+
+      {/* Top-Level Route Aliases */}
+      <Route path="/super-admin" element={<Navigate to="/dashboard/super-admin" replace />} />
+      <Route path="/hr-admin" element={<Navigate to="/dashboard/hr-admin" replace />} />
+      <Route path="/manager" element={<Navigate to="/dashboard/manager" replace />} />
+      <Route path="/employee" element={<Navigate to="/dashboard/employee" replace />} />
+      <Route path="/it-admin" element={<Navigate to="/dashboard/it-admin" replace />} />
 
       {/* Public Authentication Pages */}
       <Route path="/auth/login" element={<LoginPage />} />

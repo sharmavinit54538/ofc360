@@ -11,16 +11,18 @@ import { ROLE_DASHBOARD_ROUTES, normalizeRole, normalizeAuthResponse } from '@/f
 import { FaceLoginModal } from '@/features/auth/components/FaceLoginModal';
 import { Loader2, ScanFace } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAppDispatch } from '@/app/hooks';
+import { setCredentials } from '@/features/auth/slices/authSlice';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const dispatch = useAppDispatch();
   const [login, { isLoading }] = useLoginMutation();
   const { isAuthenticated, isInitialized, user } = useAuth();
 
   const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
-  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   const redirectUrl = searchParams.get('redirect');
 
@@ -41,16 +43,20 @@ export const LoginPage: React.FC = () => {
 
   const rememberMe = watch('rememberMe');
 
-  // Navigate when Redux auth state is fully initialized after successful login
+  // Automatically redirect if already authenticated with valid user session
   useEffect(() => {
-    if (pendingRedirect && isAuthenticated && isInitialized && user) {
-      navigate(pendingRedirect, { replace: true });
-      setPendingRedirect(null);
+    if (isAuthenticated && isInitialized && user) {
+      const canonicalRole = normalizeRole(user.activeRole || (user as any).role);
+      const dest = redirectUrl
+        ? decodeURIComponent(redirectUrl)
+        : ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+      navigate(dest, { replace: true });
     }
-  }, [pendingRedirect, isAuthenticated, isInitialized, user, navigate]);
+  }, [isAuthenticated, isInitialized, user, redirectUrl, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log('[LoginPage] Submitting credentials for:', data.email);
       const rawResponse = await login({
         email: data.email,
         identifier: data.email,
@@ -58,8 +64,11 @@ export const LoginPage: React.FC = () => {
         rememberMe: data.rememberMe,
       }).unwrap();
 
-      // Safely parse user profile & tokens first
-      const normalized = normalizeAuthResponse(rawResponse);
+      console.log('[LoginPage] Raw login response received from backend:', rawResponse);
+
+      // Safely parse user profile & tokens across all API payload variants
+      const normalized = normalizeAuthResponse(rawResponse, data.email);
+      console.log('[LoginPage] Normalized auth payload:', normalized);
 
       // Check if multi-step email verification / OTP is required by FastAPI
       // Only redirect to verify-email if user is NOT already verified
@@ -90,6 +99,15 @@ export const LoginPage: React.FC = () => {
         return;
       }
 
+      // 1. Immediately store credentials into Redux state & localStorage synchronously
+      dispatch(
+        setCredentials({
+          user: normalized.user,
+          tokens: normalized.tokens,
+          rememberMe: data.rememberMe,
+        })
+      );
+
       const displayName = normalized.user.fullName || normalized.user.firstName || 'User';
 
       toast.success(
@@ -97,12 +115,16 @@ export const LoginPage: React.FC = () => {
         'Authenticated Successfully'
       );
 
+      // 2. Explicitly navigate to the correct target dashboard path immediately
       const canonicalRole = normalizeRole(normalized.user.activeRole || (normalized.user as any).role);
       const dest = redirectUrl
         ? decodeURIComponent(redirectUrl)
         : ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
-      setPendingRedirect(dest);
+
+      console.log('[LoginPage] Navigating to destination dashboard:', dest, 'Canonical role:', canonicalRole);
+      navigate(dest, { replace: true });
     } catch (err: unknown) {
+      console.error('[LoginPage] Login mutation failed with error:', err);
       let errorMsg = 'Invalid credentials. Please verify your corporate email and password.';
       if (typeof err === 'object' && err !== null) {
         const e = err as any;

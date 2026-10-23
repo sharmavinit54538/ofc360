@@ -25,12 +25,12 @@ const loadPersistedSession = (): {
 } => {
   try {
     const rememberMe = localStorage.getItem(REMEMBER_ME_KEY) === 'true';
-    const storage = rememberMe ? localStorage : sessionStorage;
 
-    const storedUser = storage.getItem(USER_KEY);
-    const storedAccess = storage.getItem(ACCESS_TOKEN_KEY);
-    const storedRefresh = storage.getItem(REFRESH_TOKEN_KEY);
-    const storedRole = storage.getItem(ROLE_KEY) as string | null;
+    // Check localStorage first, fallback to sessionStorage
+    const storedUser = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+    const storedAccess = localStorage.getItem(ACCESS_TOKEN_KEY) || sessionStorage.getItem(ACCESS_TOKEN_KEY);
+    const storedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    const storedRole = (localStorage.getItem(ROLE_KEY) || sessionStorage.getItem(ROLE_KEY)) as string | null;
 
     const parsedUser = storedUser ? (JSON.parse(storedUser) as User) : null;
     const resolvedRole = normalizeRole(storedRole || parsedUser?.activeRole || (parsedUser as any)?.role || null);
@@ -116,23 +116,20 @@ export const authSlice = createSlice({
       state.isLoading = false;
 
       try {
-        const storage = rememberMe ? localStorage : sessionStorage;
-        const otherStorage = rememberMe ? sessionStorage : localStorage;
-
-        // Clean alternate storage
-        otherStorage.removeItem(ACCESS_TOKEN_KEY);
-        otherStorage.removeItem(REFRESH_TOKEN_KEY);
-        otherStorage.removeItem(USER_KEY);
-        otherStorage.removeItem(ROLE_KEY);
-
+        // ALWAYS persist tokens, user, and active role to localStorage so they are available
+        // to baseQuery prepareHeaders, route rehydration, and across app reloads
         if (tokens.accessToken) {
-          storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+          localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+          sessionStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
         }
         if (tokens.refreshToken) {
-          storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+          localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+          sessionStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
         }
-        storage.setItem(USER_KEY, JSON.stringify(user));
-        storage.setItem(ROLE_KEY, canonicalRole);
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+        localStorage.setItem(ROLE_KEY, canonicalRole);
+        sessionStorage.setItem(ROLE_KEY, canonicalRole);
         localStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
       } catch (err) {
         console.error('Session persistence failed:', err);
@@ -147,8 +144,8 @@ export const authSlice = createSlice({
       state.isAuthenticated = Boolean(action.payload);
 
       try {
-        const storage = state.rememberMe ? localStorage : sessionStorage;
-        storage.setItem(ACCESS_TOKEN_KEY, action.payload);
+        localStorage.setItem(ACCESS_TOKEN_KEY, action.payload);
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, action.payload);
       } catch (err) {
         console.error('Access token storage error:', err);
       }
@@ -168,9 +165,10 @@ export const authSlice = createSlice({
         }
 
         try {
-          const storage = state.rememberMe ? localStorage : sessionStorage;
-          storage.setItem(ROLE_KEY, newRole);
-          storage.setItem(USER_KEY, JSON.stringify(state.user));
+          localStorage.setItem(ROLE_KEY, newRole);
+          sessionStorage.setItem(ROLE_KEY, newRole);
+          localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+          sessionStorage.setItem(USER_KEY, JSON.stringify(state.user));
         } catch (err) {
           console.error('Role switch storage error:', err);
         }
@@ -182,6 +180,15 @@ export const authSlice = createSlice({
       const canonicalRole = normalizeRole(action.payload.activeRole || (action.payload as any).role);
       state.role = canonicalRole;
       state.activeRole = canonicalRole;
+
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(action.payload));
+        sessionStorage.setItem(USER_KEY, JSON.stringify(action.payload));
+        localStorage.setItem(ROLE_KEY, canonicalRole);
+        sessionStorage.setItem(ROLE_KEY, canonicalRole);
+      } catch (err) {
+        console.error('User update storage error:', err);
+      }
     },
 
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -190,6 +197,17 @@ export const authSlice = createSlice({
 
     initializeAuth: (state) => {
       state.isInitialized = true;
+      if (!state.accessToken || !state.user) {
+        const reloaded = loadPersistedSession();
+        if (reloaded.accessToken) {
+          state.accessToken = reloaded.accessToken;
+          state.refreshToken = reloaded.refreshToken;
+          state.isAuthenticated = true;
+          state.user = reloaded.user;
+          state.role = reloaded.role;
+          state.activeRole = reloaded.role;
+        }
+      }
     },
 
     /**

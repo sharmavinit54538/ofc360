@@ -9,66 +9,84 @@ export interface RBACCheckOptions {
 }
 
 export const useRBAC = () => {
-  const { user, activeRole, roles, permissions } = useAuth();
+  const { user, role, activeRole, roles, permissions } = useAuth();
+
+  const currentRole = activeRole || role || user?.activeRole || (roles && roles[0]);
+  const canonicalActiveRole = currentRole ? normalizeRole(currentRole) : null;
+  const normalizedRoles = Array.from(
+    new Set([
+      ...(roles || []).map((r) => normalizeRole(r)),
+      ...(user?.roles || []).map((r) => normalizeRole(r)),
+      ...(canonicalActiveRole ? [canonicalActiveRole] : []),
+    ])
+  );
+
+  const isSuperAdmin = canonicalActiveRole === 'SUPER_ADMIN' || normalizedRoles.includes('SUPER_ADMIN');
 
   const hasRole = useCallback(
-    (role: UserRole | UserRole[] | string | string[]): boolean => {
-      if (!activeRole) return false;
-      const current = normalizeRole(activeRole);
-      if (Array.isArray(role)) {
-        return role.map((r) => normalizeRole(r)).includes(current);
+    (targetRole: UserRole | UserRole[] | string | string[]): boolean => {
+      if (!canonicalActiveRole && normalizedRoles.length === 0) return false;
+      if (isSuperAdmin) return true;
+
+      if (Array.isArray(targetRole)) {
+        const targets = targetRole.map((r) => normalizeRole(r));
+        return normalizedRoles.some((r) => targets.includes(r));
       }
-      return current === normalizeRole(role);
+      return normalizedRoles.includes(normalizeRole(targetRole));
     },
-    [activeRole]
+    [canonicalActiveRole, normalizedRoles, isSuperAdmin]
   );
 
   const hasAnyRole = useCallback(
     (targetRoles: (UserRole | string)[]): boolean => {
-      if (!roles || roles.length === 0) return false;
-      const currentRoles = roles.map((r) => normalizeRole(r));
-      return targetRoles.some((r) => currentRoles.includes(normalizeRole(r)));
+      if (normalizedRoles.length === 0) return false;
+      if (isSuperAdmin) return true;
+      const targets = targetRoles.map((r) => normalizeRole(r));
+      return targets.some((r) => normalizedRoles.includes(r));
     },
-    [roles]
+    [normalizedRoles, isSuperAdmin]
   );
 
   const hasPermission = useCallback(
     (permission: Permission): boolean => {
       if (!user) return false;
       // Super Admin automatically bypasses all permission checks
-      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
+      if (isSuperAdmin) return true;
       return permissions.includes(permission);
     },
-    [user, activeRole, permissions]
+    [user, isSuperAdmin, permissions]
   );
 
   const hasAllPermissions = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
+      if (isSuperAdmin) return true;
       return perms.every((p) => permissions.includes(p));
     },
-    [user, activeRole, permissions]
+    [user, isSuperAdmin, permissions]
   );
 
   const hasAnyPermission = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (normalizeRole(activeRole) === 'SUPER_ADMIN') return true;
+      if (isSuperAdmin) return true;
       return perms.some((p) => permissions.includes(p));
     },
-    [user, activeRole, permissions]
+    [user, isSuperAdmin, permissions]
   );
 
   const canAccess = useCallback(
     (options: RBACCheckOptions): boolean => {
       const { requiredRoles, requiredPermissions, requireAllPermissions = false } = options;
 
+      // Super admin has unrestricted access
+      if (isSuperAdmin) return true;
+
       // Role check
       if (requiredRoles && requiredRoles.length > 0) {
-        if (!activeRole) return false;
-        const currentNormalized = normalizeRole(activeRole);
-        const isAuthorized = requiredRoles.some((r) => normalizeRole(r) === currentNormalized);
+        if (!canonicalActiveRole && normalizedRoles.length === 0) return false;
+        const targets = requiredRoles.map((r) => normalizeRole(r));
+        const isAuthorized = normalizedRoles.some((r) => targets.includes(r));
         if (!isAuthorized) {
           return false;
         }
@@ -85,24 +103,23 @@ export const useRBAC = () => {
 
       return true;
     },
-    [activeRole, hasAllPermissions, hasAnyPermission]
+    [canonicalActiveRole, normalizedRoles, isSuperAdmin, hasAllPermissions, hasAnyPermission]
   );
 
   const defaultRedirectRoute = useMemo(() => {
-    if (!activeRole) return '/auth/login';
-    const canonical = normalizeRole(activeRole);
-    return ROLE_DASHBOARD_ROUTES[canonical] || '/dashboard/employee';
-  }, [activeRole]);
+    if (!canonicalActiveRole) return '/auth/login';
+    return ROLE_DASHBOARD_ROUTES[canonicalActiveRole] || '/dashboard/employee';
+  }, [canonicalActiveRole]);
 
   return {
-    activeRole: activeRole ? normalizeRole(activeRole) : null,
-    roles: (roles || []).map((r) => normalizeRole(r)),
+    activeRole: canonicalActiveRole,
+    roles: normalizedRoles,
     permissions,
-    isSuperAdmin: normalizeRole(activeRole) === 'SUPER_ADMIN',
-    isHRAdmin: normalizeRole(activeRole) === 'HR_ADMIN',
-    isManager: normalizeRole(activeRole) === 'MANAGER',
-    isEmployee: normalizeRole(activeRole) === 'EMPLOYEE',
-    isITAdmin: normalizeRole(activeRole) === 'IT_ADMIN',
+    isSuperAdmin,
+    isHRAdmin: canonicalActiveRole === 'HR_ADMIN',
+    isManager: canonicalActiveRole === 'MANAGER',
+    isEmployee: canonicalActiveRole === 'EMPLOYEE',
+    isITAdmin: canonicalActiveRole === 'IT_ADMIN',
     hasRole,
     hasAnyRole,
     hasPermission,

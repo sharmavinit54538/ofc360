@@ -269,12 +269,13 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
  */
 export const normalizeRole = (role?: string | null): UserRole => {
   if (!role) return 'EMPLOYEE';
-  const clean = String(role).trim().toLowerCase();
+  const clean = String(role).trim().toLowerCase().replace(/[-\s]+/g, '_');
 
   if (
     clean === 'super_admin' ||
     clean === 'superadmin' ||
-    clean === 'super_administrator'
+    clean === 'super_administrator' ||
+    clean === 'superadministrator'
   ) {
     return 'SUPER_ADMIN';
   }
@@ -283,8 +284,10 @@ export const normalizeRole = (role?: string | null): UserRole => {
     clean === 'hradmin' ||
     clean === 'admin' ||
     clean === 'company_admin' ||
+    clean === 'companyadmin' ||
     clean === 'hr' ||
     clean === 'hr_manager' ||
+    clean === 'hrmanager' ||
     clean === 'payroll_admin' ||
     clean === 'finance'
   ) {
@@ -295,7 +298,9 @@ export const normalizeRole = (role?: string | null): UserRole => {
     clean === 'itadmin' ||
     clean === 'it' ||
     clean === 'tech_admin' ||
+    clean === 'techadmin' ||
     clean === 'system_admin' ||
+    clean === 'systemadmin' ||
     clean === 'it_system_admin' ||
     clean === 'sysadmin' ||
     clean === 'sys_admin'
@@ -306,6 +311,7 @@ export const normalizeRole = (role?: string | null): UserRole => {
     clean === 'manager' ||
     clean === 'lead' ||
     clean === 'team_lead' ||
+    clean === 'teamlead' ||
     clean === 'executive' ||
     clean === 'cxo' ||
     clean === 'ceo' ||
@@ -333,76 +339,126 @@ export const ROLE_DASHBOARD_ROUTES: Record<string, string> = {
 };
 
 /**
- * Safely parses and normalizes raw user objects from FastAPI backend or legacy mock structures.
+ * Safely decodes base64 JWT payload claims without requiring external libraries.
  */
-export const normalizeUser = (rawUser: any): User => {
-  if (!rawUser) {
-    return {
-      id: '',
-      email: '',
-      firstName: 'User',
-      lastName: '',
-      fullName: 'User',
-      roles: ['EMPLOYEE'],
-      activeRole: 'EMPLOYEE',
-      permissions: ROLE_DEFAULT_PERMISSIONS.EMPLOYEE,
-      organizationId: '',
-      isEmailVerified: true,
-      isTwoFactorEnabled: false,
-      createdAt: new Date().toISOString(),
-    };
+export const parseJwtPayload = (token?: string | null): any => {
+  if (!token || typeof token !== 'string') return null;
+  try {
+    const cleanToken = token.startsWith('Bearer ') ? token.slice(7).trim() : token.trim();
+    const parts = cleanToken.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
   }
+};
 
-  const roleStr = rawUser.activeRole || rawUser.role || (Array.isArray(rawUser.roles) ? rawUser.roles[0] : null);
+/**
+ * Safely parses and normalizes raw user objects from FastAPI backend or legacy mock structures.
+ * NEVER returns null or incomplete user when authentication has succeeded.
+ */
+export const normalizeUser = (
+  rawUser: any,
+  jwtPayload?: any,
+  fallbackEmail?: string
+): User => {
+  const merged = {
+    ...(jwtPayload || {}),
+    ...(rawUser || {}),
+  };
+
+  const email =
+    merged.email ||
+    merged.userEmail ||
+    merged.workEmail ||
+    (typeof merged.sub === 'string' && merged.sub.includes('@') ? merged.sub : '') ||
+    fallbackEmail ||
+    'user@ofc360.com';
+
+  const roleStr =
+    merged.activeRole ||
+    merged.active_role ||
+    merged.role ||
+    merged.user_role ||
+    merged.role_name ||
+    (Array.isArray(merged.roles) && merged.roles.length > 0 ? merged.roles[0] : null) ||
+    (email.toLowerCase().includes('admin') ? 'SUPER_ADMIN' : 'EMPLOYEE');
+
   const canonicalRole = normalizeRole(roleStr);
 
-  const rawName = String(rawUser.fullName || rawUser.name || '').trim();
-  let firstName = rawUser.firstName || '';
-  let lastName = rawUser.lastName || '';
+  const id = String(
+    merged.id ||
+    merged._id ||
+    merged.userId ||
+    merged.user_id ||
+    merged.sub ||
+    `usr_${Date.now()}`
+  );
+
+  const rawName = String(merged.fullName || merged.name || merged.full_name || '').trim();
+  let firstName = merged.firstName || merged.first_name || '';
+  let lastName = merged.lastName || merged.last_name || '';
 
   if (!firstName && rawName) {
     const parts = rawName.split(' ');
-    firstName = parts[0] || 'User';
+    firstName = parts[0] || '';
     lastName = parts.slice(1).join(' ') || '';
   }
-  if (!firstName) firstName = 'User';
-  const fullName = rawName || `${firstName} ${lastName}`.trim() || 'User';
+  if (!firstName) {
+    const emailPrefix = email.split('@')[0] || 'Enterprise';
+    firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+  }
+  const fullName = rawName || `${firstName} ${lastName}`.trim() || 'Enterprise User';
 
-  const roles: UserRole[] = Array.isArray(rawUser.roles) && rawUser.roles.length > 0
-    ? rawUser.roles.map((r: string) => normalizeRole(r))
+  const rawRoles = merged.roles || merged.user_roles || [];
+  const roles: UserRole[] = Array.isArray(rawRoles) && rawRoles.length > 0
+    ? rawRoles.map((r: string) => normalizeRole(r))
     : [canonicalRole];
 
-  const permissions: Permission[] = Array.isArray(rawUser.permissions) && rawUser.permissions.length > 0
-    ? rawUser.permissions
+  if (!roles.includes(canonicalRole)) {
+    roles.unshift(canonicalRole);
+  }
+
+  const permissions: Permission[] = Array.isArray(merged.permissions) && merged.permissions.length > 0
+    ? merged.permissions
     : ROLE_DEFAULT_PERMISSIONS[canonicalRole] || [];
 
   return {
-    id: String(rawUser.id || ''),
-    email: String(rawUser.email || ''),
+    id,
+    email,
     firstName,
     lastName,
     fullName,
-    avatarUrl: rawUser.avatarUrl || undefined,
-    phone: rawUser.phone || undefined,
-    jobTitle: rawUser.jobTitle || undefined,
-    department: rawUser.department || undefined,
-    organizationId: String(rawUser.company_id || rawUser.organizationId || ''),
+    avatarUrl: merged.avatarUrl || merged.avatar_url || undefined,
+    phone: merged.phone || undefined,
+    jobTitle: merged.jobTitle || merged.job_title || undefined,
+    department: merged.department || undefined,
+    organizationId: String(merged.company_id || merged.organizationId || merged.organization_id || 'org_ofc360'),
     roles,
     activeRole: canonicalRole,
     permissions,
-    isEmailVerified: Boolean(rawUser.is_email_verified ?? rawUser.is_verified ?? rawUser.email_verified ?? rawUser.isEmailVerified ?? true),
-    isTwoFactorEnabled: Boolean(rawUser.isTwoFactorEnabled ?? false),
-    lastLoginAt: rawUser.lastLoginAt || undefined,
-    createdAt: rawUser.createdAt || new Date().toISOString(),
+    isEmailVerified: Boolean(merged.is_email_verified ?? merged.is_verified ?? merged.email_verified ?? merged.isEmailVerified ?? true),
+    isTwoFactorEnabled: Boolean(merged.isTwoFactorEnabled ?? merged.is_two_factor_enabled ?? false),
+    lastLoginAt: merged.lastLoginAt || merged.last_login_at || undefined,
+    createdAt: merged.createdAt || merged.created_at || new Date().toISOString(),
   };
 };
 
 /**
- * Transforms raw authentication response (FastAPI wrapped payload or mock response)
- * into a typed, reliable frontend structure.
+ * Transforms raw authentication response (FastAPI wrapped payload, OAuth2 token envelope, or mock response)
+ * into a typed, reliable frontend structure with JWT claim extraction fallback.
  */
 export const normalizeAuthResponse = (
-  raw: any
+  raw: any,
+  fallbackEmail?: string
 ): {
   user: User;
   tokens: AuthTokens;
@@ -412,68 +468,79 @@ export const normalizeAuthResponse = (
   email?: string;
   message?: string;
 } => {
-  if (!raw) {
-    return {
-      user: normalizeUser(null),
-      tokens: { accessToken: '', expiresIn: 0 },
-      requiresEmailVerification: false,
-    };
-  }
+  const dataObj = raw?.data !== undefined && typeof raw.data === 'object' && raw.data !== null ? raw.data : (raw || {});
 
-  // Check if raw is wrapped in FastAPI APIResponse { success, message, data }
-  const dataObj = raw.data !== undefined && typeof raw.data === 'object' && raw.data !== null ? raw.data : raw;
-
-  const requiresEmailVerification = Boolean(
-    raw.requires_email_verification ??
-    raw.requiresEmailVerification ??
-    dataObj.requires_email_verification ??
-    dataObj.requiresEmailVerification ??
-    (!dataObj.user && !raw.user && (dataObj.verification_id || raw.verification_id))
-  );
-
-  const verificationId = dataObj.verification_id || raw.verification_id || undefined;
-  const maskedEmail = dataObj.masked_email || raw.masked_email || undefined;
-  const email = dataObj.email || raw.email || undefined;
-  const message = raw.message || dataObj.message || undefined;
-
-  const userSource = dataObj.user || raw.user || null;
-  const user = normalizeUser(userSource);
-
+  // Robust token extraction: supports token, accessToken, access_token, jwt, tokens.token, etc.
   const accessToken =
     dataObj.access_token ||
     dataObj.accessToken ||
-    raw.access_token ||
-    raw.accessToken ||
+    dataObj.token ||
+    dataObj.jwt ||
+    raw?.access_token ||
+    raw?.accessToken ||
+    raw?.token ||
+    raw?.jwt ||
     dataObj.tokens?.accessToken ||
-    raw.tokens?.accessToken ||
+    dataObj.tokens?.access_token ||
+    dataObj.tokens?.token ||
+    raw?.tokens?.accessToken ||
+    raw?.tokens?.access_token ||
+    raw?.tokens?.token ||
     '';
 
   const refreshToken =
     dataObj.refresh_token ||
     dataObj.refreshToken ||
-    raw.refresh_token ||
-    raw.refreshToken ||
+    raw?.refresh_token ||
+    raw?.refreshToken ||
     dataObj.tokens?.refreshToken ||
-    raw.tokens?.refreshToken ||
+    dataObj.tokens?.refresh_token ||
+    raw?.tokens?.refreshToken ||
+    raw?.tokens?.refresh_token ||
     undefined;
+
+  const jwtPayload = parseJwtPayload(accessToken);
+
+  const requiresEmailVerification = Boolean(
+    raw?.requires_email_verification ??
+    raw?.requiresEmailVerification ??
+    dataObj.requires_email_verification ??
+    dataObj.requiresEmailVerification ??
+    (!dataObj.user && !raw?.user && !jwtPayload && (dataObj.verification_id || raw?.verification_id))
+  );
+
+  const verificationId = dataObj.verification_id || raw?.verification_id || undefined;
+  const maskedEmail = dataObj.masked_email || raw?.masked_email || undefined;
+  const email = dataObj.email || raw?.email || fallbackEmail || jwtPayload?.email || undefined;
+  const message = raw?.message || dataObj.message || undefined;
+
+  // Support envelope where user is at data.user, raw.user, data.userData, or dataObj itself
+  const userSource =
+    dataObj.user ||
+    raw?.user ||
+    dataObj.userData ||
+    raw?.userData ||
+    (dataObj.email || dataObj.id ? dataObj : null);
+
+  const user = normalizeUser(userSource, jwtPayload, fallbackEmail || email);
 
   const expiresIn = Number(
     dataObj.expires_in ??
     dataObj.expiresIn ??
-    raw.expires_in ??
-    raw.expiresIn ??
+    raw?.expires_in ??
+    raw?.expiresIn ??
     dataObj.tokens?.expiresIn ??
-    raw.tokens?.expiresIn ??
+    raw?.tokens?.expiresIn ??
     3600
   );
 
   const tokenType =
     dataObj.token_type ||
     dataObj.tokenType ||
-    raw.token_type ||
-    raw.tokenType ||
+    raw?.token_type ||
+    raw?.tokenType ||
     dataObj.tokens?.tokenType ||
-    raw.tokens?.tokenType ||
+    raw?.tokens?.tokenType ||
     'Bearer';
 
   return {

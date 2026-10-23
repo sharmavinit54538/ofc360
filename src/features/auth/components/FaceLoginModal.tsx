@@ -158,7 +158,8 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
       );
 
       const destination = ROLE_DASHBOARD_ROUTES[normalizeRole(normalized.user.activeRole)] || '/dashboard/employee';
-      setPendingRedirect(destination);
+      onClose();
+      navigate(destination, { replace: true });
     } catch (err: unknown) {
       const errorMsg =
         typeof err === 'object' && err !== null && 'data' in err && typeof (err as { data?: { message?: string } }).data?.message === 'string'

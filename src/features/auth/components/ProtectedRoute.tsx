@@ -30,15 +30,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectUnauthorizedTo = '/unauthorized',
 }) => {
   const location = useLocation();
-  const { user, isAuthenticated, role, isInitialized, hasRole, hasPermission } = useAuth();
+  const { user, isAuthenticated, role, isInitialized, isLoading, hasRole, hasPermission } = useAuth();
 
   // 1. Session Rehydration Screen
-  if (!isInitialized) {
+  // Prevent premature redirection while authentication or session hydration is in flight
+  if (!isInitialized || (isLoading && !isAuthenticated)) {
     return <AuthLoadingScreen />;
   }
 
   // 2. Authentication Check
   if (!isAuthenticated || !user) {
+    console.warn('[ProtectedRoute] Access blocked -> redirecting to login.', {
+      isAuthenticated,
+      hasUser: Boolean(user),
+      attemptedPath: location.pathname + location.search,
+    });
     const returnUrl = encodeURIComponent(location.pathname + location.search);
     return (
       <Navigate
@@ -59,6 +65,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const isRoleAuthorized = allowedRoles.some((targetRole) => hasRole(targetRole));
     if (!isRoleAuthorized) {
       const canonicalRole = role ? normalizeRole(role) : null;
+      console.warn('[ProtectedRoute] RBAC clearance rejected.', {
+        attemptedPath: location.pathname,
+        currentRole: canonicalRole,
+        userRoles: user.roles,
+        allowedRoles,
+      });
       return (
         <Navigate
           to={redirectUnauthorizedTo}

@@ -16,26 +16,62 @@ import {
   selectIsAuthLoading,
   selectIsAuthInitialized,
   setRole as setRoleAction,
+  setCredentials,
   logout as logoutAction,
 } from '../slices/authSlice';
 import { useLoginMutation, useLogoutMutation } from '../api/authApi';
-import { UserRole, Permission, LoginRequest, LoginResponse, normalizeRole } from '../types/auth.types';
+import { UserRole, Permission, LoginRequest, LoginResponse, normalizeRole, normalizeAuthResponse, normalizeUser, parseJwtPayload } from '../types/auth.types';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
 
   // Typed Redux Selectors
-  const user = useAppSelector(selectCurrentUser);
-  const accessToken = useAppSelector(selectAccessToken);
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const rawUser = useAppSelector(selectCurrentUser);
+  const rawAccessToken = useAppSelector(selectAccessToken);
+  const rawIsAuthenticated = useAppSelector(selectIsAuthenticated);
   const rawRole = useAppSelector(selectAuthRole);
   const rawActiveRole = useAppSelector(selectActiveRole);
   const permissions = useAppSelector(selectUserPermissions);
   const isLoading = useAppSelector(selectIsAuthLoading);
   const isInitialized = useAppSelector(selectIsAuthInitialized);
 
-  const role: UserRole | null = rawRole ? normalizeRole(rawRole) : null;
+  // Storage fallback token
+  const storedToken =
+    rawAccessToken ||
+    (typeof window !== 'undefined'
+      ? localStorage.getItem('ofc360_access_token') || sessionStorage.getItem('ofc360_access_token')
+      : null);
+
+  // Fallback user resolution to prevent null user trap
+  const user: User | null =
+    rawUser ||
+    (storedToken
+      ? (() => {
+          try {
+            const rawStored = localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');
+            if (rawStored) return JSON.parse(rawStored) as User;
+          } catch {
+            // ignore
+          }
+          return normalizeUser(null, parseJwtPayload(storedToken));
+        })()
+      : null);
+
+  const isAuthenticated = rawIsAuthenticated || Boolean(storedToken);
+  const accessToken = rawAccessToken || storedToken;
+
+  // Robust canonical role resolution with fallback hierarchy
+  const resolvedRole = rawRole || rawActiveRole || user?.activeRole || (user?.roles && user.roles[0]) || null;
+  const role: UserRole | null = resolvedRole ? normalizeRole(resolvedRole) : null;
   const activeRole: UserRole | null = rawActiveRole ? normalizeRole(rawActiveRole) : role;
+
+  const allRoles: UserRole[] = Array.from(
+    new Set([
+      ...(user?.roles ?? []).map((r: string) => normalizeRole(r)),
+      ...(role ? [role] : []),
+      ...(activeRole ? [activeRole] : []),
+    ])
+  );
 
   // RTK Query Mutations
   const [triggerLoginMutation, { isLoading: isLoginLoading }] = useLoginMutation();
@@ -47,9 +83,19 @@ export const useAuth = () => {
   const handleLogin = useCallback(
     async (credentials: LoginRequest): Promise<LoginResponse> => {
       const response = await triggerLoginMutation(credentials).unwrap();
+      const normalized = normalizeAuthResponse(response);
+      if (normalized.tokens?.accessToken) {
+        dispatch(
+          setCredentials({
+            user: normalized.user,
+            tokens: normalized.tokens,
+            rememberMe: credentials.rememberMe,
+          })
+        );
+      }
       return response;
     },
-    [triggerLoginMutation]
+    [triggerLoginMutation, dispatch]
   );
 
   /**
@@ -76,18 +122,32 @@ export const useAuth = () => {
 
   /**
    * Verifies if the current user matches a single role or any from a list.
-   * Case-insensitive and normalizes snake_case backend roles.
+   * Case-insensitive, checks user roles array, and grants global clearance to SUPER_ADMIN.
    */
   const hasRole = useCallback(
     (targetRole: UserRole | UserRole[] | string | string[]): boolean => {
-      if (!role) return false;
-      const currentCanonical = normalizeRole(role);
-      if (Array.isArray(targetRole)) {
-        return targetRole.map((r) => normalizeRole(r)).includes(currentCanonical);
+      const currentCanonical = activeRole || role || (user?.activeRole ? normalizeRole(user.activeRole) : null);
+      const userRolesList = Array.from(
+        new Set([
+          ...(user?.roles ?? []).map((r: string) => normalizeRole(r)),
+          ...(currentCanonical ? [normalizeRole(currentCanonical)] : []),
+        ])
+      );
+
+      if (userRolesList.length === 0 && !currentCanonical) return false;
+
+      // Super Admins automatically have global clearance across all roles
+      if (currentCanonical === 'SUPER_ADMIN' || userRolesList.includes('SUPER_ADMIN')) {
+        return true;
       }
-      return currentCanonical === normalizeRole(targetRole);
+
+      if (Array.isArray(targetRole)) {
+        const normalizedTargets = targetRole.map((r) => normalizeRole(r));
+        return userRolesList.some((r) => normalizedTargets.includes(r));
+      }
+      return userRolesList.includes(normalizeRole(targetRole));
     },
-    [role]
+    [role, activeRole, user]
   );
 
   /**
@@ -97,28 +157,37 @@ export const useAuth = () => {
   const hasPermission = useCallback(
     (permission: Permission): boolean => {
       if (!user) return false;
-      if (role === 'SUPER_ADMIN') return true;
+      const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+        return true;
+      }
       return permissions.includes(permission);
     },
-    [user, role, permissions]
+    [user, role, activeRole, permissions]
   );
 
   const hasAnyPermission = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (role === 'SUPER_ADMIN') return true;
+      const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+        return true;
+      }
       return perms.some((p) => permissions.includes(p));
     },
-    [user, role, permissions]
+    [user, role, activeRole, permissions]
   );
 
   const hasAllPermissions = useCallback(
     (perms: Permission[]): boolean => {
       if (!user) return false;
-      if (role === 'SUPER_ADMIN') return true;
+      const current = activeRole || role || (user.activeRole ? normalizeRole(user.activeRole) : null);
+      if (current === 'SUPER_ADMIN' || (user.roles || []).map((r) => normalizeRole(r)).includes('SUPER_ADMIN')) {
+        return true;
+      }
       return perms.every((p) => permissions.includes(p));
     },
-    [user, role, permissions]
+    [user, role, activeRole, permissions]
   );
 
   return {
@@ -128,7 +197,7 @@ export const useAuth = () => {
     isAuthenticated,
     role,
     activeRole,
-    roles: (user?.roles ?? []).map((r: string) => normalizeRole(r)),
+    roles: allRoles,
     permissions,
     isLoading: isLoading || isLoginLoading || isLogoutLoading,
     isInitialized,

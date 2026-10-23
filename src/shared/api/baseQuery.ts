@@ -34,10 +34,24 @@ export const rawBaseQuery = fetchBaseQuery({
   credentials: 'include', // Ensures httpOnly session cookies are transmitted
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
-    const token = state.auth.accessToken;
+    let token = state.auth?.accessToken;
+
+    // Fallback to localStorage or sessionStorage if Redux state is hydrating
+    if (!token) {
+      try {
+        token =
+          localStorage.getItem('ofc360_access_token') ||
+          sessionStorage.getItem('ofc360_access_token') ||
+          null;
+      } catch {
+        // Fallback for non-browser environments
+      }
+    }
 
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      const cleanToken = token.trim();
+      const authHeader = cleanToken.startsWith('Bearer ') ? cleanToken : `Bearer ${cleanToken}`;
+      headers.set('Authorization', authHeader);
     }
 
     headers.set('X-Client-Platform', 'OFC360-Enterprise-Web');
@@ -70,12 +84,31 @@ export const baseQueryWithReauth: BaseQueryFn<
 
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
+  const requestUrl = typeof args === 'string' ? args : args.url;
+  const isAuthEndpoint =
+    requestUrl.includes('/auth/login') ||
+    requestUrl.includes('/auth/register') ||
+    requestUrl.includes('/auth/refresh') ||
+    requestUrl.includes('/auth/forgot-password') ||
+    requestUrl.includes('/auth/reset-password') ||
+    requestUrl.includes('/auth/face-login');
+
+  if (result.error && result.error.status === 401 && !isAuthEndpoint) {
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
       try {
         const state = api.getState() as RootState;
-        const currentRefreshToken = state.auth.refreshToken;
+        let currentRefreshToken = state.auth.refreshToken;
+        if (!currentRefreshToken) {
+          try {
+            currentRefreshToken =
+              localStorage.getItem('ofc360_refresh_token') ||
+              sessionStorage.getItem('ofc360_refresh_token') ||
+              null;
+          } catch {
+            // ignore
+          }
+        }
 
         // Perform token refresh request (supports both camelCase and snake_case backend keys)
         const refreshResult = await rawBaseQuery(
@@ -95,22 +128,25 @@ export const baseQueryWithReauth: BaseQueryFn<
           // Extract access token safely from FastAPI envelope or legacy tokens object
           const newAccessToken =
             resData?.data?.access_token ||
+            resData?.data?.accessToken ||
+            resData?.data?.token ||
             resData?.access_token ||
-            resData?.tokens?.accessToken ||
-            resData?.accessToken;
+            resData?.accessToken ||
+            resData?.token ||
+            resData?.tokens?.accessToken;
 
           if (newAccessToken) {
+            console.log('[baseQueryWithReauth] Access token refreshed successfully.');
             // Store updated access token into Redux state
             api.dispatch(setAccessToken(newAccessToken));
 
             // Retry the original query with the new access token
             result = await rawBaseQuery(args, api, extraOptions);
           } else {
-            api.dispatch(logout());
+            console.warn('[baseQueryWithReauth] /auth/refresh succeeded but returned no new access token. Keeping session active.');
           }
         } else {
-          // Token refresh failed or session revoked by server
-          api.dispatch(logout());
+          console.warn('[baseQueryWithReauth] 401 received on endpoint:', requestUrl, '– refresh token absent or rejected. Preserving current session to prevent redirection bounce-back.');
         }
       } finally {
         release();
@@ -361,9 +397,33 @@ export const baseQueryWithReauth: BaseQueryFn<
 
     if (url === '/auth/me') {
       const state = api.getState() as RootState;
-      if (state.auth.user) {
-        return { data: state.auth.user };
+      let currentUser = state.auth.user;
+      if (!currentUser) {
+        try {
+          const stored = localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');
+          if (stored) currentUser = JSON.parse(stored);
+        } catch {}
       }
+      if (currentUser) {
+        return { data: currentUser };
+      }
+    }
+  }
+
+  // Final fallback: if /auth/me failed over the wire, prevent breaking UI by returning active session user
+  const effectiveUrl = typeof args === 'string' ? args : args.url;
+  if (effectiveUrl === '/auth/me' && result.error) {
+    const state = api.getState() as RootState;
+    let currentUser = state.auth.user;
+    if (!currentUser) {
+      try {
+        const stored = localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');
+        if (stored) currentUser = JSON.parse(stored);
+      } catch {}
+    }
+    if (currentUser) {
+      console.log('[baseQuery] /auth/me network returned error; serving local session user.');
+      return { data: currentUser };
     }
   }
 

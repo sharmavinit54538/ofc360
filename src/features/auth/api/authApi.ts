@@ -53,7 +53,7 @@ export const authApi = createApi({
         try {
           const { data } = await queryFulfilled;
           const normalized = normalizeAuthResponse(data);
-          if (normalized.user && normalized.tokens?.accessToken) {
+          if (normalized.tokens?.accessToken) {
             dispatch(
               setCredentials({
                 user: normalized.user,
