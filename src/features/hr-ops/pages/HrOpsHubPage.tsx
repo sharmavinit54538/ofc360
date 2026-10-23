@@ -11,7 +11,6 @@ import {
   LogOut,
   ArrowRight,
   Search,
-  Sparkles,
   SlidersHorizontal,
   ExternalLink,
 } from 'lucide-react';
@@ -155,22 +154,9 @@ export const HrOpsHubPage: React.FC = () => {
       {/* Top Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 md:p-8 shadow-xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur border border-white/10 text-xs font-medium text-indigo-200">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-              <span>HR Operations Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-              HR Operations Control Center
-            </h1>
-            <p className="text-sm md:text-base text-slate-300">
-              Manage workplace equipment, employee lifecycle transitions, visitors, business travel, and expense reimbursements.
-            </p>
-          </div>
-
+        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* View Mode Toggle & Search */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
             {/* View Switcher Tabs */}
             <div className="inline-flex items-center p-1 rounded-xl bg-white/10 border border-white/15 backdrop-blur">
               <button
