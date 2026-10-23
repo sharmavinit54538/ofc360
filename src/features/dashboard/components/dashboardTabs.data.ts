@@ -441,45 +441,13 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     section: 'recruitment',
     component: ComingSoonView,
   },
-  {
-    id: 'hiring-reports',
-    label: 'Hiring Reports',
-    icon: BarChart2,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'recruitment-analytics',
-    label: 'Analytics',
-    icon: LineChart,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'recruitment-ai',
-    label: 'Recruitment AI',
-    icon: Sparkles,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
-  {
-    id: 'ai-copilot',
-    label: 'AI Copilot',
-    icon: Bot,
-    group: 'recruitment',
-    section: 'recruitment',
-    component: ComingSoonView,
-  },
 
   // ==========================================
   // 4. ATTENDANCE & TIME (5 tabs: 1 parent + 4 children) - Collapsible group
   // ==========================================
   {
     id: 'attendance',
-    label: 'Attendance',
+    label: 'Overview',
     icon: CalendarDays,
     group: 'attendance',
     section: 'attendance',
@@ -489,7 +457,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
         id: 'attendance-shifts',
         label: 'Shifts',
         icon: Clock,
-        path: '/dashboard/attendance/shifts',
         group: 'attendance',
         section: 'attendance',
         component: ShiftsView,
@@ -498,7 +465,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
         id: 'attendance-rosters',
         label: 'Rosters',
         icon: ScrollText,
-        path: '/dashboard/attendance/rosters',
         group: 'attendance',
         section: 'attendance',
         component: RostersView,
@@ -507,7 +473,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
         id: 'attendance-holidays',
         label: 'Holidays',
         icon: Palmtree,
-        path: '/dashboard/attendance/holidays',
         group: 'attendance',
         section: 'attendance',
         component: HolidaysView,
@@ -560,12 +525,12 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 8. REPORTS & ANALYTICS (4 tabs) - Collapsible group
+  // 8. REPORTS & ANALYTICS (3 tabs) - Collapsible group
   // ==========================================
   {
-    id: 'ai-insights',
-    label: 'AI Insights',
-    icon: Sparkles,
+    id: 'analytics-center',
+    label: 'Analytics Center',
+    icon: LineChart,
     group: 'reports',
     section: 'reports',
     component: AnalyticsCenterPage,
@@ -585,14 +550,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     group: 'reports',
     section: 'reports',
     component: ComingSoonView,
-  },
-  {
-    id: 'analytics-center',
-    label: 'Analytics Center',
-    icon: LineChart,
-    group: 'reports',
-    section: 'reports',
-    component: AnalyticsCenterPage,
   },
 
   // ==========================================
@@ -671,36 +628,12 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     component: ComingSoonView,
   },
   {
-    id: 'policy-assistant',
-    label: 'Policy Assistant',
-    icon: BookOpen,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
-    id: 'document-generator',
-    label: 'Document Generator',
-    icon: FilePlus2,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
-  },
-  {
     id: 'meeting-intelligence',
     label: 'Meeting Intelligence',
     icon: Video,
     group: 'aihub',
     section: 'aihub',
     component: MeetingIntelligencePage,
-  },
-  {
-    id: 'compliance-monitor',
-    label: 'Compliance Monitor',
-    icon: ShieldAlert,
-    group: 'aihub',
-    section: 'aihub',
-    component: ComingSoonView,
   },
   {
     id: 'chat-assistant',
@@ -853,8 +786,68 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 ];
 
+export const LEGACY_ALIASES: Record<string, string> = {
+  'ai-insights': 'analytics-center',
+};
+
+/**
+ * Returns all sub-tabs belonging to a given sidebar section/module.
+ * Flattens any nested children (e.g. attendance children).
+ */
+export const getModuleTabs = (sectionId: SidebarSection): DashboardTabItem[] => {
+  const result: DashboardTabItem[] = [];
+  for (const tab of DASHBOARD_TABS) {
+    if (tab.section === sectionId) {
+      result.push(tab);
+      if (tab.children && tab.children.length > 0) {
+        result.push(...tab.children);
+      }
+    }
+  }
+  return result;
+};
+
+/**
+ * Returns the section/module that a given tab ID belongs to.
+ * Resolves aliases and searches top-level and nested child tabs.
+ * If passed a section ID directly, returns that section.
+ */
+export const getModuleOfTab = (id: string): SidebarSection | undefined => {
+  if (!id) return undefined;
+  const resolvedId = LEGACY_ALIASES[id] || id;
+
+  // Direct match on section ID
+  if (SIDEBAR_SECTIONS.some((s) => s.id === resolvedId)) {
+    return resolvedId as SidebarSection;
+  }
+
+  for (const tab of DASHBOARD_TABS) {
+    if (tab.id === resolvedId) return tab.section;
+    if (tab.children) {
+      const child = tab.children.find((c) => c.id === resolvedId);
+      if (child) return child.section || tab.section;
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * Finds a tab configuration by ID.
+ * Resolves legacy aliases and searches top-level tabs and nested children.
+ */
 export const getTabConfig = (id: string): DashboardTabItem | undefined => {
-  return DASHBOARD_TABS.find((tab) => tab.id === id);
+  const resolvedId = LEGACY_ALIASES[id] || id;
+
+  for (const tab of DASHBOARD_TABS) {
+    if (tab.id === resolvedId) return tab;
+    if (tab.children) {
+      const child = tab.children.find((c) => c.id === resolvedId);
+      if (child) return child;
+    }
+  }
+
+  return undefined;
 };
 
 export const getTabsBySection = (section: SidebarSection): DashboardTabItem[] => {
