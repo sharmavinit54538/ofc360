@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Gauge,
   ClipboardList,
   Target,
   Users2,
@@ -130,22 +129,8 @@ export const PerformanceHubPage: React.FC = () => {
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-8 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-              <Gauge className="w-3.5 h-3.5" />
-              <span>Performance & Growth Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Talent Performance & Appraisals Center
-            </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              Live appraisal cycles, competency reviews, OKR progress tracking,
-              and 360-degree peer feedback — synced with the performance engine.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/5 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shrink-0">
+        <div className="relative z-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/5 backdrop-blur-md p-3.5 rounded-xl border border-white/10 w-full">
             <div className="text-center px-3 py-1.5 border-r border-white/10">
               <p className="text-xs text-slate-400 font-medium">Avg Rating</p>
               <p className="text-xl font-bold text-amber-400 inline-flex items-center gap-1">

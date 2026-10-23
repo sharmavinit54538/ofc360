@@ -54,6 +54,9 @@ const INTERVIEW_STATUS_BADGE: Record<InterviewStatus, { variant: BadgeVariant; l
   CANCELLED: { variant: 'danger', label: 'Cancelled' },
 };
 
+const stickySelectClass =
+  'px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
+
 /**
  * RecruitmentHubPage (Super Admin)
  *
@@ -107,7 +110,7 @@ export const RecruitmentHubPage: React.FC = () => {
     return params;
   }, [candidatesPage, jobFilter, stageFilter, debouncedSearch]);
 
-  const { data: stats, isLoading: statsLoading } = useGetRecruitmentStatsQuery(
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetRecruitmentStatsQuery(
     departmentFilter ? { departmentId: departmentFilter } : undefined
   );
 
@@ -158,6 +161,20 @@ export const RecruitmentHubPage: React.FC = () => {
   const candidates = candidatesData?.items || [];
   const candidatesTotal = candidatesData?.total || 0;
   const candidatesTotalPages = Math.max(1, Math.ceil(candidatesTotal / CANDIDATES_PAGE_SIZE));
+
+  const handleRefresh = () => {
+    if (activeTab === 'jobs') {
+      refetchJobs();
+    } else if (activeTab === 'candidates') {
+      refetchCandidates();
+    } else {
+      refetchInterviews();
+    }
+    refetchStats();
+  };
+
+  const isTabRefreshing =
+    activeTab === 'jobs' ? jobsFetching : activeTab === 'candidates' ? candidatesFetching : false;
 
   const handleResetFilters = () => {
     setSearchQuery('');
