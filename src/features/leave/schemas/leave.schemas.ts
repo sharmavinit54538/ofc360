@@ -14,7 +14,14 @@ export const leaveDurationEnum = z.enum([
   'HALF_DAY_SECOND_HALF',
 ]);
 
-export const leaveStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']);
+export const leaveStatusEnum = z.enum([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+  'CANCELLED',
+  'WITHDRAWN',
+  'REVOKED',
+]);
 
 /**
  * Schema for the Apply Leave form.

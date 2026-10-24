@@ -32,34 +32,28 @@ const formatDateRange = (start: string, end: string): string => {
   return `${startDate.toLocaleDateString('en-IN', opts)} – ${endDate.toLocaleDateString('en-IN', { ...opts, year: 'numeric' })}`;
 };
 
-const StatusBadge: React.FC<{ status: LeaveStatus }> = ({ status }) => {
-  switch (status) {
-    case 'APPROVED':
-      return (
-        <Badge variant="success" size="sm" className="font-semibold flex items-center gap-1 text-[11px]">
-          <CheckCircle2 className="w-3 h-3" /> Approved
-        </Badge>
-      );
-    case 'REJECTED':
-      return (
-        <Badge variant="danger" size="sm" className="font-semibold flex items-center gap-1 text-[11px]">
-          <XCircle className="w-3 h-3" /> Rejected
-        </Badge>
-      );
-    case 'CANCELLED':
-      return (
-        <Badge variant="slate" size="sm" className="font-semibold flex items-center gap-1 text-[11px]">
-          <Ban className="w-3 h-3" /> Cancelled
-        </Badge>
-      );
-    case 'PENDING':
-    default:
-      return (
-        <Badge variant="warning" size="sm" className="font-semibold flex items-center gap-1 text-[11px]">
-          <CalendarDays className="w-3 h-3" /> Pending
-        </Badge>
-      );
-  }
+export const STATUS_BADGE: Record<string, { label: string; variant: 'success' | 'danger' | 'warning' | 'slate' }> = {
+  APPROVED: { label: 'Approved', variant: 'success' },
+  REJECTED: { label: 'Rejected', variant: 'danger' },
+  CANCELLED: { label: 'Cancelled', variant: 'slate' },
+  WITHDRAWN: { label: 'Withdrawn', variant: 'slate' },
+  REVOKED: { label: 'Revoked', variant: 'danger' },
+  PENDING: { label: 'Pending', variant: 'warning' },
+};
+
+const StatusBadge: React.FC<{ status: LeaveStatus | string }> = ({ status }) => {
+  const norm = String(status || '').toUpperCase();
+  const badge = STATUS_BADGE[norm] ?? { label: norm || 'Pending', variant: 'warning' as const };
+
+  return (
+    <Badge variant={badge.variant} size="sm" className="font-semibold flex items-center gap-1 text-[11px]">
+      {badge.variant === 'success' && <CheckCircle2 className="w-3 h-3" />}
+      {badge.variant === 'danger' && <XCircle className="w-3 h-3" />}
+      {badge.variant === 'slate' && <Ban className="w-3 h-3" />}
+      {badge.variant === 'warning' && <CalendarDays className="w-3 h-3" />}
+      {badge.label}
+    </Badge>
+  );
 };
 
 export const LeaveRequestsTable: React.FC<LeaveRequestsTableProps> = ({

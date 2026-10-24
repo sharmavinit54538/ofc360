@@ -47,7 +47,7 @@ interface SuperAdminTenantSelectorProps {
   isBannerOnly?: boolean;
 }
 
-const SuperAdminTenantSelector: React.FC<SuperAdminTenantSelectorProps> = ({
+export const SuperAdminTenantSelector: React.FC<SuperAdminTenantSelectorProps> = ({
   currentCompanyId,
   onSelectCompany,
   isBannerOnly = false,

@@ -9,6 +9,19 @@ interface LeaveBalanceCardsProps {
   isLoading: boolean;
 }
 
+export const LEAVE_TYPE_CONFIG: Record<
+  string,
+  { label: string; code: string; color: string }
+> = {
+  CASUAL: { label: 'Casual Leave', code: 'CL', color: '#10B981' },
+  SICK: { label: 'Sick Leave', code: 'SL', color: '#F59E0B' },
+  EARNED: { label: 'Earned Leave', code: 'EL', color: '#3B82F6' },
+  MATERNITY: { label: 'Maternity Leave', code: 'ML', color: '#EC4899' },
+  PATERNITY: { label: 'Paternity Leave', code: 'PL', color: '#8B5CF6' },
+  COMP_OFF: { label: 'Compensatory Off', code: 'CO', color: '#14B8A6' },
+  UNPAID: { label: 'Unpaid Leave (LWP)', code: 'UL', color: '#64748B' },
+};
+
 const formatDays = (value: number): string => {
   const rounded = Math.round(value * 10) / 10;
   return `${rounded} ${rounded === 1 ? 'day' : 'days'}`;
@@ -44,6 +57,12 @@ export const LeaveBalanceCards: React.FC<LeaveBalanceCardsProps> = ({ balances, 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {balances.map((balance) => {
+        const typeKey = (balance.code || balance.leaveTypeId || '').toUpperCase();
+        const config = LEAVE_TYPE_CONFIG[typeKey];
+        const displayColor = balance.color || config?.color || '#10B981';
+        const displayCode = balance.code || config?.code;
+        const displayName = balance.leaveTypeName || config?.label || 'Leave';
+
         const consumed = balance.usedDays + balance.pendingDays;
         const usagePercent =
           balance.totalQuota > 0
@@ -59,15 +78,15 @@ export const LeaveBalanceCards: React.FC<LeaveBalanceCardsProps> = ({ balances, 
               <div className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: balance.color || '#10B981' }}
+                  style={{ backgroundColor: displayColor }}
                 />
                 <span className="text-sm font-semibold text-gray-900 dark:text-[#ececec]">
-                  {balance.leaveTypeName}
+                  {displayName}
                 </span>
               </div>
-              {balance.code && (
+              {displayCode && (
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                  {balance.code}
+                  {displayCode}
                 </span>
               )}
             </div>

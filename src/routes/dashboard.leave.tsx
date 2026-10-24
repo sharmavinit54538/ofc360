@@ -3,20 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { LeaveManagementHubPage } from '@/features/leave/pages/LeaveManagementHubPage';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const DashboardLeaveRoute: React.FC = () => {
   const navigate = useNavigate();
+  const { role, activeRole } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => !prev);
   }, []);
 
+  const effectiveRole = (activeRole || role || 'EMPLOYEE').toUpperCase();
+
   const handleTabChange = useCallback(
     (tabId: string) => {
-      navigate(`/dashboard/hr-admin#${tabId}`);
+      if (effectiveRole === 'SUPER_ADMIN') {
+        navigate(`/dashboard/super-admin#${tabId}`);
+      } else if (effectiveRole === 'MANAGER') {
+        navigate(`/dashboard/manager#${tabId}`);
+      } else if (effectiveRole === 'EMPLOYEE') {
+        navigate(`/dashboard/employee#${tabId}`);
+      } else {
+        navigate(`/dashboard/hr-admin#${tabId}`);
+      }
     },
-    [navigate]
+    [navigate, effectiveRole]
   );
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building2, Plus, X } from 'lucide-react';
@@ -7,18 +7,20 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
-import { useCreateDepartmentMutation } from '../api/workforceApi';
+import { useCreateDepartmentMutation, useGetEmployeesQuery } from '../api/workforceApi';
 import { departmentFormSchema, type DepartmentFormData } from '../schemas/workforce.schemas';
-import type { DepartmentItem } from '../types/workforce.types';
+import type { DepartmentItem, EmployeeItem } from '../types/workforce.types';
 
 interface DepartmentBreakdownCardProps {
   departments: DepartmentItem[];
   isLoading: boolean;
+  employees?: EmployeeItem[];
 }
 
 export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = ({
   departments,
   isLoading,
+  employees,
 }) => {
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,10 +36,50 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
     defaultValues: { name: '', code: '' },
   });
 
-  const getDeptHeadcount = (d: DepartmentItem) => d.headcount ?? d.totalEmployees ?? 0;
+  // Check if all departments returned 0 headcount from backend
+  const allZeroHeadcount = useMemo(
+    () => departments.length > 0 && departments.every((d) => (d.headcount ?? d.totalEmployees ?? d.employeeCount ?? 0) === 0),
+    [departments]
+  );
+
+  // Fetch employees as fallback if all departments returned 0 and no employees prop was provided
+  const { data: empQueryData } = useGetEmployeesQuery(
+    { limit: 500 },
+    { skip: !allZeroHeadcount || Boolean(employees && employees.length > 0) }
+  );
+
+  const activeEmployeeList = employees ?? empQueryData?.items ?? [];
+
+  // Compute map of department counts if backend reported 0 across all
+  const fallbackCounts = useMemo(() => {
+    if (!allZeroHeadcount || activeEmployeeList.length === 0) return null;
+    const map = new Map<string, number>();
+    for (const emp of activeEmployeeList) {
+      const dId = emp.departmentId || emp.department?.id;
+      const dName = emp.departmentName || emp.department?.name;
+      if (dId) map.set(dId, (map.get(dId) ?? 0) + 1);
+      if (dName) map.set(dName.toLowerCase(), (map.get(dName.toLowerCase()) ?? 0) + 1);
+    }
+    return map;
+  }, [allZeroHeadcount, activeEmployeeList]);
+
+  const getDeptHeadcount = (d: DepartmentItem): number => {
+    if (fallbackCounts) {
+      const byId = fallbackCounts.get(d.id);
+      if (byId !== undefined) return byId;
+      const byName = fallbackCounts.get(d.name?.toLowerCase());
+      if (byName !== undefined) return byName;
+      if (d.departmentName) {
+        const byDeptName = fallbackCounts.get(d.departmentName.toLowerCase());
+        if (byDeptName !== undefined) return byDeptName;
+      }
+    }
+    return d.headcount ?? d.totalEmployees ?? d.employeeCount ?? 0;
+  };
+
+  const totalStaff = departments.reduce((sum, d) => sum + getDeptHeadcount(d), 0);
   const maxHeadcount = Math.max(1, ...departments.map(getDeptHeadcount));
   const activeCount = departments.filter((d) => d.isActive).length;
-  const totalStaff = departments.reduce((sum, d) => sum + getDeptHeadcount(d), 0);
 
   const openModal = () => {
     reset({ name: '', code: '' });
@@ -99,7 +141,10 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
           <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
             {departments.map((dept) => {
               const count = getDeptHeadcount(dept);
-              const share = Math.round((count / maxHeadcount) * 100);
+              const share = maxHeadcount > 0 ? Math.min(100, Math.max(0, Math.round((count / maxHeadcount) * 100))) : 0;
+              const safeShare = Number.isNaN(share) ? 0 : share;
+              const orgShare = totalStaff > 0 ? Math.min(100, Math.max(0, Math.round((count / totalStaff) * 100))) : 0;
+              const safeOrgShare = Number.isNaN(orgShare) ? 0 : orgShare;
               return (
                 <div
                   key={dept.id}
@@ -140,11 +185,11 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
                     <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                        style={{ width: `${share}%` }}
+                        style={{ width: `${safeShare}%` }}
                       />
                     </div>
                     <span className="text-[11px] font-semibold text-gray-500 dark:text-zinc-400 whitespace-nowrap">
-                      {Math.round((count / Math.max(1, totalStaff)) * 100)}% of org
+                      {safeOrgShare}% of org
                     </span>
                   </div>
                 </div>

@@ -416,7 +416,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/leave"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardLeaveRoute />
           </ProtectedRoute>
@@ -426,7 +426,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/leaves"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardLeaveRoute />
           </ProtectedRoute>

@@ -79,6 +79,9 @@ export interface ManagerRef {
   name: string;
 }
 
+export type Employee = EmployeeItem;
+export type Department = DepartmentItem;
+
 /**
  * One employee record in the workforce directory.
  */
@@ -172,17 +175,29 @@ export interface UpdateEmployeeStatusPayload {
 export interface DepartmentItem {
   id: string;
   name: string;
+  departmentName?: string;
   code: string;
+  description?: string;
+  headId?: string | null;
+  headName?: string;
   headOfDepartment?: ManagerRef;
   totalEmployees: number;
   headcount?: number;
+  employeeCount?: number;
+  percentage?: number;
   budget?: number;
+  extensionNumber?: string;
   isActive: boolean;
 }
 
 export interface DepartmentFormPayload {
   name: string;
   code: string;
+  description?: string;
+  headId?: string;
+  budget?: number;
+  extensionNumber?: string;
+  isActive?: boolean;
 }
 
 /**

@@ -249,56 +249,109 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
 };
 
 /**
- * Normalizes department objects from live backend shapes.
+ * Maps outgoing frontend employee payloads to FastAPI snake_case.
+ */
+export const toEmployeePayload = (data: any) => ({
+  first_name: data.firstName ?? data.first_name,
+  last_name: data.lastName ?? data.last_name,
+  email: data.email?.trim(),
+  phone: data.phone ?? data.phone_number ?? null,
+  department_id: data.departmentId ?? data.department_id ?? null,
+  designation: data.designation ?? data.designationId ?? null,
+  employment_type: data.employmentType ?? data.employment_type ?? "FULL_TIME",
+  date_of_joining: data.joiningDate ?? data.date_of_joining ?? null,
+  reporting_manager_id: data.reportingManagerId ?? data.reporting_manager_id ?? null,
+  role: data.role ?? "EMPLOYEE",
+  ...(data.status ? { status: data.status } : {}),
+  ...(data.gender ? { gender: data.gender } : {}),
+  ...(data.workLocation ?? data.work_location ? { work_location: data.workLocation ?? data.work_location } : {}),
+  ...(data.employeeCode ?? data.employee_code ? { employee_code: data.employeeCode ?? data.employee_code } : {}),
+  ...(data.personalEmail ?? data.personal_email ? { personal_email: data.personalEmail ?? data.personal_email } : {}),
+});
+
+/**
+ * Normalizes incoming departments array or paginated response.
+ */
+export const normalizeDepartments = (res: any): DepartmentItem[] => {
+  const rawList = Array.isArray(res)
+    ? res
+    : res?.items ?? res?.data ?? res?.departments ?? res?.results ?? [];
+  const totalHeadcount = rawList.reduce(
+    (sum: number, d: any) =>
+      sum + Number(d.employee_count ?? d.headcount ?? d.employees_count ?? d.count ?? 0),
+    0
+  );
+
+  return rawList.map((d: any): DepartmentItem => {
+    const count = Number(d.employee_count ?? d.headcount ?? d.employees_count ?? d.count ?? 0);
+    const percentage =
+      d.percentage !== undefined && !Number.isNaN(Number(d.percentage))
+        ? Number(d.percentage)
+        : totalHeadcount > 0
+        ? Math.round((count / totalHeadcount) * 100)
+        : 0;
+
+    const name = d.name ?? d.departmentName ?? d.department_name ?? 'Unnamed Department';
+    const code = d.code ?? d.department_code ?? (name ? name.slice(0, 4).toUpperCase() : 'DEPT');
+
+    return {
+      id: String(d.id ?? d.department_id ?? ''),
+      name,
+      departmentName: name,
+      code,
+      description: d.description ?? '',
+      headId: d.headId ?? d.head_id ?? d.manager_id ?? null,
+      headName: d.headName ?? d.head_name ?? d.manager_name ?? d.head?.full_name ?? 'Unassigned',
+      headcount: count,
+      employeeCount: count,
+      totalEmployees: count,
+      percentage,
+      budget: Number(d.budget ?? 0),
+      extensionNumber: d.extensionNumber ?? d.extension_number ?? '',
+      isActive: d.isActive ?? d.is_active ?? true,
+      headOfDepartment: d.headOfDepartment
+        ? {
+            id: String(d.headOfDepartment.id || ''),
+            name: String(d.headOfDepartment.name || ''),
+          }
+        : d.headName || d.head_name || d.manager_name || d.head_of_department_name
+        ? {
+            id: String(d.headId || d.head_id || d.manager_id || ''),
+            name: String(d.headName || d.head_name || d.manager_name || d.head_of_department_name || ''),
+          }
+        : undefined,
+    };
+  });
+};
+
+/**
+ * Maps outgoing department forms to FastAPI snake_case payloads.
+ */
+export const toDepartmentPayload = (data: any) => ({
+  name: (data.name ?? data.departmentName)?.trim(),
+  code: (data.code ?? (data.name ? data.name.slice(0, 4).toUpperCase() : 'DEPT'))?.toUpperCase(),
+  description: data.description?.trim() || null,
+  head_id: data.headId || data.head_id || null,
+  budget: data.budget !== undefined && data.budget !== '' ? Number(data.budget) : null,
+  extension_number: data.extensionNumber?.trim() || data.extension_number?.trim() || null,
+  is_active: data.isActive ?? data.is_active ?? true,
+});
+
+/**
+ * Normalizes single department object from live backend shapes.
  */
 export const normalizeDepartment = (dept: any): DepartmentItem => {
-  if (!dept || typeof dept !== 'object') {
-    return {
-      id: `dept_${Date.now()}`,
-      name: 'Department',
-      code: 'DEPT',
-      headcount: 0,
-      totalEmployees: 0,
-      budget: 0,
-      isActive: true,
-    };
-  }
-
-  const headcount = Number(
-    dept.headcount ??
-      dept.employee_count ??
-      dept.employees_count ??
-      dept.totalEmployees ??
-      dept.total_employees ??
-      0
-  );
-
-  const name = String(dept.name ?? dept.department_name ?? 'Department');
-  const code = String(
-    dept.code ??
-      dept.department_code ??
-      (name ? name.slice(0, 4).toUpperCase() : 'DEPT')
-  );
-
-  return {
-    id: String(dept.id ?? dept._id ?? dept.department_id ?? ''),
-    name,
-    code,
-    headcount,
-    totalEmployees: headcount,
-    budget: Number(dept.budget ?? 0),
-    isActive: Boolean(dept.is_active ?? dept.isActive ?? true),
-    headOfDepartment: dept.headOfDepartment
-      ? {
-          id: String(dept.headOfDepartment.id || ''),
-          name: String(dept.headOfDepartment.name || ''),
-        }
-      : dept.manager_name || dept.head_of_department_name
-      ? {
-          id: String(dept.manager_id || dept.head_of_department_id || ''),
-          name: String(dept.manager_name || dept.head_of_department_name || ''),
-        }
-      : undefined,
+  return normalizeDepartments([dept])[0] || {
+    id: `dept_${Date.now()}`,
+    name: 'Department',
+    departmentName: 'Department',
+    code: 'DEPT',
+    headcount: 0,
+    employeeCount: 0,
+    totalEmployees: 0,
+    percentage: 0,
+    budget: 0,
+    isActive: true,
   };
 };
 
@@ -408,10 +461,12 @@ export const workforceApi = createApi({
   reducerPath: 'workforceApi',
   baseQuery: baseQueryWithReauth,
   tagTypes: [
+    'Departments',
+    'Workforce',
+    'Employees',
     'WorkforceStats',
     'EmployeesList',
     'EmployeeDetail',
-    'Departments',
     'Designations',
     'OrgChart',
   ],
@@ -782,13 +837,9 @@ export const workforceApi = createApi({
         return `/departments${compId ? `?company_id=${compId}` : ''}`;
       },
       transformResponse: (response: any): DepartmentItem[] => {
-        const data = transformResponse<any>(response);
-        const list = Array.isArray(data)
-          ? data
-          : data?.items || data?.departments || data?.data || [];
-        return Array.isArray(list) ? list.map(normalizeDepartment) : [];
+        return normalizeDepartments(transformResponse<any>(response));
       },
-      providesTags: ['Departments'],
+      providesTags: ['Departments', 'Workforce', 'Employees'],
     }),
 
     /**
@@ -802,16 +853,45 @@ export const workforceApi = createApi({
           url: '/departments',
           method: 'POST',
           body: {
-            name: payload.name,
-            code: payload.code.toUpperCase(),
-            department_name: payload.name,
-            department_code: payload.code.toUpperCase(),
+            ...toDepartmentPayload(payload),
             ...(compId ? { company_id: compId } : {}),
           },
         };
       },
-      transformResponse: (response: any) => normalizeDepartment(transformResponse<any>(response)),
-      invalidatesTags: ['Departments'],
+      transformResponse: (response: any) => {
+        const item = transformResponse<any>(response);
+        return normalizeDepartments([item])[0] || normalizeDepartment(item);
+      },
+      invalidatesTags: ['Departments', 'Workforce', 'Employees'],
+    }),
+
+    /**
+     * Update an existing department.
+     * Route: PATCH /departments/{id}
+     */
+    updateDepartment: builder.mutation<DepartmentItem, { id: string; data: Partial<DepartmentFormPayload> }>({
+      query: ({ id, data }) => ({
+        url: `/departments/${encodeURIComponent(id)}`,
+        method: 'PATCH',
+        body: toDepartmentPayload(data),
+      }),
+      transformResponse: (response: any) => {
+        const item = transformResponse<any>(response);
+        return normalizeDepartments([item])[0] || normalizeDepartment(item);
+      },
+      invalidatesTags: ['Departments', 'Workforce', 'Employees'],
+    }),
+
+    /**
+     * Delete a department.
+     * Route: DELETE /departments/{id}
+     */
+    deleteDepartment: builder.mutation<{ success: boolean; id: string }, string>({
+      query: (id) => ({
+        url: `/departments/${encodeURIComponent(id)}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Departments', 'Workforce', 'Employees'],
     }),
 
     /**
@@ -864,6 +944,8 @@ export const {
   useGetOrgChartQuery,
   useGetDepartmentsQuery,
   useCreateDepartmentMutation,
+  useUpdateDepartmentMutation,
+  useDeleteDepartmentMutation,
   useGetDesignationsQuery,
 } = workforceApi;
 

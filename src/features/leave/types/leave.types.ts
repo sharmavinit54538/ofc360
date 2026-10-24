@@ -4,7 +4,23 @@
  * Leave Balances, Leave Requests, Approval Workflows, and Team Calendars.
  */
 
-export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type LeaveStatus =
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'WITHDRAWN'
+  | 'REVOKED';
+
+export type LeaveType =
+  | 'CASUAL'
+  | 'SICK'
+  | 'EARNED'
+  | 'MATERNITY'
+  | 'PATERNITY'
+  | 'COMP_OFF'
+  | 'UNPAID'
+  | string;
 
 export type LeaveDuration = 'FULL_DAY' | 'HALF_DAY_FIRST_HALF' | 'HALF_DAY_SECOND_HALF';
 
@@ -66,13 +82,18 @@ export interface LeaveRequest {
   startDate: string;
   endDate: string;
   totalDays: number;
+  days?: number;
   duration: LeaveDuration;
+  isHalfDay?: boolean;
+  halfDayPeriod?: string;
   reason: string;
   status: LeaveStatus;
   contactDuringLeave?: string;
   attachmentUrls?: string[];
   approver?: LeaveEmployee;
   approverComments?: string;
+  rejectionReason?: string;
+  appliedOn?: string;
   decidedAt?: string;
   cancelledAt?: string;
   cancellationReason?: string;

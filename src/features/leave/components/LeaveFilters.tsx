@@ -28,6 +28,8 @@ const STATUS_OPTIONS: { id: LeaveStatus | 'ALL'; label: string }[] = [
   { id: 'APPROVED', label: 'Approved' },
   { id: 'REJECTED', label: 'Rejected' },
   { id: 'CANCELLED', label: 'Cancelled' },
+  { id: 'WITHDRAWN', label: 'Withdrawn' },
+  { id: 'REVOKED', label: 'Revoked' },
 ];
 
 const SCOPE_OPTIONS: { id: LeaveRequestScope; label: string }[] = [

@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { CalendarCheck } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { CalendarCheck, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/shared/ui/Toast';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { SuperAdminTenantSelector } from '@/features/workforce/pages/WorkforceHubPage';
 import {
   useGetLeaveStatsQuery,
   useGetLeaveBalancesQuery,
@@ -20,6 +22,21 @@ import { TeamLeaveCalendar } from '../components/TeamLeaveCalendar';
 
 export const LeaveManagementHubPage: React.FC = () => {
   const toast = useToast();
+  const { role, activeRole } = useAuth();
+  const effectiveRole = (activeRole || role || 'EMPLOYEE').toUpperCase();
+  const isSuperAdmin = effectiveRole === 'SUPER_ADMIN';
+
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
+    try {
+      return (
+        localStorage.getItem('ofc360_selected_company_id') ||
+        localStorage.getItem('ofc360_company_id') ||
+        ''
+      );
+    } catch {
+      return '';
+    }
+  });
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +84,32 @@ export const LeaveManagementHubPage: React.FC = () => {
     refetch: refetchRequests,
   } = useGetLeaveRequestsQuery(queryFilters);
 
+  const handleSelectCompany = useCallback(
+    (companyId: string) => {
+      try {
+        localStorage.setItem('ofc360_selected_company_id', companyId);
+        localStorage.setItem('ofc360_company_id', companyId);
+      } catch {}
+      setSelectedCompanyId(companyId);
+      refetchStats();
+      refetchBalances();
+      refetchRequests();
+    },
+    [refetchStats, refetchBalances, refetchRequests]
+  );
+
+  const isMissingCompanyError = useMemo(() => {
+    if (!requestsError) return false;
+    const status = (requestsError as any)?.status;
+    const rawError = JSON.stringify(requestsError).toLowerCase();
+    return (
+      status === 400 ||
+      status === 403 ||
+      rawError.includes('company') ||
+      rawError.includes('tenant')
+    );
+  }, [requestsError]);
+
   // Mutations
   const [cancelLeaveRequest, { isLoading: isCancelling }] = useCancelLeaveRequestMutation();
 
@@ -105,9 +148,17 @@ export const LeaveManagementHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Super Admin Organization Context Selector */}
+      {isSuperAdmin && (
+        <SuperAdminTenantSelector
+          currentCompanyId={selectedCompanyId}
+          onSelectCompany={handleSelectCompany}
+          isBannerOnly
+        />
+      )}
 
       {/* Stats error (non-blocking) */}
-      {statsError && (
+      {statsError && !isMissingCompanyError && (
         <ErrorDisplay
           title="Leave stats unavailable"
           error={statsError}
@@ -127,7 +178,7 @@ export const LeaveManagementHubPage: React.FC = () => {
             My Leave Balances
           </h2>
         </div>
-        {balancesError ? (
+        {balancesError && !isMissingCompanyError ? (
           <ErrorDisplay
             title="Unable to load leave balances"
             error={balancesError}
@@ -161,11 +212,24 @@ export const LeaveManagementHubPage: React.FC = () => {
 
       {/* Requests Table */}
       {requestsError ? (
-        <ErrorDisplay
-          title="Unable to load leave requests"
-          error={requestsError}
-          onRetry={refetchRequests}
-        />
+        isSuperAdmin && isMissingCompanyError ? (
+          <div className="space-y-4 p-6 rounded-2xl bg-amber-500/10 border border-amber-300 dark:border-amber-700/60">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
+              <ShieldAlert className="w-5 h-5 shrink-0" />
+              <span>Select an Organization context to view and review leave requests</span>
+            </div>
+            <SuperAdminTenantSelector
+              currentCompanyId={selectedCompanyId}
+              onSelectCompany={handleSelectCompany}
+            />
+          </div>
+        ) : (
+          <ErrorDisplay
+            title="Unable to load leave requests"
+            error={requestsError}
+            onRetry={refetchRequests}
+          />
+        )
       ) : (
         <LeaveRequestsTable
           requests={requests}
