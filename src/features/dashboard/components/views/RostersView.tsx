@@ -35,14 +35,14 @@ export const RostersView: React.FC = () => {
   const departments = useMemo(() => {
     const set = new Set<string>();
     for (const item of items) {
-      const dept = item.department || item.employee.department;
+      const dept = item.department || item.employee?.department;
       if (dept) set.add(dept);
     }
     return Array.from(set).sort();
   }, [items]);
 
   const uniqueEmployeeCount = useMemo(
-    () => new Set(items.map((item) => item.employee.id)).size,
+    () => new Set(items.map((item) => item.employee?.id).filter(Boolean)).size,
     [items]
   );
 

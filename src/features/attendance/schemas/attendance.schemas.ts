@@ -10,29 +10,42 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
-export const workModeEnum = z.enum(['OFFICE', 'WFM', 'FIELD']);
+export const workModeEnum = z.enum(['OFFICE', 'WFM', 'FIELD', 'REMOTE', 'HYBRID']);
 
 /**
  * Validates the punch-in request form state before dispatch.
  */
-export const punchInSchema = z.object({
-  timestamp: z.string().regex(ISO_DATETIME_REGEX, 'A valid punch-in timestamp is required'),
-  workMode: workModeEnum,
-});
+export const punchInSchema = z
+  .object({
+    timestamp: z.string().optional(),
+    workMode: workModeEnum.optional(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+    faceImage: z.string().optional(),
+    photoDataUrl: z.string().optional(),
+    deviceInfo: z.string().optional(),
+  })
+  .passthrough();
 
 export type PunchInFormData = z.infer<typeof punchInSchema>;
 
 /**
  * Validates the punch-out request form state before dispatch.
  */
-export const punchOutSchema = z.object({
-  timestamp: z.string().regex(ISO_DATETIME_REGEX, 'A valid punch-out timestamp is required'),
-  workNotes: z
-    .string()
-    .max(500, 'Work notes cannot exceed 500 characters')
-    .optional()
-    .or(z.literal('')),
-});
+export const punchOutSchema = z
+  .object({
+    timestamp: z.string().optional(),
+    workNotes: z
+      .string()
+      .max(500, 'Work notes cannot exceed 500 characters')
+      .optional()
+      .or(z.literal('')),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+    faceImage: z.string().optional(),
+    photoDataUrl: z.string().optional(),
+  })
+  .passthrough();
 
 export type PunchOutFormData = z.infer<typeof punchOutSchema>;
 

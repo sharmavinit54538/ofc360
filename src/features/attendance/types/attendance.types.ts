@@ -11,9 +11,12 @@ export type AttendanceStatus =
   | 'HALF_DAY'
   | 'ON_LEAVE'
   | 'WEEK_OFF'
-  | 'HOLIDAY';
+  | 'HOLIDAY'
+  | 'LATE'
+  | 'NOT_CHECKED_IN'
+  | 'OVERTIME';
 
-export type WorkMode = 'OFFICE' | 'WFM' | 'FIELD';
+export type WorkMode = 'OFFICE' | 'WFM' | 'FIELD' | 'REMOTE' | 'HYBRID';
 
 export type RegularizationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -23,7 +26,7 @@ export type RegularizationCorrectionType =
   | 'BOTH'
   | 'ON_DUTY';
 
-export type AttendanceScope = 'MY' | 'TEAM' | 'ALL';
+export type AttendanceScope = 'MY' | 'TEAM' | 'ALL' | 'COMPANY';
 
 export interface ShiftWindow {
   name: string;
@@ -35,30 +38,90 @@ export interface ShiftWindow {
  * Real-time punch status of the authenticated employee for today.
  */
 export interface TodayPunchStatus {
+  id?: string;
+  date?: string;
   isPunchedIn: boolean;
+  isCheckedIn?: boolean;
+  isCheckedOut?: boolean;
+  punchIn?: string | null;
+  punchOut?: string | null;
   punchInTime?: string;
   punchOutTime?: string;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
   currentStatus: AttendanceStatus;
+  status?: string;
   assignedShift?: ShiftWindow;
   totalWorkedMinutes: number;
+  totalHours?: number;
   isLate: boolean;
+  breaks?: any[];
 }
 
 export interface PunchInPayload {
-  timestamp: string;
-  workMode: WorkMode;
+  timestamp?: string;
+  workMode?: WorkMode;
+  work_mode?: string;
   latitude?: number;
   longitude?: number;
+  lat?: number;
+  lng?: number;
   locationAddress?: string;
   ipAddress?: string;
   deviceInfo?: string;
+  faceImage?: string;
+  face_image?: string;
+  photoDataUrl?: string;
+  image?: string;
+  image_base64?: string;
+  cleanBase64?: string;
+  notes?: string;
 }
 
 export interface PunchOutPayload {
-  timestamp: string;
+  timestamp?: string;
   workNotes?: string;
+  notes?: string;
   latitude?: number;
   longitude?: number;
+  lat?: number;
+  lng?: number;
+  faceImage?: string;
+  face_image?: string;
+  photoDataUrl?: string;
+  image?: string;
+  image_base64?: string;
+  cleanBase64?: string;
+}
+
+export interface FaceVerificationPayload {
+  image: string;
+  face_image?: string;
+  image_base64?: string;
+  workMode?: string;
+  work_mode?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface FaceVerificationResult {
+  verified: boolean;
+  confidence?: number;
+  message?: string;
+  employee_id?: string;
+  employeeId?: string;
+}
+
+export interface FaceEnrollmentPayload {
+  employeeId?: string;
+  employee_id?: string;
+  images: string[];
+}
+
+export interface FaceEnrollmentResult {
+  success: boolean;
+  message: string;
+  enrolledFacesCount?: number;
 }
 
 /**
@@ -72,6 +135,9 @@ export interface AttendanceStats {
   onLeaveToday: number;
   halfDayCount: number;
   avgWorkHours: number;
+  averageWorkHours?: number;
+  wfhToday?: number;
+  attendancePercentage?: number;
   regularizationPending: number;
 }
 
@@ -80,7 +146,7 @@ export interface AttendanceEmployee {
   name: string;
   department?: string;
   designation?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
 
 export interface AttendanceShiftRef {
@@ -96,13 +162,27 @@ export interface AttendanceRecord {
   id: string;
   date: string;
   employee: AttendanceEmployee;
+  employeeId?: string;
+  employeeName?: string;
+  employeeCode?: string;
+  department?: string;
+  avatarUrl?: string | null;
   shift: AttendanceShiftRef;
-  punchIn?: string;
-  punchOut?: string;
+  punchIn?: string | null;
+  checkInTime?: string | null;
+  punchOut?: string | null;
+  checkOutTime?: string | null;
   totalHours: number;
+  workHours?: number;
+  overtimeHours?: number;
+  breakMinutes?: number;
   status: AttendanceStatus;
-  workMode: WorkMode;
   isLate: boolean;
+  lateMinutes?: number;
+  workMode: WorkMode;
+  location?: string;
+  verificationMethod?: string;
+  notes?: string;
   isRegularized: boolean;
 }
 

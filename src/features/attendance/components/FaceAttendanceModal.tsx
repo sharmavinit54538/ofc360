@@ -3,9 +3,12 @@ import { X, Camera, CheckCircle2, AlertCircle, RotateCcw, ScanFace, MapPin, Shie
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 import { cn } from '@/shared/lib/utils';
+import { parseFaceImage } from '../api/attendanceApi';
 
 export interface FaceAttendanceResult {
   photoDataUrl: string;
+  cleanBase64?: string;
+  blob?: Blob;
   verifiedAt: string;
 }
 
@@ -126,8 +129,15 @@ export const FaceAttendanceModal: React.FC<FaceAttendanceModalProps> = ({
     setError(null);
 
     try {
-      // Simulate quick biometrics liveness assertion
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const parsed = parseFaceImage(finalImage);
+
+      // Perform biometrics verification and punch action via onVerified
+      await onVerified({
+        photoDataUrl: finalImage,
+        cleanBase64: parsed.cleanBase64,
+        blob: parsed.blob,
+        verifiedAt: new Date().toISOString(),
+      });
 
       setIsSuccess(true);
       toast.success(
@@ -135,19 +145,19 @@ export const FaceAttendanceModal: React.FC<FaceAttendanceModalProps> = ({
         'Attendance Recorded'
       );
 
-      await onVerified({
-        photoDataUrl: finalImage,
-        verifiedAt: new Date().toISOString(),
-      });
-
       // Brief delay to display success animation before closing
       setTimeout(() => {
         stopStream();
         onClose();
       }, 900);
     } catch (err: any) {
-      setError(err?.data?.message || err?.message || 'Biometric verification failed.');
-      toast.error('Face verification could not be recorded.', 'Verification Error');
+      const errorMsg =
+        err?.data?.message ||
+        err?.data?.detail ||
+        err?.message ||
+        'Biometric verification failed. Please try again.';
+      setError(errorMsg);
+      toast.error(errorMsg, 'Verification Error');
       setIsSuccess(false);
     } finally {
       setIsVerifying(false);

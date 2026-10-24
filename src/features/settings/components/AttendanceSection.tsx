@@ -354,17 +354,17 @@ const IpAccordionItem: React.FC<{
           name={`ipRestrictions.${index}.ipAddress`}
           control={control}
           rules={{ required: 'IP address is required' }}
-          render={({ field: ipField }) => (
-            <FormField label="IP Address / CIDR" required error={ipField.error} hint="e.g., 192.168.1.0/24 or 203.0.113.5">
+          render={({ field: ipField, fieldState }) => (
+            <FormField label="IP Address / CIDR" required error={fieldState.error?.message} hint="e.g., 192.168.1.0/24 or 203.0.113.5">
               <Input {...ipField} placeholder="192.168.1.0/24" />
             </FormField>
           )}
         />
         <Controller
-          name={`ipRestrictions.${index}.description`}
+          name={`ipRestrictions.${index}.description` as any}
           control={control}
-          render={({ field: descField }) => (
-            <FormField label="Description" error={descField.error}>
+          render={({ field: descField, fieldState }) => (
+            <FormField label="Description" error={fieldState.error?.message}>
               <Input {...descField} placeholder="Main Office Network" />
             </FormField>
           )}
@@ -434,7 +434,7 @@ export const AttendanceSection: React.FC = () => {
 
   const onSubmit = useCallback(async (data: AttendanceSettingsFormData) => {
     try {
-      await updateAttendanceSettings(data).unwrap();
+      await updateAttendanceSettings(data as any).unwrap();
       markClean('attendance');
       success('Attendance settings updated successfully', 'Settings Saved');
     } catch (err: any) {
@@ -543,19 +543,20 @@ export const AttendanceSection: React.FC = () => {
               <Controller
                 name="defaultShiftId"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Default Shift" error={field.error}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select default shift" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">None</SelectItem>
-                        {shiftFields.map((s, i) => (
-                          <SelectItem key={s.id} value={s.id}>{watch(`shifts.${i}.name`) || `Shift ${i + 1}`}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                render={({ field, fieldState }) => (
+                  <FormField label="Default Shift" error={fieldState.error?.message}>
+                    <select
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white border-neutral-300 dark:border-neutral-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">None</option>
+                      {shiftFields.map((s, i) => (
+                        <option key={s.id} value={s.id}>
+                          {watch(`shifts.${i}.name`) || `Shift ${i + 1}`}
+                        </option>
+                      ))}
+                    </select>
                   </FormField>
                 )}
               />
@@ -563,8 +564,8 @@ export const AttendanceSection: React.FC = () => {
                 name="overtimeThresholdHours"
                 control={control}
                 rules={{ min: 0, max: 24 }}
-                render={({ field }) => (
-                  <FormField label="Overtime Threshold (Hours)" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Overtime Threshold (Hours)" error={fieldState.error?.message}>
                     <Input {...field} type="number" min={0} max={24} step={0.5} />
                   </FormField>
                 )}
@@ -572,8 +573,8 @@ export const AttendanceSection: React.FC = () => {
               <Controller
                 name="autoCheckoutTime"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Auto Checkout Time" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Auto Checkout Time" error={fieldState.error?.message}>
                     <Input {...field} type="time" />
                   </FormField>
                 )}
@@ -592,7 +593,7 @@ export const AttendanceSection: React.FC = () => {
               ].map((rule) => (
                 <Controller
                   key={rule.key}
-                  name={rule.key}
+                  name={rule.key as any}
                   control={control}
                   render={({ field }) => (
                     <div className="flex items-center justify-between p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
@@ -600,7 +601,7 @@ export const AttendanceSection: React.FC = () => {
                         <p className="font-medium text-neutral-900 dark:text-white">{rule.label}</p>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">{rule.description}</p>
                       </div>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                     </div>
                   )}
                 />

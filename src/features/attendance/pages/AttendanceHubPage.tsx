@@ -97,7 +97,8 @@ export const AttendanceHubPage: React.FC = () => {
   const departments = useMemo(() => {
     const set = new Set<string>();
     for (const record of records) {
-      if (record.employee.department) set.add(record.employee.department);
+      const dept = record?.employee?.department || record?.department;
+      if (dept) set.add(dept);
     }
     return Array.from(set).sort();
   }, [records]);

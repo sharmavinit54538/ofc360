@@ -8,6 +8,7 @@ import { ROLE_DASHBOARD_ROUTES, normalizeAuthResponse, normalizeRole } from '@/f
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/features/auth/slices/authSlice';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { parseFaceImage } from '@/features/attendance/api/attendanceApi';
 
 interface FaceLoginModalProps {
   isOpen: boolean;
@@ -140,8 +141,8 @@ export const FaceLoginModal: React.FC<FaceLoginModalProps> = ({
     setError(null);
 
     try {
-      const base64Data = capturedImage.split(',')[1];
-      const response = await faceLogin({ email: email || '', image: base64Data }).unwrap();
+      const { cleanBase64 } = parseFaceImage(capturedImage);
+      const response = await faceLogin({ email: email || '', image: cleanBase64 }).unwrap();
       const normalized = normalizeAuthResponse(response);
 
       toast.success(

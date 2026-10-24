@@ -63,14 +63,18 @@ export const PunchInOutCard: React.FC = () => {
     return () => window.clearInterval(timer);
   }, []);
 
+  const punchInTime = todayStatus?.punchInTime || todayStatus?.checkInTime || todayStatus?.punchIn;
+  const punchOutTime = todayStatus?.punchOutTime || todayStatus?.checkOutTime || todayStatus?.punchOut;
+  const isPunchedIn = Boolean(todayStatus?.isPunchedIn || todayStatus?.isCheckedIn);
+
   // Elapsed minutes calculation
   const elapsedMinutes = useMemo(() => {
-    if (!todayStatus?.isPunchedIn || !todayStatus.punchInTime) {
-      return todayStatus?.totalWorkedMinutes ?? 0;
+    if (!isPunchedIn || !punchInTime) {
+      return todayStatus?.totalWorkedMinutes ?? (todayStatus?.totalHours ? Math.round(todayStatus.totalHours * 60) : 0);
     }
-    const punchedAt = new Date(todayStatus.punchInTime).getTime();
+    const punchedAt = new Date(punchInTime).getTime();
     return Math.max(0, Math.floor((currentTime.getTime() - punchedAt) / 60000));
-  }, [todayStatus, currentTime]);
+  }, [isPunchedIn, punchInTime, todayStatus, currentTime]);
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
@@ -99,23 +103,39 @@ export const PunchInOutCard: React.FC = () => {
       ...(geoState.coords
         ? { latitude: geoState.coords.latitude, longitude: geoState.coords.longitude }
         : {}),
+      ...(faceData?.photoDataUrl
+        ? {
+            faceImage: faceData.photoDataUrl,
+            photoDataUrl: faceData.photoDataUrl,
+            image: faceData.photoDataUrl,
+            face_image: faceData.photoDataUrl,
+            cleanBase64: faceData.cleanBase64,
+          }
+        : {}),
       deviceInfo: navigator.userAgent,
     };
 
     const validation = punchInSchema.safeParse(payload);
     if (!validation.success) {
-      toast.error(validation.error.issues[0]?.message || 'Invalid punch-in details', 'Validation Error');
-      return;
+      const msg = validation.error.issues[0]?.message || 'Invalid punch-in details';
+      toast.error(msg, 'Validation Error');
+      throw new Error(msg);
     }
 
     try {
       await punchIn(payload).unwrap();
-      toast.success(
-        `Face verified & punched in at ${formatTime(payload.timestamp)} (${workMode === 'WFM' ? 'Work From Home' : workMode})`,
-        'Shift Started'
-      );
+      if (!faceData) {
+        toast.success(
+          `Punched in at ${formatTime(payload.timestamp)} (${workMode === 'WFM' ? 'Work From Home' : workMode})`,
+          'Shift Started'
+        );
+      }
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to punch in. Please try again.', 'Punch-In Error');
+      const msg = err?.data?.message || err?.data?.detail || 'Failed to punch in. Please try again.';
+      if (!faceData) {
+        toast.error(msg, 'Punch-In Error');
+      }
+      throw err;
     }
   };
 
@@ -126,23 +146,39 @@ export const PunchInOutCard: React.FC = () => {
       ...(geoState.coords
         ? { latitude: geoState.coords.latitude, longitude: geoState.coords.longitude }
         : {}),
+      ...(faceData?.photoDataUrl
+        ? {
+            faceImage: faceData.photoDataUrl,
+            photoDataUrl: faceData.photoDataUrl,
+            image: faceData.photoDataUrl,
+            face_image: faceData.photoDataUrl,
+            cleanBase64: faceData.cleanBase64,
+          }
+        : {}),
     };
 
     const validation = punchOutSchema.safeParse(payload);
     if (!validation.success) {
-      toast.error(validation.error.issues[0]?.message || 'Invalid punch-out details', 'Validation Error');
-      return;
+      const msg = validation.error.issues[0]?.message || 'Invalid punch-out details';
+      toast.error(msg, 'Validation Error');
+      throw new Error(msg);
     }
 
     try {
       await punchOut(payload).unwrap();
-      toast.success(
-        `Face verified & punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`,
-        'Shift Ended'
-      );
       setWorkNotes('');
+      if (!faceData) {
+        toast.success(
+          `Punched out at ${formatTime(payload.timestamp)}. Total logged: ${formatElapsed(elapsedMinutes)}`,
+          'Shift Ended'
+        );
+      }
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to punch out. Please try again.', 'Punch-Out Error');
+      const msg = err?.data?.message || err?.data?.detail || 'Failed to punch out. Please try again.';
+      if (!faceData) {
+        toast.error(msg, 'Punch-Out Error');
+      }
+      throw err;
     }
   };
 
@@ -156,8 +192,7 @@ export const PunchInOutCard: React.FC = () => {
     );
   }
 
-  const isPunchedIn = todayStatus?.isPunchedIn ?? false;
-  const isShiftCompleted = Boolean(todayStatus?.punchOutTime && !isPunchedIn);
+  const isShiftCompleted = Boolean(punchOutTime && !isPunchedIn);
   const isBusy = isPunchingIn || isPunchingOut;
 
   const formattedDate = currentTime.toLocaleDateString('en-US', {
@@ -227,13 +262,13 @@ export const PunchInOutCard: React.FC = () => {
             <div className="px-2 py-1 border-r border-white/15">
               <span className="text-[10px] text-blue-200 block font-medium">Punch In</span>
               <span className="font-bold text-white text-xs md:text-sm">
-                {formatTime(todayStatus?.punchInTime)}
+                {formatTime(punchInTime)}
               </span>
             </div>
             <div className="px-2 py-1 border-r border-white/15">
               <span className="text-[10px] text-blue-200 block font-medium">Punch Out</span>
               <span className="font-bold text-white text-xs md:text-sm">
-                {formatTime(todayStatus?.punchOutTime)}
+                {formatTime(punchOutTime)}
               </span>
             </div>
             <div className="px-2 py-1">

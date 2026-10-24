@@ -38,6 +38,7 @@ export const DashboardAttendanceShiftsRoute: React.FC = () => {
       }
       sidebarCollapsed={sidebarCollapsed}
       onSidebarToggle={toggleSidebar}
+      fullWidth
     >
       <ShiftsView />
     </DashboardShell>

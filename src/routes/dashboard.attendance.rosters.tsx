@@ -38,6 +38,7 @@ export const DashboardAttendanceRostersRoute: React.FC = () => {
       }
       sidebarCollapsed={sidebarCollapsed}
       onSidebarToggle={toggleSidebar}
+      fullWidth
     >
       <RostersView />
     </DashboardShell>

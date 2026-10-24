@@ -38,6 +38,7 @@ export const DashboardAttendanceHolidaysRoute: React.FC = () => {
       }
       sidebarCollapsed={sidebarCollapsed}
       onSidebarToggle={toggleSidebar}
+      fullWidth
     >
       <HolidaysView />
     </DashboardShell>

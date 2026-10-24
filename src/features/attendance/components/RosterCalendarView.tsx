@@ -32,7 +32,7 @@ export const RosterCalendarView: React.FC<RosterCalendarViewProps> = ({ params }
       (item) =>
         !params.departmentId ||
         item.department === params.departmentId ||
-        item.employee.department === params.departmentId
+        item.employee?.department === params.departmentId
     );
     const grouped: Record<string, typeof items> = {};
     const colorMap: Record<string, string> = {};

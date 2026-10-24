@@ -287,11 +287,43 @@ export const authApi = createApi({
      * Expects base64-encoded JPEG image and email for user lookup.
      */
     faceLogin: builder.mutation<FaceLoginResponse, FaceLoginRequest>({
-      query: (body) => ({
-        url: '/auth/face-login',
-        method: 'POST',
-        body,
-      }),
+      async queryFn(body, _queryApi, _extraOptions, fetchWithBQ) {
+        const cleanBase64 = body.image.includes(',') ? body.image.split(',')[1] : body.image;
+        const payload = {
+          email: body.email,
+          image: cleanBase64,
+          face_image: cleanBase64,
+          image_base64: cleanBase64,
+        };
+
+        // 1. Try /auth/face-login
+        let result = await fetchWithBQ({
+          url: '/auth/face-login',
+          method: 'POST',
+          body: payload,
+        });
+
+        // 2. Fallback to /face/login
+        if (result.error && (result.error.status === 404 || result.error.status === 405)) {
+          result = await fetchWithBQ({
+            url: '/face/login',
+            method: 'POST',
+            body: payload,
+          });
+        }
+
+        // 3. Fallback to /face/verify
+        if (result.error && (result.error.status === 404 || result.error.status === 405)) {
+          result = await fetchWithBQ({
+            url: '/face/verify',
+            method: 'POST',
+            body: payload,
+          });
+        }
+
+        if (result.error) return { error: result.error };
+        return { data: result.data as FaceLoginResponse };
+      },
       invalidatesTags: ['Auth', 'User'],
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {

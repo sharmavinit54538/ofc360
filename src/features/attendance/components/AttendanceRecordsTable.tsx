@@ -87,10 +87,12 @@ const StatusBadge: React.FC<{ status: AttendanceStatus; isLate: boolean }> = ({ 
   }
 };
 
-const WORK_MODE_LABELS: Record<WorkMode, string> = {
+const WORK_MODE_LABELS: Record<string, string> = {
   OFFICE: 'Office',
   WFM: 'WFH',
   FIELD: 'Field',
+  REMOTE: 'Remote',
+  HYBRID: 'Hybrid',
 };
 
 export const AttendanceRecordsTable: React.FC<AttendanceRecordsTableProps> = ({
