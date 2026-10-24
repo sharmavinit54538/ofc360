@@ -34,9 +34,10 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
     defaultValues: { name: '', code: '' },
   });
 
-  const maxHeadcount = Math.max(1, ...departments.map((d) => d.totalEmployees));
+  const getDeptHeadcount = (d: DepartmentItem) => d.headcount ?? d.totalEmployees ?? 0;
+  const maxHeadcount = Math.max(1, ...departments.map(getDeptHeadcount));
   const activeCount = departments.filter((d) => d.isActive).length;
-  const totalStaff = departments.reduce((sum, d) => sum + d.totalEmployees, 0);
+  const totalStaff = departments.reduce((sum, d) => sum + getDeptHeadcount(d), 0);
 
   const openModal = () => {
     reset({ name: '', code: '' });
@@ -97,7 +98,8 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
             {departments.map((dept) => {
-              const share = Math.round((dept.totalEmployees / maxHeadcount) * 100);
+              const count = getDeptHeadcount(dept);
+              const share = Math.round((count / maxHeadcount) * 100);
               return (
                 <div
                   key={dept.id}
@@ -119,13 +121,18 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
                         >
                           {dept.isActive ? 'Active' : 'Inactive'}
                         </Badge>
+                        {dept.budget !== undefined && dept.budget > 0 && (
+                          <span className="font-mono text-[10px] text-gray-500 dark:text-zinc-400">
+                            • Budget: ₹{dept.budget.toLocaleString('en-IN')}
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">
                         {dept.headOfDepartment ? `HOD: ${dept.headOfDepartment.name}` : 'HOD not assigned'}
                       </p>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-[#ececec] whitespace-nowrap">
-                      {dept.totalEmployees} <span className="text-xs font-medium text-gray-400">staff</span>
+                      {count} <span className="text-xs font-medium text-gray-400">staff</span>
                     </span>
                   </div>
 
@@ -137,7 +144,7 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
                       />
                     </div>
                     <span className="text-[11px] font-semibold text-gray-500 dark:text-zinc-400 whitespace-nowrap">
-                      {Math.round((dept.totalEmployees / Math.max(1, totalStaff)) * 100)}% of org
+                      {Math.round((count / Math.max(1, totalStaff)) * 100)}% of org
                     </span>
                   </div>
                 </div>

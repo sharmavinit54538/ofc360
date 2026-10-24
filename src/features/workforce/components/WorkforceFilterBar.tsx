@@ -25,9 +25,14 @@ interface WorkforceFilterBarProps {
 const STATUS_OPTIONS: { id: EmployeeStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'ACTIVE', label: 'Active' },
+  { id: 'INVITED', label: 'Invited' },
+  { id: 'ONBOARDING', label: 'Onboarding' },
   { id: 'PROBATION', label: 'Probation' },
+  { id: 'ON_LEAVE', label: 'On Leave' },
   { id: 'NOTICE_PERIOD', label: 'Notice' },
   { id: 'SUSPENDED', label: 'Suspended' },
+  { id: 'DEACTIVATED', label: 'Deactivated' },
+  { id: 'TERMINATED', label: 'Terminated' },
   { id: 'INACTIVE', label: 'Inactive' },
 ];
 

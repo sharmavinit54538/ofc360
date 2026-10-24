@@ -339,7 +339,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/workforce"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardWorkforceRoute />
           </ProtectedRoute>
@@ -349,7 +349,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/employees"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardWorkforceRoute />
           </ProtectedRoute>
@@ -359,7 +359,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/managers"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardWorkforceRoute />
           </ProtectedRoute>
@@ -369,7 +369,7 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard/departments"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardWorkforceRoute />
           </ProtectedRoute>

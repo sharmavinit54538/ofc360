@@ -7,7 +7,12 @@ import type { OrgChartNode } from '../types/workforce.types';
 
 const TreeNode: React.FC<{ node: OrgChartNode; depth: number }> = ({ node, depth }) => {
   const [expanded, setExpanded] = useState(depth < 2);
-  const hasChildren = node.subordinates.length > 0;
+  const children = Array.isArray(node.subordinates)
+    ? node.subordinates
+    : Array.isArray(node.children)
+    ? node.children
+    : [];
+  const hasChildren = children.length > 0;
 
   return (
     <div className="select-none">
@@ -38,7 +43,7 @@ const TreeNode: React.FC<{ node: OrgChartNode; depth: number }> = ({ node, depth
           {node.avatarUrl ? (
             <img src={node.avatarUrl} alt={node.name} className="w-8 h-8 rounded-full object-cover" />
           ) : (
-            node.name
+            (node.name || 'Unknown')
               .split(' ')
               .slice(0, 2)
               .map((part) => part.charAt(0))
@@ -58,14 +63,14 @@ const TreeNode: React.FC<{ node: OrgChartNode; depth: number }> = ({ node, depth
 
         {hasChildren && (
           <span className="text-[10px] font-semibold text-gray-400 dark:text-zinc-500 shrink-0">
-            {node.subordinates.length} report{node.subordinates.length === 1 ? '' : 's'}
+            {children.length} report{children.length === 1 ? '' : 's'}
           </span>
         )}
       </div>
 
       {hasChildren && expanded && (
         <div className="border-l border-gray-200 dark:border-zinc-800 ml-[27px]">
-          {node.subordinates.map((child) => (
+          {children.map((child) => (
             <TreeNode key={child.id} node={child} depth={depth + 1} />
           ))}
         </div>

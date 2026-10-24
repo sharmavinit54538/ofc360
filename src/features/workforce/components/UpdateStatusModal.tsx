@@ -22,17 +22,27 @@ interface UpdateStatusModalProps {
 const STATUS_OPTIONS: { id: EmployeeStatusAction; label: string }[] = [
   { id: 'ACTIVE', label: 'Active' },
   { id: 'PROBATION', label: 'Probation' },
+  { id: 'ONBOARDING', label: 'Onboarding' },
+  { id: 'INVITED', label: 'Invited' },
+  { id: 'ON_LEAVE', label: 'On Leave' },
   { id: 'NOTICE_PERIOD', label: 'Notice Period' },
   { id: 'SUSPENDED', label: 'Suspended' },
+  { id: 'DEACTIVATED', label: 'Deactivated' },
   { id: 'TERMINATED', label: 'Terminated' },
+  { id: 'INACTIVE', label: 'Inactive' },
 ];
 
-const STATUS_DESCRIPTIONS: Record<EmployeeStatusAction, string> = {
+const STATUS_DESCRIPTIONS: Partial<Record<EmployeeStatusAction, string>> = {
   ACTIVE: 'Confirmed employee on active rolls',
   PROBATION: 'Under probationary evaluation period',
+  ONBOARDING: 'Currently completing onboarding orientation',
+  INVITED: 'Invitation sent; account awaiting activation',
+  ON_LEAVE: 'On approved leave of absence',
   NOTICE_PERIOD: 'Serving notice before exit date',
   SUSPENDED: 'Temporarily relieved of duties pending review',
+  DEACTIVATED: 'Account deactivated from system access',
   TERMINATED: 'Employment formally ended',
+  INACTIVE: 'Record marked inactive',
 };
 
 export const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ employee, isOpen, onClose }) => {
@@ -56,8 +66,9 @@ export const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({ employee, 
 
   useEffect(() => {
     if (employee && isOpen) {
+      const match = STATUS_OPTIONS.find((o) => o.id === (employee.status as any));
       reset({
-        status: employee.status === 'INACTIVE' ? 'SUSPENDED' : employee.status,
+        status: match ? match.id : 'ACTIVE',
         effectiveDate: new Date().toISOString().slice(0, 10),
         reason: '',
       });

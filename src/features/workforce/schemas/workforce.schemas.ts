@@ -14,9 +14,15 @@ export const genderEnum = z.enum(['MALE', 'FEMALE', 'OTHER']);
 export const workModeEnum = z.enum(['OFFICE', 'REMOTE', 'HYBRID']);
 export const employeeStatusActionEnum = z.enum([
   'ACTIVE',
+  'INACTIVE',
+  'INVITED',
+  'PENDING',
+  'ONBOARDING',
   'PROBATION',
+  'ON_LEAVE',
   'NOTICE_PERIOD',
   'SUSPENDED',
+  'DEACTIVATED',
   'TERMINATED',
 ]);
 

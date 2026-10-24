@@ -13,17 +13,28 @@ interface EmployeeProfileModalProps {
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
 
-const STATUS_BADGE: Record<EmployeeStatus, { variant: BadgeVariant; label: string }> = {
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   ACTIVE: { variant: 'success', label: 'Active' },
+  INVITED: { variant: 'brand', label: 'Invited' },
+  PENDING: { variant: 'brand', label: 'Pending' },
+  ONBOARDING: { variant: 'brand', label: 'Onboarding' },
   PROBATION: { variant: 'warning', label: 'Probation' },
+  ON_LEAVE: { variant: 'warning', label: 'On Leave' },
   NOTICE_PERIOD: { variant: 'brand', label: 'Notice' },
   SUSPENDED: { variant: 'danger', label: 'Suspended' },
+  DEACTIVATED: { variant: 'slate', label: 'Deactivated' },
+  TERMINATED: { variant: 'danger', label: 'Terminated' },
   INACTIVE: { variant: 'slate', label: 'Inactive' },
 };
 
 const formatDate = (dateStr?: string): string => {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
 };
 
 type IconType = React.ComponentType<{ className?: string }>;
@@ -54,7 +65,10 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
   if (!isOpen || !employee) return null;
 
   const info = detail || employee;
-  const badge = STATUS_BADGE[info.status];
+  const badge = STATUS_BADGE[info.status] ?? {
+    label: info.status || 'Unknown',
+    variant: 'slate' as BadgeVariant,
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in-50">

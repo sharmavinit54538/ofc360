@@ -5,8 +5,32 @@
  */
 
 export type EmploymentType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERN';
-export type EmployeeStatus = 'ACTIVE' | 'PROBATION' | 'NOTICE_PERIOD' | 'SUSPENDED' | 'INACTIVE';
-export type EmployeeStatusAction = 'ACTIVE' | 'PROBATION' | 'NOTICE_PERIOD' | 'SUSPENDED' | 'TERMINATED';
+export type EmployeeStatus =
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'INVITED'
+  | 'PENDING'
+  | 'ONBOARDING'
+  | 'PROBATION'
+  | 'ON_LEAVE'
+  | 'NOTICE_PERIOD'
+  | 'SUSPENDED'
+  | 'DEACTIVATED'
+  | 'TERMINATED';
+
+export type EmployeeStatusAction =
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'INVITED'
+  | 'PENDING'
+  | 'ONBOARDING'
+  | 'PROBATION'
+  | 'ON_LEAVE'
+  | 'NOTICE_PERIOD'
+  | 'SUSPENDED'
+  | 'DEACTIVATED'
+  | 'TERMINATED';
+
 export type GenderType = 'MALE' | 'FEMALE' | 'OTHER';
 export type WorkMode = 'OFFICE' | 'REMOTE' | 'HYBRID';
 
@@ -63,13 +87,19 @@ export interface EmployeeItem {
   employeeCode: string;
   firstName: string;
   lastName: string;
+  fullName?: string;
   email: string;
   personalEmail?: string;
   phone: string;
   gender: GenderType;
   department: DepartmentRef;
+  departmentId?: string;
+  departmentName?: string;
   designation: DesignationRef;
+  designationTitle?: string;
   reportingManager?: ManagerRef;
+  reportingManagerId?: string | null;
+  reportingManagerName?: string | null;
   joiningDate: string;
   employmentType: EmploymentType;
   status: EmployeeStatus;
@@ -89,6 +119,7 @@ export interface WorkforceFilterParams {
   employmentType?: string;
   status?: string;
   location?: string;
+  company_id?: string;
 }
 
 /**
@@ -119,6 +150,9 @@ export interface CreateEmployeePayload {
   employmentType: EmploymentType;
   workLocation: string;
   workMode: WorkMode;
+  role?: string;
+  basicSalary?: number;
+  ctc?: number;
 }
 
 export type UpdateEmployeePayload = Partial<CreateEmployeePayload>;
@@ -141,6 +175,8 @@ export interface DepartmentItem {
   code: string;
   headOfDepartment?: ManagerRef;
   totalEmployees: number;
+  headcount?: number;
+  budget?: number;
   isActive: boolean;
 }
 
@@ -174,4 +210,6 @@ export interface OrgChartNode {
   department: string;
   avatarUrl?: string | null;
   subordinates: OrgChartNode[];
+  children?: OrgChartNode[];
+  managerId?: string | null;
 }

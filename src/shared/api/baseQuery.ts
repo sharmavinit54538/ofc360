@@ -59,6 +59,36 @@ export const rawBaseQuery = fetchBaseQuery({
     if (!headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
     }
+
+    // Inject Tenant Context (X-Company-Id and X-Organization-Id)
+    let companyId: string | null = null;
+    try {
+      companyId =
+        localStorage.getItem('ofc360_selected_company_id') ||
+        localStorage.getItem('ofc360_company_id') ||
+        localStorage.getItem('selected_company_id') ||
+        localStorage.getItem('company_id') ||
+        sessionStorage.getItem('ofc360_selected_company_id') ||
+        sessionStorage.getItem('ofc360_company_id') ||
+        null;
+    } catch {
+      // Fallback for non-browser environments
+    }
+
+    if (!companyId) {
+      const user = state.auth?.user;
+      companyId =
+        user?.organizationId ||
+        (user as any)?.company_id ||
+        (user as any)?.companyId ||
+        null;
+    }
+
+    if (companyId) {
+      headers.set('X-Company-Id', companyId);
+      headers.set('X-Organization-Id', companyId);
+    }
+
     return headers;
   },
 });

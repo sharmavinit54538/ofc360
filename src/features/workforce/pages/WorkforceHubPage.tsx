@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Plus,
   LayoutList,
@@ -6,10 +6,13 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
+import { Badge } from '@/shared/ui/Badge';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 import {
   useGetWorkforceStatsQuery,
@@ -35,17 +38,144 @@ import { DepartmentBreakdownCard } from '../components/DepartmentBreakdownCard';
 const PAGE_SIZE = 10;
 
 /**
- * WorkforceHubPage (Super Admin)
+ * SuperAdminTenantSelector — Helpful UI banner/selector prompting Super Admin
+ * to set or switch an Organization/Company context whenever missing or on demand.
+ */
+interface SuperAdminTenantSelectorProps {
+  currentCompanyId: string;
+  onSelectCompany: (companyId: string) => void;
+  isBannerOnly?: boolean;
+}
+
+const SuperAdminTenantSelector: React.FC<SuperAdminTenantSelectorProps> = ({
+  currentCompanyId,
+  onSelectCompany,
+  isBannerOnly = false,
+}) => {
+  const [customId, setCustomId] = useState(currentCompanyId || '');
+  const [isEditing, setIsEditing] = useState(!currentCompanyId || !isBannerOnly);
+
+  const presets = [
+    { label: 'Demo Organization', id: 'org_ofc360_demo' },
+    { label: 'Primary Enterprise', id: 'tenant-enterprise-01' },
+    { label: 'Default Tenant', id: 'company_default' },
+  ];
+
+  const handleApply = (idToApply: string) => {
+    const clean = idToApply.trim();
+    if (!clean) return;
+    onSelectCompany(clean);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="p-4 sm:p-5 rounded-2xl border border-amber-300 dark:border-amber-700/60 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent backdrop-blur-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-[#ececec]">
+                Super Admin Multi-Tenant Clearance
+              </h4>
+              <Badge variant="warning" size="sm">Company Context</Badge>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">
+              Workforce records require tenant isolation (<code className="text-amber-600 dark:text-amber-400 font-mono">company_id</code>).
+              {currentCompanyId ? (
+                <> Active context: <span className="font-semibold text-gray-900 dark:text-white font-mono">{currentCompanyId}</span></>
+              ) : (
+                ' Select or enter an organization identifier to access personnel data.'
+              )}
+            </p>
+          </div>
+        </div>
+
+        {isEditing ? (
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {presets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setCustomId(p.id);
+                    handleApply(p.id);
+                  }}
+                  className="px-2.5 py-1 text-xs rounded-lg font-medium bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 hover:border-amber-500 transition-colors"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Enter company_id..."
+                value={customId}
+                onChange={(e) => setCustomId(e.target.value)}
+                className="px-3 py-1 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 w-44"
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleApply(customId)}
+                disabled={!customId.trim()}
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-1"
+              >
+                Set Context
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 self-start lg:self-auto"
+          >
+            Switch Organization Context
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * WorkforceHubPage
  *
  * Unified workforce management hub: employee directory, org chart, and
  * department breakdown — all backed by the live workforce API.
  */
 export const WorkforceHubPage: React.FC = () => {
+  const { user, role, activeRole } = useAuth();
+  const effectiveRole = String(activeRole || role || user?.activeRole || 'HR_ADMIN').toUpperCase();
+  const isSuperAdmin = effectiveRole === 'SUPER_ADMIN';
+
   const [activeTab, setActiveTab] = useState<'directory' | 'orgchart' | 'departments'>('directory');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [statusTarget, setStatusTarget] = useState<EmployeeItem | null>(null);
   const [profileTarget, setProfileTarget] = useState<EmployeeItem | null>(null);
   const [editTarget, setEditTarget] = useState<EmployeeItem | null>(null);
+
+  // Tenant / Company Context for Super Admin
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
+    try {
+      return (
+        localStorage.getItem('ofc360_selected_company_id') ||
+        localStorage.getItem('ofc360_company_id') ||
+        localStorage.getItem('selected_company_id') ||
+        localStorage.getItem('company_id') ||
+        user?.organizationId ||
+        ''
+      );
+    } catch {
+      return user?.organizationId || '';
+    }
+  });
 
   // Filters (controlled WorkforceFilterBar)
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,12 +201,14 @@ export const WorkforceHubPage: React.FC = () => {
     if (employmentTypeFilter !== 'ALL') params.employmentType = employmentTypeFilter;
     if (statusFilter !== 'ALL') params.status = statusFilter;
     if (locationFilter) params.location = locationFilter;
+    if (selectedCompanyId) params.company_id = selectedCompanyId;
     return params;
-  }, [page, debouncedSearch, departmentFilter, employmentTypeFilter, statusFilter, locationFilter]);
+  }, [page, debouncedSearch, departmentFilter, employmentTypeFilter, statusFilter, locationFilter, selectedCompanyId]);
 
   const {
     data: stats,
     isLoading: statsLoading,
+    refetch: refetchStats,
   } = useGetWorkforceStatsQuery();
 
   const {
@@ -88,7 +220,34 @@ export const WorkforceHubPage: React.FC = () => {
     refetch: refetchEmployees,
   } = useGetEmployeesQuery(queryParams);
 
-  const { data: departments = [] } = useGetDepartmentsQuery();
+  const {
+    data: departments = [],
+    refetch: refetchDepartments,
+  } = useGetDepartmentsQuery();
+
+  const handleSelectCompany = useCallback((companyId: string) => {
+    try {
+      localStorage.setItem('ofc360_selected_company_id', companyId);
+      localStorage.setItem('ofc360_company_id', companyId);
+    } catch {}
+    setSelectedCompanyId(companyId);
+    setPage(1);
+    refetchEmployees();
+    refetchDepartments();
+    refetchStats();
+  }, [refetchEmployees, refetchDepartments, refetchStats]);
+
+  const isMissingCompanyError = useMemo(() => {
+    if (!employeesError || !employeesErrorDetail) return false;
+    const status = (employeesErrorDetail as any)?.status;
+    const rawError = JSON.stringify(employeesErrorDetail).toLowerCase();
+    return (
+      status === 400 ||
+      status === 403 ||
+      rawError.includes('company') ||
+      rawError.includes('tenant')
+    );
+  }, [employeesError, employeesErrorDetail]);
 
   const employees = employeesData?.items || [];
   const total = employeesData?.total || 0;
@@ -149,6 +308,15 @@ export const WorkforceHubPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0d0d0d] text-gray-900 dark:text-[#ececec]">
       <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto space-y-6">
+        {/* Super Admin Organization Context Selector */}
+        {isSuperAdmin && (
+          <SuperAdminTenantSelector
+            currentCompanyId={selectedCompanyId}
+            onSelectCompany={handleSelectCompany}
+            isBannerOnly
+          />
+        )}
+
         {/* KPI tiles */}
         <WorkforceKpiCards stats={stats} isLoading={statsLoading} />
 
@@ -203,11 +371,24 @@ export const WorkforceHubPage: React.FC = () => {
 
             {employeesError ? (
               <div className="p-6">
-                <ErrorDisplay
-                  title="Directory Unavailable"
-                  error={employeesErrorDetail}
-                  onRetry={() => refetchEmployees()}
-                />
+                {isSuperAdmin && isMissingCompanyError ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm font-semibold">
+                      <ShieldAlert className="w-5 h-5 shrink-0" />
+                      <span>Company Scope Required for Global Super Administrator</span>
+                    </div>
+                    <SuperAdminTenantSelector
+                      currentCompanyId={selectedCompanyId}
+                      onSelectCompany={handleSelectCompany}
+                    />
+                  </div>
+                ) : (
+                  <ErrorDisplay
+                    title="Directory Unavailable"
+                    error={employeesErrorDetail}
+                    onRetry={() => refetchEmployees()}
+                  />
+                )}
               </div>
             ) : (
               <>
@@ -292,7 +473,13 @@ export const WorkforceHubPage: React.FC = () => {
           </Card>
         )}
 
-        {activeTab === 'departments' && <DepartmentsPanel />}
+        {activeTab === 'departments' && (
+          <DepartmentsPanel
+            isSuperAdmin={isSuperAdmin}
+            currentCompanyId={selectedCompanyId}
+            onSelectCompany={handleSelectCompany}
+          />
+        )}
 
         <footer className="text-center pt-4">
           <p className="text-gray-400 dark:text-zinc-600 text-sm">
@@ -327,7 +514,17 @@ export const WorkforceHubPage: React.FC = () => {
 /**
  * DepartmentsPanel — live department breakdown with create-department action.
  */
-const DepartmentsPanel: React.FC = () => {
+interface DepartmentsPanelProps {
+  isSuperAdmin?: boolean;
+  currentCompanyId?: string;
+  onSelectCompany?: (companyId: string) => void;
+}
+
+const DepartmentsPanel: React.FC<DepartmentsPanelProps> = ({
+  isSuperAdmin,
+  currentCompanyId = '',
+  onSelectCompany,
+}) => {
   const {
     data: departments = [],
     isLoading,
@@ -337,6 +534,24 @@ const DepartmentsPanel: React.FC = () => {
   } = useGetDepartmentsQuery();
 
   if (isError) {
+    const status = (error as any)?.status;
+    const isCompanyErr = status === 400 || status === 403;
+
+    if (isSuperAdmin && isCompanyErr && onSelectCompany) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm font-semibold">
+            <ShieldAlert className="w-5 h-5 shrink-0" />
+            <span>Select an Organization to view and manage departments</span>
+          </div>
+          <SuperAdminTenantSelector
+            currentCompanyId={currentCompanyId}
+            onSelectCompany={onSelectCompany}
+          />
+        </div>
+      );
+    }
+
     return (
       <ErrorDisplay
         title="Departments Unavailable"

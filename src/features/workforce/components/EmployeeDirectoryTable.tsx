@@ -3,7 +3,7 @@ import { Users, Eye, Pencil, UserCog } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { SkeletonTableRow } from '@/shared/ui/Skeleton';
-import type { EmployeeItem, EmployeeStatus } from '../types/workforce.types';
+import type { EmployeeItem } from '../types/workforce.types';
 
 interface EmployeeDirectoryTableProps {
   employees: EmployeeItem[];
@@ -15,11 +15,17 @@ interface EmployeeDirectoryTableProps {
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
 
-const STATUS_BADGE: Record<EmployeeStatus, { variant: BadgeVariant; label: string }> = {
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   ACTIVE: { variant: 'success', label: 'Active' },
+  INVITED: { variant: 'brand', label: 'Invited' },
+  PENDING: { variant: 'brand', label: 'Pending' },
+  ONBOARDING: { variant: 'brand', label: 'Onboarding' },
   PROBATION: { variant: 'warning', label: 'Probation' },
+  ON_LEAVE: { variant: 'warning', label: 'On Leave' },
   NOTICE_PERIOD: { variant: 'brand', label: 'Notice' },
   SUSPENDED: { variant: 'danger', label: 'Suspended' },
+  DEACTIVATED: { variant: 'slate', label: 'Deactivated' },
+  TERMINATED: { variant: 'danger', label: 'Terminated' },
   INACTIVE: { variant: 'slate', label: 'Inactive' },
 };
 
@@ -30,8 +36,15 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmployeeItem['employmentType'], string> = {
   INTERN: 'Intern',
 };
 
-const formatJoiningDate = (dateStr: string): string =>
-  new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatJoiningDate = (dateStr: string): string => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+};
 
 export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
   employees,
@@ -91,7 +104,10 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                     <SkeletonTableRow key={i} columns={8} />
                   ))
                 : employees.map((emp) => {
-                const badge = STATUS_BADGE[emp.status];
+                const badge = STATUS_BADGE[emp.status] ?? {
+                  label: emp.status || 'Unknown',
+                  variant: 'slate' as BadgeVariant,
+                };
                 return (
                   <tr key={emp.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                     <td className="px-4 py-3.5">
