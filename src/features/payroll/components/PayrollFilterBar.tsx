@@ -83,11 +83,14 @@ export const PayrollFilterBar: React.FC<PayrollFilterBarProps> = ({
         <div className="relative flex-1 min-w-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            type="search"
+            type="text"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search by employee name or code"
             aria-label="Search payslips"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-gray-50 dark:bg-zinc-900/70 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-[#ececec] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
           />
         </div>

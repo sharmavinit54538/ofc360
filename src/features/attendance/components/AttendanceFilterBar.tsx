@@ -52,9 +52,9 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
   departmentFilter,
   onDepartmentChange,
   departments,
-  onResetFilters,
-  onRefresh,
-  isRefreshing,
+  onResetFilters: _onResetFilters,
+  onRefresh: _onRefresh,
+  isRefreshing: _isRefreshing,
 }) => {
   return (
     <div className="p-4 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
@@ -67,6 +67,9 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
             placeholder="Search by employee name..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-gray-50 dark:bg-zinc-900/70 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-[#ececec] placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           {searchQuery && (

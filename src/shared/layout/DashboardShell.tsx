@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   LogOut,
   Bell,
-  Search,
   Shield,
   Sun,
   Moon,
@@ -13,6 +12,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/ui/Toast';
 import { Badge } from '@/shared/ui/Badge';
 import { useTheme } from '@/shared/context/ThemeContext';
+import { GlobalSearch } from './GlobalSearch';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -117,10 +117,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
           {/* CENTER-RIGHT: Search, Notifications, User Profile */}
           <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end min-w-0">
-            {/* Search */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#2f2f2f] border border-gray-200 dark:border-zinc-800 text-xs text-gray-600 dark:text-zinc-400 w-56 md:w-64 flex-shrink-0">
-              <Search className="w-3.5 h-3.5 text-gray-600 dark:text-zinc-400" />
-              <span className="truncate">Search...</span>
+            {/* Global Search */}
+            <div className="hidden sm:flex">
+              <GlobalSearch />
             </div>
 
             {/* Notifications */}

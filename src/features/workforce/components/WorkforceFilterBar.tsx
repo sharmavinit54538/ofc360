@@ -68,6 +68,9 @@ export const WorkforceFilterBar: React.FC<WorkforceFilterBarProps> = ({
             placeholder="Search employees by name, code, or email..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs bg-gray-50 dark:bg-zinc-900/70 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-[#ececec] placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
