@@ -74,21 +74,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
   }, [openMenuId]);
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
-      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-[#ececec] flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
-            Employee Directory
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-            Live personnel records synced with the workforce service
-          </p>
-        </div>
-        <Badge variant="brand" size="sm" className="font-semibold text-[11px]">
-          {employees.length} {employees.length === 1 ? 'Employee' : 'Employees'}
-        </Badge>
-      </div>
+    <div className="w-full">
 
       {employees.length === 0 && !isLoading ? (
         <div className="p-12 text-center">

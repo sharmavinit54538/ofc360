@@ -58,7 +58,7 @@ export const WorkforceFilterBar: React.FC<WorkforceFilterBarProps> = ({
   locations,
 }) => {
   return (
-    <div className="p-4 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
+    <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/40 dark:bg-zinc-900/20 space-y-3">
       {/* Row 1: search + department + type + location + actions */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative flex-1 min-w-0">

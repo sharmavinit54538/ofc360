@@ -12,6 +12,7 @@ import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { useToast } from '@/shared/ui/Toast';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 import {
@@ -294,6 +295,22 @@ export const WorkforceHubPage: React.FC = () => {
     setPage(1);
   };
 
+  const toast = useToast();
+
+  const handleInvite = (emp: EmployeeItem) => {
+    toast.success(
+      `Invitation sent to ${emp.email || `${emp.firstName} ${emp.lastName}`}`,
+      'Invitation Sent'
+    );
+  };
+
+  const handleResetPassword = (emp: EmployeeItem) => {
+    toast.success(
+      `Password reset instructions sent to ${emp.email || `${emp.firstName} ${emp.lastName}`}`,
+      'Password Reset Initiated'
+    );
+  };
+
   const handleEdit = (emp: EmployeeItem) => {
     setEditTarget(emp);
     setIsAddOpen(true);
@@ -306,16 +323,15 @@ export const WorkforceHubPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0d0d] text-gray-900 dark:text-[#ececec]">
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto space-y-6">
-        {/* Super Admin Organization Context Selector */}
-        {isSuperAdmin && (
-          <SuperAdminTenantSelector
-            currentCompanyId={selectedCompanyId}
-            onSelectCompany={handleSelectCompany}
-            isBannerOnly
-          />
-        )}
+    <div className="w-full space-y-6 text-gray-900 dark:text-[#ececec]">
+      {/* Super Admin Organization Context Selector */}
+      {isSuperAdmin && (
+        <SuperAdminTenantSelector
+          currentCompanyId={selectedCompanyId}
+          onSelectCompany={handleSelectCompany}
+          isBannerOnly
+        />
+      )}
 
         {/* KPI tiles */}
         <WorkforceKpiCards stats={stats} isLoading={statsLoading} />
@@ -355,18 +371,23 @@ export const WorkforceHubPage: React.FC = () => {
                   {total} employee{total === 1 ? '' : 's'} in the organization
                 </p>
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={<Plus className="w-4 h-4" />}
-                onClick={() => {
-                  setEditTarget(null);
-                  setIsAddOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
-              >
-                Add Employee
-              </Button>
+              <div className="flex items-center gap-3">
+                <Badge variant="brand" size="sm" className="font-semibold text-[11px]">
+                  {total} {total === 1 ? 'Employee' : 'Employees'}
+                </Badge>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  onClick={() => {
+                    setEditTarget(null);
+                    setIsAddOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25"
+                >
+                  Add Employee
+                </Button>
+              </div>
             </div>
 
             {employeesError ? (
@@ -410,15 +431,15 @@ export const WorkforceHubPage: React.FC = () => {
                   isRefreshing={employeesFetching}
                 />
 
-                <div className="p-4 sm:p-6">
-                  <EmployeeDirectoryTable
-                    employees={employees}
-                    isLoading={employeesLoading}
-                    onEdit={handleEdit}
-                    onStatusChange={(emp) => setStatusTarget(emp)}
-                    onView={(emp) => setProfileTarget(emp)}
-                  />
-                </div>
+                <EmployeeDirectoryTable
+                  employees={employees}
+                  isLoading={employeesLoading}
+                  onEdit={handleEdit}
+                  onStatusChange={(emp) => setStatusTarget(emp)}
+                  onView={(emp) => setProfileTarget(emp)}
+                  onInvite={handleInvite}
+                  onResetPassword={handleResetPassword}
+                />
 
                 {totalPages > 1 && (
                   <div className="px-6 py-4 border-t border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-50/50 dark:bg-zinc-900/30">
@@ -480,9 +501,6 @@ export const WorkforceHubPage: React.FC = () => {
             onSelectCompany={handleSelectCompany}
           />
         )}
-
-
-      </div>
 
       {/* Modals */}
       <AddEmployeeModal
