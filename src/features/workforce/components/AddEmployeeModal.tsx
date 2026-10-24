@@ -33,6 +33,7 @@ const EMPTY_FORM: CreateEmployeeFormData = {
   firstName: '',
   lastName: '',
   email: '',
+  personalEmail: '',
   phone: '',
   gender: 'MALE',
   joiningDate: new Date().toISOString().slice(0, 10),
@@ -81,6 +82,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
         firstName: employee.firstName,
         lastName: employee.lastName,
         email: employee.email,
+        personalEmail: employee.personalEmail || '',
         phone: employee.phone,
         gender: employee.gender,
         joiningDate: employee.joiningDate?.slice(0, 10),
@@ -111,6 +113,8 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
     try {
       const payload = {
         ...data,
+        employeeCode: data.employeeCode || employee?.employeeCode || `EMP-${Math.floor(100000 + Math.random() * 900000)}`,
+        personalEmail: data.personalEmail?.trim() || undefined,
         reportingManagerId: data.reportingManagerId || undefined,
       };
       if (isEditMode && employee) {
@@ -162,13 +166,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Input
-              label="Employee Code"
-              placeholder="e.g. EMP-1024"
-              error={errors.employeeCode?.message}
-              {...register('employeeCode')}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="First Name"
               placeholder="First name"
@@ -183,13 +181,20 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input
               label="Work Email"
               type="email"
               placeholder="name@company.com"
               error={errors.email?.message}
               {...register('email')}
+            />
+            <Input
+              label="Personal Email"
+              type="email"
+              placeholder="name@gmail.com"
+              error={errors.personalEmail?.message}
+              {...register('personalEmail')}
             />
             <Input
               label="Phone"

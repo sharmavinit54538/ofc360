@@ -24,13 +24,18 @@ export const employeeStatusActionEnum = z.enum([
  * Validates creation of a new employee record.
  */
 export const createEmployeeSchema = z.object({
-  employeeCode: z
-    .string()
-    .min(3, 'Employee code must be at least 3 characters')
-    .max(20, 'Employee code cannot exceed 20 characters'),
+  employeeCode: z.string().optional().or(z.literal('')),
   firstName: z.string().min(2, 'First name must be at least 2 characters').max(60, 'First name cannot exceed 60 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters').max(60, 'Last name cannot exceed 60 characters'),
   email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid work email address'),
+  personalEmail: z
+    .string()
+    .trim()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Enter a valid personal email address',
+    })
+    .optional()
+    .or(z.literal('')),
   phone: z.string().regex(PHONE_REGEX, 'Enter a valid 10-15 digit phone number'),
   gender: genderEnum,
   joiningDate: z

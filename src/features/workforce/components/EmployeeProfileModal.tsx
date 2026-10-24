@@ -123,6 +123,9 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <DetailRow icon={Mail} label="Work Email" value={info.email} />
+              {info.personalEmail && (
+                <DetailRow icon={Mail} label="Personal Email" value={info.personalEmail} />
+              )}
               <DetailRow icon={Phone} label="Phone" value={info.phone} />
               <DetailRow icon={Building2} label="Department" value={info.department?.name} />
               <DetailRow icon={Briefcase} label="Designation" value={info.designation?.title} />

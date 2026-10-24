@@ -64,6 +64,7 @@ export interface EmployeeItem {
   firstName: string;
   lastName: string;
   email: string;
+  personalEmail?: string;
   phone: string;
   gender: GenderType;
   department: DepartmentRef;
@@ -104,10 +105,11 @@ export interface EmployeeListResponse {
  * Payload for creating a new employee record.
  */
 export interface CreateEmployeePayload {
-  employeeCode: string;
+  employeeCode?: string;
   firstName: string;
   lastName: string;
   email: string;
+  personalEmail?: string;
   phone: string;
   gender: GenderType;
   joiningDate: string;
