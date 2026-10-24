@@ -5,24 +5,48 @@
 
 import React, { useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import {
+  useForm,
+  useFieldArray,
+  Controller as RHFController,
+  type ControllerProps,
+  type ControllerRenderProps,
+  type ControllerFieldState,
+  type UseFormStateReturn,
+  type FieldValues,
+  type FieldPath,
+} from 'react-hook-form';
+
+type ControllerComponent = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>(
+  props: Omit<ControllerProps<TFieldValues, TName>, 'render'> & {
+    render: (props: {
+      field: ControllerRenderProps<TFieldValues, TName> & { error?: any };
+      fieldState: ControllerFieldState;
+      formState: UseFormStateReturn<TFieldValues>;
+    }) => React.ReactElement | null;
+  }
+) => React.ReactElement | null;
+
+const Controller: ControllerComponent = RHFController as any;
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  DollarSign,
-  FileText,
   Calculator,
   Calendar,
   Plus,
   Trash2,
-  Save,
-  RotateCcw,
-  Loader2,
   AlertCircle,
   Info,
   Shield,
-  Percent,
   Building2,
   ArrowUpRight,
+  Percent,
+  DollarSign,
+  RotateCcw,
+  Loader2,
+  Save,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -34,7 +58,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/sha
 import { Badge } from '@/shared/ui/Badge';
 import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
+import { AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useToast } from '@/shared/ui/Toast';
@@ -50,7 +74,7 @@ import {
   updatePayrollSettingsSchema,
   type PayrollSettingsFormData,
 } from '../schemas/settings.schemas';
-import type { PayrollSettings, SalaryComponent, StatutoryConfig, PayCycle, UserRole } from '../types/settings.types';
+import type { UserRole } from '@/features/auth/types/auth.types';
 
 const SectionCard: React.FC<{
   title: string;
@@ -81,34 +105,36 @@ const SectionCard: React.FC<{
 
 const FormField: React.FC<{
   label: string;
-  error?: string;
+  error?: any;
   hint?: string;
   required?: boolean;
   children: React.ReactNode;
   className?: string;
-}> = ({ label, error, hint, required, children, className }) => (
-  <div className={cn('space-y-1.5', className)}>
-    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
-      {label}
-      {required && <span className="text-rose-500" aria-hidden="true">*</span>}
-    </Label>
-    {children}
-    {error && (
-      <p className="text-xs text-rose-500 dark:text-rose-400 flex items-center gap-1">
-        <AlertCircle className="w-3 h-3" />
-        {error}
-      </p>
-    )}
-    {hint && !error && (
-      <p className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
-        <Info className="w-3 h-3" />
-        {hint}
-      </p>
-    )}
-  </div>
-);
+}> = ({ label, error, hint, required, children, className }) => {
+  const errorMessage = typeof error === 'string' ? error : error?.message;
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+        {label}
+        {required && <span className="text-rose-500" aria-hidden="true">*</span>}
+      </Label>
+      {children}
+      {errorMessage && (
+        <p className="text-xs text-rose-500 dark:text-rose-400 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {errorMessage}
+        </p>
+      )}
+      {hint && !errorMessage && (
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+          <Info className="w-3 h-3" />
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+};
 
-const COMPONENT_TYPES = ['earning', 'deduction', 'employer_contribution'] as const;
 const CALCULATION_TYPES = ['fixed', 'percentage', 'formula'] as const;
 const STATUTORY_TYPES = ['PF', 'ESI', 'PT', 'TDS', 'GRATUITY', 'BONUS', 'OTHER'] as const;
 const APPLIES_TO_OPTIONS = ['all', 'specific_roles', 'specific_departments', 'specific_employees'] as const;
@@ -141,8 +167,8 @@ export const PayrollSection: React.FC = () => {
     mode: 'onChange',
   });
 
-  const { register, control, handleSubmit, setValue, watch, reset, formState: { errors, isDirty, isSubmitting, isValid } } = form;
-  const { fields: componentFields, append: appendComponent, remove: removeComponent, move: moveComponent } = useFieldArray({ control, name: 'salaryComponents' });
+  const { control, handleSubmit, setValue, watch, reset, formState: { isDirty, isSubmitting, isValid } } = form;
+  const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({ control, name: 'salaryComponents' });
   const { fields: cycleFields, append: appendCycle, remove: removeCycle } = useFieldArray({ control, name: 'payCycles' });
 
   // API hooks
@@ -340,11 +366,14 @@ export const PayrollSection: React.FC = () => {
                     <Controller
                       name={`salaryComponents.${index}.type`}
                       control={control}
-                      render={({ field }) => (
-                        <Badge variant={field.value === 'earning' ? 'success' : field.value === 'deduction' ? 'destructive' : 'default'} size="sm">
-                          {field.value.charAt(0).toUpperCase() + field.value.slice(1)}
-                        </Badge>
-                      )}
+                      render={({ field }) => {
+                        const val = field.value || 'earning';
+                        return (
+                          <Badge variant={val === 'earning' ? 'success' : val === 'deduction' ? 'danger' : 'brand'} size="sm">
+                            {val.charAt(0).toUpperCase() + val.slice(1)}
+                          </Badge>
+                        );
+                      }}
                     />
                     <Controller
                       name={`salaryComponents.${index}.name`}
@@ -362,7 +391,7 @@ export const PayrollSection: React.FC = () => {
                         <Input {...field} placeholder="CODE" className="font-mono bg-transparent border-none focus:ring-0 p-0 w-24 uppercase" maxLength={20} />
                       )}
                     />
-                    <Button variant="ghost" size="icon" onClick={() => removeComponent(index)}><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => removeComponent(index)}><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 pt-2">
@@ -677,17 +706,17 @@ export const PayrollSection: React.FC = () => {
               <>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">Configure PT slabs for each state</p>
                 <div className="space-y-2">
-                  {watch('statutory.pt.slabs', []).map((slab: any, i: number) => (
+                  {(watch('statutory.pt.slabs') || []).map((slab: any, i: number) => (
                     <div key={i} className="flex items-center gap-2">
                       <Input placeholder="Min Salary" type="number" min={0} step={1} value={slab.min} onChange={(e) => setValue(`statutory.pt.slabs.${i}.min`, Number(e.target.value))} className="w-32" />
                       <span className="text-neutral-500">-</span>
                       <Input placeholder="Max Salary" type="number" min={0} step={1} value={slab.max} onChange={(e) => setValue(`statutory.pt.slabs.${i}.max`, Number(e.target.value))} className="w-32" />
                       <span className="text-neutral-500">→</span>
                       <Input placeholder="Amount" type="number" min={0} step={1} value={slab.amount} onChange={(e) => setValue(`statutory.pt.slabs.${i}.amount`, Number(e.target.value))} className="w-24" />
-                      <Button variant="ghost" size="icon" onClick={() => setValue('statutory.pt.slabs', watch('statutory.pt.slabs', []).filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => setValue('statutory.pt.slabs', (watch('statutory.pt.slabs') || []).filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   ))}
-                  <Button variant="outline" size="sm" onClick={() => setValue('statutory.pt.slabs', [...watch('statutory.pt.slabs', []), { min: 0, max: 0, amount: 0 }])}><Plus className="w-4 h-4 mr-2" />Add Slab</Button>
+                  <Button variant="outline" size="sm" onClick={() => setValue('statutory.pt.slabs', [...(watch('statutory.pt.slabs') || []), { min: 0, max: 0, amount: 0 }])}><Plus className="w-4 h-4 mr-2" />Add Slab</Button>
                 </div>
               </>
             )}
@@ -758,10 +787,10 @@ export const PayrollSection: React.FC = () => {
               <Controller
                 name="statutory.gratuity.enabled"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Enable Gratuity" error={field.error} className="md:col-span-2">
+                render={({ field, fieldState }) => (
+                  <FormField label="Enable Gratuity" error={fieldState.error?.message} className="md:col-span-2">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                       <span className="font-medium text-neutral-900 dark:text-white">Enable Gratuity</span>
                     </label>
                   </FormField>
@@ -771,8 +800,8 @@ export const PayrollSection: React.FC = () => {
                 name="statutory.gratuity.vestingYears"
                 control={control}
                 rules={{ min: 0, max: 20 }}
-                render={({ field }) => (
-                  <FormField label="Vesting Years" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Vesting Years" error={fieldState.error?.message}>
                     <Input {...field} type="number" min={0} max={20} step={1} disabled={!watch('statutory.gratuity.enabled')} />
                   </FormField>
                 )}
@@ -780,8 +809,8 @@ export const PayrollSection: React.FC = () => {
               <Controller
                 name="statutory.gratuity.formula"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Formula" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Formula" error={fieldState.error?.message}>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watch('statutory.gratuity.enabled')}>
                       <SelectTrigger><SelectValue placeholder="Select formula" /></SelectTrigger>
                       <SelectContent>
@@ -796,10 +825,10 @@ export const PayrollSection: React.FC = () => {
               <Controller
                 name="statutory.bonus.enabled"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Enable Bonus" error={field.error} className="md:col-span-2">
+                render={({ field, fieldState }) => (
+                  <FormField label="Enable Bonus" error={fieldState.error?.message} className="md:col-span-2">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                       <span className="font-medium text-neutral-900 dark:text-white">Enable Statutory Bonus</span>
                     </label>
                   </FormField>
@@ -809,8 +838,8 @@ export const PayrollSection: React.FC = () => {
                 name="statutory.bonus.minBonusPercentage"
                 control={control}
                 rules={{ min: 0, max: 100 }}
-                render={({ field }) => (
-                  <FormField label="Min Bonus %" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Min Bonus %" error={fieldState.error?.message}>
                     <Input {...field} type="number" min={0} max={100} step={0.01} disabled={!watch('statutory.bonus.enabled')} />
                   </FormField>
                 )}
@@ -819,8 +848,8 @@ export const PayrollSection: React.FC = () => {
                 name="statutory.bonus.maxBonusPercentage"
                 control={control}
                 rules={{ min: 0, max: 100 }}
-                render={({ field }) => (
-                  <FormField label="Max Bonus %" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Max Bonus %" error={fieldState.error?.message}>
                     <Input {...field} type="number" min={0} max={100} step={0.01} disabled={!watch('statutory.bonus.enabled')} />
                   </FormField>
                 )}
@@ -829,8 +858,8 @@ export const PayrollSection: React.FC = () => {
                 name="statutory.bonus.eligibilitySalaryCeiling"
                 control={control}
                 rules={{ min: 0 }}
-                render={({ field }) => (
-                  <FormField label="Eligibility Ceiling" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Eligibility Ceiling" error={fieldState.error?.message}>
                     <Input {...field} type="number" min={0} step={1} disabled={!watch('statutory.bonus.enabled')} />
                   </FormField>
                 )}
@@ -861,8 +890,8 @@ export const PayrollSection: React.FC = () => {
                     control={control}
                     render={({ field }) => (
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="currentCycle" checked={field.value} onChange={() => field.onChange(true)} className="w-4 h-4 text-indigo-600 border-neutral-300 focus:ring-indigo-500" />
-                        <Badge variant={field.value ? 'default' : 'outline'} size="sm">Current</Badge>
+                        <input type="radio" name="currentCycle" checked={Boolean(field.value)} onChange={() => field.onChange(true)} className="w-4 h-4 text-indigo-600 border-neutral-300 focus:ring-indigo-500" />
+                        <Badge variant={field.value ? 'brand' : 'slate'} size="sm">Current</Badge>
                       </label>
                     )}
                   />
@@ -879,19 +908,19 @@ export const PayrollSection: React.FC = () => {
                       name={`payCycles.${index}.frequency`}
                       control={control}
                       render={({ field }) => (
-                        <Badge variant="outline" size="sm">{field.value}</Badge>
+                        <Badge variant="slate" size="sm">{field.value}</Badge>
                       )}
                     />
                     <Controller
                       name={`payCycles.${index}.status`}
                       control={control}
                       render={({ field }) => (
-                        <Badge variant={field.value === 'paid' ? 'success' : field.value === 'processing' ? 'warning' : 'outline'} size="sm">
+                        <Badge variant={field.value === 'paid' ? 'success' : field.value === 'processing' ? 'warning' : 'slate'} size="sm">
                           {field.value}
                         </Badge>
                       )}
                     />
-                    <Button variant="ghost" size="icon" onClick={() => removeCycle(index)}><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => removeCycle(index)}><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 pt-2">
@@ -899,8 +928,8 @@ export const PayrollSection: React.FC = () => {
                     <Controller
                       name={`payCycles.${index}.frequency`}
                       control={control}
-                      render={({ field }) => (
-                        <FormField label="Frequency" error={field.error}>
+                      render={({ field, fieldState }) => (
+                        <FormField label="Frequency" error={fieldState.error?.message}>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
                             <SelectContent>
@@ -914,8 +943,8 @@ export const PayrollSection: React.FC = () => {
                       name={`payCycles.${index}.startDate`}
                       control={control}
                       rules={{ required: 'Start date is required' }}
-                      render={({ field }) => (
-                        <FormField label="Period Start" required error={field.error}>
+                      render={({ field, fieldState }) => (
+                        <FormField label="Period Start" required error={fieldState.error?.message}>
                           <Input {...field} type="date" />
                         </FormField>
                       )}
@@ -924,8 +953,8 @@ export const PayrollSection: React.FC = () => {
                       name={`payCycles.${index}.endDate`}
                       control={control}
                       rules={{ required: 'End date is required' }}
-                      render={({ field }) => (
-                        <FormField label="Period End" required error={field.error}>
+                      render={({ field, fieldState }) => (
+                        <FormField label="Period End" required error={fieldState.error?.message}>
                           <Input {...field} type="date" />
                         </FormField>
                       )}
@@ -934,8 +963,8 @@ export const PayrollSection: React.FC = () => {
                       name={`payCycles.${index}.payDate`}
                       control={control}
                       rules={{ required: 'Pay date is required' }}
-                      render={({ field }) => (
-                        <FormField label="Pay Date" required error={field.error}>
+                      render={({ field, fieldState }) => (
+                        <FormField label="Pay Date" required error={fieldState.error?.message}>
                           <Input {...field} type="date" />
                         </FormField>
                       )}
@@ -944,8 +973,8 @@ export const PayrollSection: React.FC = () => {
                       name={`payCycles.${index}.cutoffDate`}
                       control={control}
                       rules={{ required: 'Cutoff date is required' }}
-                      render={({ field }) => (
-                        <FormField label="Cutoff Date" required error={field.error}>
+                      render={({ field, fieldState }) => (
+                        <FormField label="Cutoff Date" required error={fieldState.error?.message}>
                           <Input {...field} type="date" />
                         </FormField>
                       )}
@@ -953,10 +982,10 @@ export const PayrollSection: React.FC = () => {
                     <Controller
                       name={`payCycles.${index}.isActive`}
                       control={control}
-                      render={({ field }) => (
-                        <FormField label="Active" error={field.error} className="flex items-center">
+                      render={({ field, fieldState }) => (
+                        <FormField label="Active" error={fieldState.error?.message} className="flex items-center">
                           <label className="flex items-center gap-3 cursor-pointer w-full">
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                             <span className="font-medium text-neutral-900 dark:text-white">Active Cycle</span>
                           </label>
                         </FormField>
@@ -985,8 +1014,8 @@ export const PayrollSection: React.FC = () => {
               <Controller
                 name="defaultPayFrequency"
                 control={control}
-                render={({ field }) => (
-                  <FormField label="Default Pay Frequency" error={field.error}>
+                render={({ field, fieldState }) => (
+                  <FormField label="Default Pay Frequency" error={fieldState.error?.message}>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
                       <SelectContent>
@@ -1002,9 +1031,9 @@ export const PayrollSection: React.FC = () => {
 
             <div className="space-y-4">
               {[
-                { key: 'bankDetailsRequired', label: 'Bank Details Required', description: 'Mandate bank account details for all employees' },
-                { key: 'enableArrears', label: 'Enable Arrears Processing', description: 'Allow processing of salary arrears' },
-                { key: 'enableReimbursements', label: 'Enable Reimbursements', description: 'Allow expense reimbursements in payroll' },
+                { key: 'bankDetailsRequired' as const, label: 'Bank Details Required', description: 'Mandate bank account details for all employees' },
+                { key: 'enableArrears' as const, label: 'Enable Arrears Processing', description: 'Allow processing of salary arrears' },
+                { key: 'enableReimbursements' as const, label: 'Enable Reimbursements', description: 'Allow expense reimbursements in payroll' },
               ].map((rule) => (
                 <Controller
                   key={rule.key}
@@ -1016,7 +1045,7 @@ export const PayrollSection: React.FC = () => {
                         <p className="font-medium text-neutral-900 dark:text-white">{rule.label}</p>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">{rule.description}</p>
                       </div>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                     </div>
                   )}
                 />
@@ -1026,8 +1055,8 @@ export const PayrollSection: React.FC = () => {
             <Controller
               name="payslipPasswordFormat"
               control={control}
-              render={({ field }) => (
-                <FormField label="Payslip Password Format" error={field.error} hint="Variables: DOB_DDMMYYYY, DOB_YYYYMMDD, PAN_LAST4, EMP_CODE">
+              render={({ field, fieldState }) => (
+                <FormField label="Payslip Password Format" error={fieldState.error?.message} hint="Variables: DOB_DDMMYYYY, DOB_YYYYMMDD, PAN_LAST4, EMP_CODE">
                   <Input {...field} placeholder="DOB_DDMMYYYY" />
                 </FormField>
               )}

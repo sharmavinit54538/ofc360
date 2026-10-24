@@ -409,9 +409,9 @@ export interface PayrollSettings {
 }
 
 export interface UpdatePayrollSettingsRequest {
-  salaryComponents?: SalaryComponent[];
+  salaryComponents?: (Omit<SalaryComponent, 'id'> & { id?: string })[];
   statutory?: Partial<StatutoryConfig>;
-  payCycles?: PayCycle[];
+  payCycles?: (Omit<PayCycle, 'id'> & { id?: string })[];
   defaultPayFrequency?: PayFrequency;
   bankDetailsRequired?: boolean;
   payslipPasswordFormat?: string;
@@ -465,7 +465,12 @@ export interface DocumentsSettings {
 }
 
 export interface UpdateDocumentsSettingsRequest {
-  templates?: DocumentTemplate[];
+  templates?: (Omit<DocumentTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'> & {
+    id?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    createdBy?: string;
+  })[];
   digitalSignature?: Partial<DigitalSignatureConfig>;
   defaultTemplateIds?: Partial<Record<TemplateType, string>>;
   documentStorage?: 'local' | 's3' | 'azure' | 'gcs';
@@ -529,7 +534,7 @@ export interface AssetsSettings {
 }
 
 export interface UpdateAssetsSettingsRequest {
-  categories?: AssetCategory[];
+  categories?: (Omit<AssetCategory, 'id'> & { id?: string })[];
   tagConfig?: Partial<AssetTagConfig>;
   allocationRules?: AllocationRule[];
   defaultWarrantyMonths?: number;
@@ -617,7 +622,7 @@ export interface NotificationsSettings {
 }
 
 export interface UpdateNotificationsSettingsRequest {
-  channels?: NotificationChannelConfig[];
+  channels?: (Omit<NotificationChannelConfig, 'enabled'> & { enabled?: boolean })[];
   events?: NotificationEventConfig[];
   defaultPreferences?: Partial<Omit<NotificationPreferences, 'id' | 'userId' | 'updatedAt'>>;
 }

@@ -1,6 +1,6 @@
 import React, { forwardRef, useId, useState, useRef, useEffect } from 'react';
 import { cn } from '../lib/utils';
-import { ChevronDown, Check, X } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
 import { Portal } from './Portal';
 
 interface SelectOption {
@@ -9,19 +9,25 @@ interface SelectOption {
   disabled?: boolean;
 }
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   options?: SelectOption[];
   placeholder?: string;
   error?: boolean;
   className?: string;
   children?: React.ReactNode;
+  onValueChange?: (value: string) => void;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ options, placeholder, error, className, children, ...props }, ref) => {
+  ({ options, placeholder, error, className, children, onValueChange, onChange, ...props }, ref) => {
     return (
       <select
         ref={ref}
+        onChange={(e) => {
+          onChange?.(e);
+          onValueChange?.(e.target.value);
+        }}
         className={cn(
           'w-full px-3 py-2 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white',
           'placeholder:text-neutral-400 dark:placeholder:text-neutral-500',
@@ -58,8 +64,8 @@ interface SelectTriggerProps {
 const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ({ value, placeholder, error, disabled, className, onOpenChange, children, ...props }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
-    const triggerRef = useRef<HTMLButtonElement>(null);
-    const contentRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
     const id = useId();
 
     useEffect(() => {
@@ -80,7 +86,14 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     return (
       <div className="relative">
         <button
-          ref={(el) => { triggerRef.current = el; if (ref) ref.current = el; }}
+          ref={(el) => {
+            triggerRef.current = el;
+            if (typeof ref === 'function') {
+              ref(el);
+            } else if (ref) {
+              (ref as React.MutableRefObject<HTMLButtonElement | null>).current = el;
+            }
+          }}
           type="button"
           onClick={() => { if (!disabled) { setIsOpen(!isOpen); onOpenChange?.(!isOpen); } }}
           disabled={disabled}
@@ -110,7 +123,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
               className="fixed z-50 w-full max-h-60 overflow-y-auto rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg mt-1"
               role="listbox"
             >
-              {props.children}
+              {children}
             </div>
           </Portal>
         )}
@@ -131,7 +144,8 @@ const SelectContent = ({ children, className }: SelectContentProps) => {
 
 interface SelectItemProps {
   value: string;
-  label: string;
+  label?: string;
+  children?: React.ReactNode;
   disabled?: boolean;
   selected?: boolean;
   onSelect?: (value: string) => void;
@@ -139,7 +153,7 @@ interface SelectItemProps {
 }
 
 const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
-  ({ value, label, disabled, selected, onSelect, className, ...props }, ref) => {
+  ({ value, label, children, disabled, selected, onSelect, className, ...props }, ref) => {
     const handleClick = () => {
       if (!disabled) onSelect?.(value);
     };
@@ -162,7 +176,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       >
         <span className="flex items-center">
           {selected && <Check className="w-4 h-4 mr-2 flex-shrink-0" />}
-          {label}
+          {children || label}
         </span>
       </div>
     );

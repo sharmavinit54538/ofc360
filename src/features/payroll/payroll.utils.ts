@@ -15,6 +15,7 @@ export const formatCurrency = (value: number, currency = 'INR'): string => {
 };
 
 export const formatPayrollMonth = (month: number, year: number): string => {
+  if (!month || month < 1 || month > 12 || !year) return '—';
   const date = new Date(Date.UTC(year, month - 1, 1));
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('en-IN', {

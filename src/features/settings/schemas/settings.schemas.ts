@@ -6,14 +6,6 @@
 
 import { z } from 'zod';
 import type {
-  UpdateCompanySettingsRequest,
-  UpdateEmployeeSettingsRequest,
-  UpdateAttendanceSettingsRequest,
-  UpdateLeaveSettingsRequest,
-  UpdatePayrollSettingsRequest,
-  UpdateDocumentsSettingsRequest,
-  UpdateAssetsSettingsRequest,
-  UpdateNotificationsSettingsRequest,
   ChangePasswordRequest,
   Enable2FARequest,
   Disable2FARequest,
@@ -60,10 +52,10 @@ export const updateCompanySettingsSchema = z.object({
   currency: z.string().length(3).optional(),
   dateFormat: z.string().min(1).optional(),
   timeFormat: z.enum(['12h', '24h']).optional(),
-  weekStartDay: z.enum([0, 1, 6]).optional(),
+  weekStartDay: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
   fiscalYearStart: z.number().int().min(1).max(12).optional(),
   language: z.string().length(2).optional(),
-}) satisfies z.ZodType<UpdateCompanySettingsRequest>;
+});
 
 // ==========================================
 // Employee Schemas
@@ -102,7 +94,7 @@ export const updateEmployeeSettingsSchema = z.object({
   autoGenerateEmail: z.boolean().optional(),
   emailDomain: z.string().email('Invalid email domain').optional(),
   requireEmployeeCode: z.boolean().optional(),
-}) satisfies z.ZodType<UpdateEmployeeSettingsRequest>;
+});
 
 // ==========================================
 // Attendance Schemas
@@ -154,7 +146,7 @@ export const updateAttendanceSettingsSchema = z.object({
   autoCheckoutEnabled: z.boolean().optional(),
   autoCheckoutTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional(),
   overtimeThresholdHours: z.number().min(0).max(24).optional(),
-}) satisfies z.ZodType<UpdateAttendanceSettingsRequest>;
+});
 
 // ==========================================
 // Leave Schemas
@@ -211,7 +203,7 @@ export const updateLeaveSettingsSchema = z.object({
   holidayInclusion: z.enum(['exclude', 'include', 'count_as_leave']).optional(),
   compOffEnabled: z.boolean().optional(),
   compOffExpiryDays: z.number().int().min(0).max(365).optional(),
-}) satisfies z.ZodType<UpdateLeaveSettingsRequest>;
+});
 
 // ==========================================
 // Payroll Schemas
@@ -301,7 +293,7 @@ export const updatePayrollSettingsSchema = z.object({
   payslipPasswordFormat: z.string().max(100).optional(),
   enableArrears: z.boolean().optional(),
   enableReimbursements: z.boolean().optional(),
-}) satisfies z.ZodType<UpdatePayrollSettingsRequest>;
+});
 
 // ==========================================
 // Documents Schemas
@@ -337,7 +329,7 @@ export const updateDocumentsSettingsSchema = z.object({
   defaultTemplateIds: z.record(z.string()).optional(),
   documentStorage: z.enum(['local', 's3', 'azure', 'gcs']).optional(),
   storageConfig: z.record(z.string()).optional(),
-}) satisfies z.ZodType<UpdateDocumentsSettingsRequest>;
+});
 
 // ==========================================
 // Assets Schemas
@@ -389,7 +381,7 @@ export const updateAssetsSettingsSchema = z.object({
   maintenanceReminderDays: z.array(z.number().int().min(1).max(365)).optional(),
   enableAssetAudit: z.boolean().optional(),
   auditFrequencyMonths: z.number().int().min(1).max(24).optional(),
-}) satisfies z.ZodType<UpdateAssetsSettingsRequest>;
+});
 
 // ==========================================
 // Notifications Schemas
@@ -437,7 +429,7 @@ export const updateNotificationsSettingsSchema = z.object({
   channels: z.array(notificationChannelConfigSchema).optional(),
   events: z.array(notificationEventConfigSchema).optional(),
   defaultPreferences: defaultNotificationPreferencesSchema.partial().optional(),
-}) satisfies z.ZodType<UpdateNotificationsSettingsRequest>;
+});
 
 // ==========================================
 // User Profile / Security Schemas

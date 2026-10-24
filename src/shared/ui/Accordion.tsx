@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { cn } from '../lib/utils';
 import { ChevronDown } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
       <div ref={ref} className={cn('space-y-2', className)} {...props}>
         {React.Children.map(children, (child) => {
           if (!React.isValidElement(child)) return child;
-          return React.cloneElement(child, {
+          return React.cloneElement(child as React.ReactElement<any>, {
             isOpen: values.includes((child.props as any).value),
             onToggle: (open: boolean, itemValue: string) => {
               if (type === 'single') {
@@ -52,7 +52,10 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       <div ref={ref} className={cn('border rounded-xl overflow-hidden', className)} {...props}>
         {React.Children.map(children, (child) => {
           if (!React.isValidElement(child)) return child;
-          return React.cloneElement(child, { isOpen, onToggle: (open: boolean) => onToggle?.(open, value) });
+          return React.cloneElement(child as React.ReactElement<any>, {
+            isOpen,
+            onToggle: (open: boolean) => onToggle?.(open, value),
+          });
         })}
       </div>
     );

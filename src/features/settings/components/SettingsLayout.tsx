@@ -429,15 +429,9 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
     }
   }, [currentSectionFromUrl, activeSection]);
 
-  // Check for API errors
-  const { error: companyError, isLoading: companyLoading } = useGetCompanySettingsQuery();
-
+  // Check for API loading
+  const { isLoading: companyLoading } = useGetCompanySettingsQuery();
   const isLoading = companyLoading;
-  const hasApiError = companyError !== undefined;
-
-  const handleRetry = useCallback(() => {
-    navigate(location.pathname, { replace: true });
-  }, [location.pathname, navigate]);
 
   const markDirty = useCallback((section: SettingCategory) => {
     setDirtySections((prev) => (prev.includes(section) ? prev : [...prev, section]));

@@ -1,12 +1,14 @@
 import React, { forwardRef } from 'react';
 import { cn } from '../lib/utils';
 
-interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   className?: string;
+  onCheckedChange?: (checked: boolean) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Switch = forwardRef<HTMLInputElement, SwitchProps>(
-  ({ className, checked, disabled, id, ...props }, ref) => {
+  ({ className, checked, disabled, id, onCheckedChange, onChange, ...props }, ref) => {
     const generatedId = React.useId();
     const checkboxId = id || generatedId;
 
@@ -18,6 +20,10 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
           id={checkboxId}
           checked={checked}
           disabled={disabled}
+          onChange={(e) => {
+            onChange?.(e);
+            onCheckedChange?.(e.target.checked);
+          }}
           className={cn(
             'sr-only peer',
             'checked:bg-indigo-600 checked:border-indigo-600',
