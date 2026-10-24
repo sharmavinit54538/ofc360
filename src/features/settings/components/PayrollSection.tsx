@@ -44,6 +44,9 @@ import {
   useUpdatePayrollSettingsMutation,
 } from '../api/settingsApi';
 import {
+  useUpdateStatutoryConfigMutation,
+} from '@/features/payroll/api/payrollApi';
+import {
   updatePayrollSettingsSchema,
   type PayrollSettingsFormData,
 } from '../schemas/settings.schemas';
@@ -145,6 +148,7 @@ export const PayrollSection: React.FC = () => {
   // API hooks
   const { data: payrollSettings, isLoading, error: fetchError, refetch } = useGetPayrollSettingsQuery();
   const [updatePayrollSettings] = useUpdatePayrollSettingsMutation();
+  const [updateStatutoryConfig] = useUpdateStatutoryConfigMutation();
 
   useEffect(() => {
     if (payrollSettings && !isLoading) {
@@ -173,13 +177,33 @@ export const PayrollSection: React.FC = () => {
   const onSubmit = useCallback(async (data: PayrollSettingsFormData) => {
     try {
       const updatedSettings = await updatePayrollSettings(data).unwrap();
+
+      // Sync statutory settings to v2 Indian Statutory Engine
+      if (data.statutory) {
+        try {
+          await updateStatutoryConfig({
+            pfEnabled: data.statutory.pf?.enabled,
+            employeePfRate: data.statutory.pf?.employeeRate,
+            employerPfRate: data.statutory.pf?.employerRate,
+            pfWageCeiling: data.statutory.pf?.wageCeiling ? data.statutory.pf.wageCeiling * 100 : undefined,
+            esiEnabled: data.statutory.esi?.enabled,
+            employeeEsiRate: data.statutory.esi?.employeeRate,
+            employerEsiRate: data.statutory.esi?.employerRate,
+            esiWageCeiling: data.statutory.esi?.wageCeiling ? data.statutory.esi.wageCeiling * 100 : undefined,
+            defaultTaxRegime: data.statutory.tds?.regime === 'old' ? 'OLD' : 'NEW',
+          }).unwrap();
+        } catch (statutoryErr) {
+          console.warn('Failed to sync statutory config with v2 engine:', statutoryErr);
+        }
+      }
+
       reset(updatedSettings);
       markClean('payroll');
       success('Payroll settings updated successfully', 'Settings Saved');
     } catch (err: any) {
       toastError(err?.data?.message || 'Failed to update payroll settings', 'Save Failed');
     }
-  }, [updatePayrollSettings, reset, markClean, success, toastError]);
+  }, [updatePayrollSettings, updateStatutoryConfig, reset, markClean, success, toastError]);
 
   const handleReset = useCallback(() => {
     if (payrollSettings) refetch();
@@ -273,6 +297,23 @@ export const PayrollSection: React.FC = () => {
 
         {/* Components Tab */}
         <TabsContent value="components" className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-purple-200/80 dark:border-purple-900/40 bg-purple-50/60 dark:bg-purple-950/20">
+            <div>
+              <p className="text-sm font-semibold text-purple-900 dark:text-purple-200">
+                Interactive Formula Sandbox & Indian Components Catalog
+              </p>
+              <p className="text-xs text-purple-700/80 dark:text-purple-300/80 mt-0.5">
+                Seed standard Indian earnings & deductions, configure formula ASTs, and test live salary calculations.
+              </p>
+            </div>
+            <Link
+              to="/dashboard/payroll"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 dark:text-purple-300 hover:underline shrink-0"
+            >
+              Open Pay Components Catalog <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
           <SectionCard
             title="Salary Components"
             description="Define earnings, deductions, and employer contributions"
@@ -476,6 +517,23 @@ export const PayrollSection: React.FC = () => {
 
         {/* Statutory Tab */}
         <TabsContent value="statutory" className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/40 bg-indigo-50/60 dark:bg-indigo-950/20">
+            <div>
+              <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+                Indian Statutory Compliance Center & Live Gross-to-Net Simulator
+              </p>
+              <p className="text-xs text-indigo-700/80 dark:text-indigo-300/80 mt-0.5">
+                Simulate real-time take-home pay, state-wise PT (MH, KA, GJ, etc.), EPFO/ESIC thresholds, and New vs Old TDS regimes.
+              </p>
+            </div>
+            <Link
+              to="/dashboard/payroll"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:underline shrink-0"
+            >
+              Open Compliance Center <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
           <SectionCard
             title="Provident Fund (PF)"
             description="Employee Provident Fund configuration"

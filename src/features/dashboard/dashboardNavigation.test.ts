@@ -6,7 +6,6 @@ import {
   getModuleTabs,
   getModuleOfTab,
   getTabConfig,
-  type SidebarSection,
 } from './components/dashboardTabs.data';
 
 describe('HR Admin Dashboard Navigation & Tab Structure', () => {
@@ -110,5 +109,15 @@ describe('HR Admin Dashboard Navigation & Tab Structure', () => {
     expect(tab).toBeDefined();
     expect(tab?.id).toBe('attendance');
     expect(getModuleOfTab('timesheets')).toBe('attendance');
+  });
+
+  it('correctly returns module tabs with getModuleTabs', () => {
+    const attendanceTabs = getModuleTabs('attendance');
+    expect(attendanceTabs.length).toBeGreaterThan(0);
+    expect(attendanceTabs.some((t) => t.id === 'attendance')).toBe(true);
+
+    const workforceTabs = getModuleTabs('workforce');
+    expect(workforceTabs.length).toBeGreaterThan(0);
+    expect(workforceTabs.some((t) => t.id === 'workforce')).toBe(true);
   });
 });

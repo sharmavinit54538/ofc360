@@ -327,13 +327,26 @@ export const getModuleTabs = (sectionId: SidebarSection): DashboardTabItem[] => 
 };
 
 /**
+ * Resolves legacy aliases transitively until a stable ID is reached.
+ */
+export const resolveLegacyAlias = (id: string): string => {
+  let resolvedId = id;
+  const visited = new Set<string>();
+  while (LEGACY_ALIASES[resolvedId] && !visited.has(resolvedId)) {
+    visited.add(resolvedId);
+    resolvedId = LEGACY_ALIASES[resolvedId];
+  }
+  return resolvedId;
+};
+
+/**
  * Returns the section/module that a given tab ID belongs to.
  * Resolves aliases and searches top-level and nested child tabs.
  * If passed a section ID directly, returns that section.
  */
 export const getModuleOfTab = (id: string): SidebarSection | undefined => {
   if (!id) return undefined;
-  const resolvedId = LEGACY_ALIASES[id] || id;
+  const resolvedId = resolveLegacyAlias(id);
 
   // Direct match on section ID
   if (SIDEBAR_SECTIONS.some((s) => s.id === resolvedId)) {
@@ -360,7 +373,7 @@ export const getModuleOfTab = (id: string): SidebarSection | undefined => {
  * Resolves legacy aliases and searches top-level tabs and nested children.
  */
 export const getTabConfig = (id: string): DashboardTabItem | undefined => {
-  const resolvedId = LEGACY_ALIASES[id] || id;
+  const resolvedId = resolveLegacyAlias(id);
 
   for (const tab of DASHBOARD_TABS) {
     if (tab.id === resolvedId) return tab;
