@@ -522,11 +522,7 @@ export const RecruitmentHubPage: React.FC = () => {
           </Card>
         )}
 
-        <footer className="text-center pt-4">
-          <p className="text-gray-400 dark:text-zinc-600 text-sm">
-            © 2026 OneForCash. Super Admin Recruitment Control.
-          </p>
-        </footer>
+
       </div>
 
       {/* Modals */}

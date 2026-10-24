@@ -481,11 +481,7 @@ export const WorkforceHubPage: React.FC = () => {
           />
         )}
 
-        <footer className="text-center pt-4">
-          <p className="text-gray-400 dark:text-zinc-600 text-sm">
-            © 2026 OneForCash. Super Admin Workforce Control.
-          </p>
-        </footer>
+
       </div>
 
       {/* Modals */}
