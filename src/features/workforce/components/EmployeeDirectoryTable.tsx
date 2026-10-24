@@ -1,7 +1,7 @@
-import React from 'react';
-import { Users, Eye, Pencil, UserCog } from 'lucide-react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Users, Eye, Pencil, UserCog, MoreVertical } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
-import { Button } from '@/shared/ui/Button';
 import { SkeletonTableRow } from '@/shared/ui/Skeleton';
 import type { EmployeeItem } from '../types/workforce.types';
 
@@ -53,6 +53,32 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
   onStatusChange,
   onView,
 }) => {
+  const [menuAnchor, setMenuAnchor] = useState<{
+    top: number;
+    left: number;
+    emp: EmployeeItem;
+  } | null>(null);
+
+  const handleToggleMenu = (e: React.MouseEvent<HTMLButtonElement>, emp: EmployeeItem) => {
+    e.stopPropagation();
+    if (menuAnchor?.emp.id === emp.id) {
+      setMenuAnchor(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const dropdownWidth = 184;
+    const dropdownHeight = 140;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    const top =
+      spaceBelow < dropdownHeight && rect.top > dropdownHeight
+        ? rect.top - dropdownHeight - 4
+        : rect.bottom + 4;
+    const left = Math.max(8, Math.min(window.innerWidth - dropdownWidth - 8, rect.right - dropdownWidth));
+
+    setMenuAnchor({ top, left, emp });
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
       <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
@@ -161,35 +187,14 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                       {formatJoiningDate(emp.joiningDate)}
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <div className="inline-flex items-center gap-0.5">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onView(emp)}
-                          className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 px-2"
-                          aria-label={`View ${emp.firstName} ${emp.lastName}`}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onEdit(emp)}
-                          className="text-xs text-gray-600 hover:text-gray-900 dark:text-zinc-300 px-2"
-                          aria-label={`Edit ${emp.firstName} ${emp.lastName}`}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onStatusChange(emp)}
-                          className="text-xs text-amber-600 hover:text-amber-700 dark:text-amber-400 px-2"
-                          aria-label={`Change status of ${emp.firstName} ${emp.lastName}`}
-                        >
-                          <UserCog className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleMenu(e, emp)}
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        aria-label={`Actions for ${emp.firstName} ${emp.lastName}`}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -197,6 +202,66 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* 3-Dots Action Dropdown Menu rendered via createPortal directly into document.body */}
+      {menuAnchor && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] pointer-events-auto">
+          {/* Transparent Backdrop to close on click outside */}
+          <div
+            className="fixed inset-0 cursor-default"
+            onClick={() => setMenuAnchor(null)}
+          />
+
+          {/* Floating Dropdown Card */}
+          <div
+            style={{
+              position: 'fixed',
+              top: `${menuAnchor.top}px`,
+              left: `${menuAnchor.left}px`,
+            }}
+            className="w-44 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#1f1f1f] shadow-2xl py-1.5 animate-in fade-in-50 zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                const emp = menuAnchor.emp;
+                setMenuAnchor(null);
+                onView(emp);
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors text-left"
+            >
+              <Eye className="w-4 h-4 text-blue-500 shrink-0" />
+              <span>View Profile</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const emp = menuAnchor.emp;
+                setMenuAnchor(null);
+                onEdit(emp);
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors text-left"
+            >
+              <Pencil className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Edit Employee</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const emp = menuAnchor.emp;
+                setMenuAnchor(null);
+                onStatusChange(emp);
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors text-left"
+            >
+              <UserCog className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Change Status</span>
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

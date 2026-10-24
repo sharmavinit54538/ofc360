@@ -1,6 +1,5 @@
 import React from 'react';
-import { Search, RefreshCw, Building2, MapPin } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { Search, Building2, MapPin } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { DepartmentItem, EmployeeStatus, EmploymentType } from '../types/workforce.types';
 
@@ -17,9 +16,9 @@ interface WorkforceFilterBarProps {
   locationFilter: string;
   onLocationChange: (value: string) => void;
   locations: string[];
-  onResetFilters: () => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
+  onResetFilters?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const STATUS_OPTIONS: { id: EmployeeStatus | 'ALL'; label: string }[] = [
@@ -57,9 +56,6 @@ export const WorkforceFilterBar: React.FC<WorkforceFilterBarProps> = ({
   locationFilter,
   onLocationChange,
   locations,
-  onResetFilters,
-  onRefresh,
-  isRefreshing,
 }) => {
   return (
     <div className="p-4 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
@@ -118,22 +114,6 @@ export const WorkforceFilterBar: React.FC<WorkforceFilterBarProps> = ({
               </option>
             ))}
           </select>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={onResetFilters} className="text-xs">
-            Reset
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="text-xs"
-          >
-            <RefreshCw className={cn('w-3.5 h-3.5 mr-1', isRefreshing && 'animate-spin')} />
-            Refresh
-          </Button>
         </div>
       </div>
 
