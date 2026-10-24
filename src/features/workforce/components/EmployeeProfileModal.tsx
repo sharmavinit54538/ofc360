@@ -3,7 +3,7 @@ import { X, User, Mail, Phone, MapPin, CalendarDays, Briefcase, Building2 } from
 import { Badge } from '@/shared/ui/Badge';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useGetEmployeeByIdQuery } from '../api/workforceApi';
-import type { EmployeeItem, EmployeeStatus } from '../types/workforce.types';
+import type { EmployeeItem } from '../types/workforce.types';
 
 interface EmployeeProfileModalProps {
   employee: EmployeeItem | null;
