@@ -35,7 +35,7 @@ const formatElapsed = (minutes: number): string => {
   return `${hrs}h ${String(mins).padStart(2, '0')}m`;
 };
 
-const formatTime = (iso?: string): string => {
+const formatTime = (iso?: string | null): string => {
   if (!iso) return '—';
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 };
