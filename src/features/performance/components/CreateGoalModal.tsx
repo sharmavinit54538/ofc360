@@ -33,7 +33,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
       description: '',
       category: 'INDIVIDUAL',
       metricType: 'PERCENTAGE',
-      targetValue: undefined,
+      targetValue: 100,
       priority: 'MEDIUM',
       targetDate: '',
       assigneeId: '',
@@ -57,6 +57,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
         targetValue: Number(data.targetValue),
         priority: data.priority,
         targetDate: data.targetDate,
+        dueDate: data.targetDate,
         assigneeId: data.assigneeId || undefined,
       }).unwrap();
       toast.success(`Goal "${data.title}" created successfully.`, 'Goal Created');
@@ -131,6 +132,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
                 <option value="DEPARTMENTAL">Departmental</option>
                 <option value="ORGANIZATIONAL">Organizational</option>
                 <option value="TECHNICAL">Technical</option>
+                <option value="PROFESSIONAL">Professional</option>
               </select>
               {errors.category?.message && (
                 <p className="text-xs text-rose-500">{errors.category.message}</p>

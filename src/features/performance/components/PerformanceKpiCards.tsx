@@ -29,6 +29,10 @@ export const PerformanceKpiCards: React.FC<PerformanceKpiCardsProps> = ({ stats,
     );
   }
 
+  const goalsRate = Math.round(
+    stats?.goalsOnTrackPercentage ?? stats?.goalsCompletionRate ?? 0
+  );
+
   const cards: KpiCardConfig[] = [
     {
       id: 'avg-rating',
@@ -60,8 +64,8 @@ export const PerformanceKpiCards: React.FC<PerformanceKpiCardsProps> = ({ stats,
     {
       id: 'goals-on-track',
       label: 'Goals On Track',
-      value: `${Math.round(stats?.goalsOnTrackPercentage ?? 0)}%`,
-      hint: 'Objectives at healthy progress',
+      value: `${goalsRate}%`,
+      hint: stats?.activeGoals !== undefined ? `${stats.activeGoals} active goals` : 'Objectives at healthy progress',
       icon: Target,
       iconBg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
       iconColor: 'text-cyan-600 dark:text-cyan-400',
@@ -70,7 +74,7 @@ export const PerformanceKpiCards: React.FC<PerformanceKpiCardsProps> = ({ stats,
       id: 'active-pips',
       label: 'Active PIPs',
       value: String(stats?.activePips ?? 0),
-      hint: 'Improvement plans in review',
+      hint: stats?.topPerformersCount ? `${stats.topPerformersCount} top performers` : 'Improvement plans in review',
       icon: AlertOctagon,
       iconBg: 'bg-rose-500/10 dark:bg-rose-500/20',
       iconColor: 'text-rose-600 dark:text-rose-400',

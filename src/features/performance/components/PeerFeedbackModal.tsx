@@ -30,16 +30,17 @@ export const PeerFeedbackModal: React.FC<PeerFeedbackModalProps> = ({ isOpen, on
     formState: { errors },
   } = useForm<PeerFeedbackFormData>({
     resolver: zodResolver(peerFeedbackSchema),
-    defaultValues: { toEmployeeId: '', cycleId: '', feedback: '', rating: 0 },
+    defaultValues: { toEmployeeId: '', cycleId: '', feedback: '', rating: 5 },
   });
 
-  const watchRating = Number(watch('rating') ?? 0);
+  const watchRating = Number(watch('rating') ?? 5);
   const activeCycles = cycles.filter((c) => c.status === 'ACTIVE');
+  const availableCycles = activeCycles.length > 0 ? activeCycles : cycles;
 
   if (!isOpen) return null;
 
   const handleClose = () => {
-    reset({ toEmployeeId: '', cycleId: '', feedback: '', rating: 0 });
+    reset({ toEmployeeId: '', cycleId: '', feedback: '', rating: 5 });
     onClose();
   };
 
@@ -91,8 +92,8 @@ export const PeerFeedbackModal: React.FC<PeerFeedbackModalProps> = ({ isOpen, on
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <Input
-            label="Employee ID"
-            placeholder="Enter the recipient employee identifier"
+            label="Employee ID / Name"
+            placeholder="Enter recipient employee ID or name"
             error={errors.toEmployeeId?.message}
             {...register('toEmployeeId')}
           />
@@ -107,7 +108,7 @@ export const PeerFeedbackModal: React.FC<PeerFeedbackModalProps> = ({ isOpen, on
               {...register('cycleId')}
             >
               <option value="">No cycle linkage</option>
-              {activeCycles.map((cycle) => (
+              {availableCycles.map((cycle) => (
                 <option key={cycle.id} value={cycle.id}>
                   {cycle.name}
                 </option>

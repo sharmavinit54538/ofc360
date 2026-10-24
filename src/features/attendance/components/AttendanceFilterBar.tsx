@@ -1,6 +1,5 @@
 import React from 'react';
-import { Search, RefreshCw, Calendar } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { Search, Calendar } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { AttendanceScope, AttendanceStatus } from '../types/attendance.types';
 
@@ -18,9 +17,9 @@ interface AttendanceFilterBarProps {
   departmentFilter: string;
   onDepartmentChange: (value: string) => void;
   departments: string[];
-  onResetFilters: () => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
+  onResetFilters?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const STATUS_OPTIONS: { id: AttendanceStatus | 'ALL'; label: string }[] = [
@@ -115,17 +114,6 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
               </option>
             ))}
           </select>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="gap-1.5 text-xs"
-          >
-            <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
-            <span>Refresh</span>
-          </Button>
         </div>
       </div>
 
@@ -166,13 +154,6 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
               {option.label}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={onResetFilters}
-            className="text-[11px] font-medium text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 underline underline-offset-2"
-          >
-            Reset
-          </button>
         </div>
       </div>
     </div>

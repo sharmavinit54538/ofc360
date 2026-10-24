@@ -3,7 +3,7 @@ import { ClipboardList, Eye, PenSquare, Star } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { SkeletonTableRow } from '@/shared/ui/Skeleton';
-import type { AppraisalReview, ReviewStatus } from '../types/performance.types';
+import type { AppraisalReview } from '../types/performance.types';
 
 interface AppraisalReviewsTableProps {
   reviews: AppraisalReview[];
@@ -15,18 +15,28 @@ interface AppraisalReviewsTableProps {
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
 
-const STATUS_BADGE: Record<ReviewStatus, { variant: BadgeVariant; label: string }> = {
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   SELF_REVIEW_PENDING: { variant: 'warning', label: 'Self Pending' },
   MANAGER_REVIEW_PENDING: { variant: 'brand', label: 'Manager Review' },
   HR_REVIEW_PENDING: { variant: 'role', label: 'HR Review' },
   COMPLETED: { variant: 'success', label: 'Completed' },
+  PENDING: { variant: 'warning', label: 'Pending' },
+  IN_PROGRESS: { variant: 'brand', label: 'In Progress' },
 };
 
-const formatDueDate = (dateStr: string): string =>
-  new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatDueDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+};
 
 const RatingCell: React.FC<{ value?: number }> = ({ value }) => {
-  if (value === undefined || value === null || Number.isNaN(value)) {
+  if (value === undefined || value === null || Number.isNaN(value) || value <= 0) {
     return <span className="text-gray-400 dark:text-zinc-500">—</span>;
   }
   return (
@@ -94,84 +104,95 @@ export const AppraisalReviewsTable: React.FC<AppraisalReviewsTableProps> = ({
                     <SkeletonTableRow key={i} columns={showEmployeeColumn ? 8 : 7} />
                   ))
                 : reviews.map((review) => {
-                const badge = STATUS_BADGE[review.status];
-                const isActionable = review.status !== 'COMPLETED';
-                return (
-                  <tr key={review.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
-                    {showEmployeeColumn && (
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0">
-                            {review.employee.avatarUrl ? (
-                              <img
-                                src={review.employee.avatarUrl}
-                                alt={review.employee.name}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            ) : (
-                              review.employee.name.charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-semibold text-gray-900 dark:text-[#ececec] truncate">
-                              {review.employee.name}
+                    const badge = STATUS_BADGE[review.status] || {
+                      variant: review.status === 'COMPLETED' ? 'success' : 'brand',
+                      label: review.status ? review.status.replace(/_/g, ' ') : 'Pending',
+                    };
+                    const isActionable = review.status !== 'COMPLETED';
+                    const empName = review.employee?.name || review.employeeName || 'Employee';
+                    const empAvatar = review.employee?.avatarUrl || review.avatarUrl;
+                    const empMeta = [
+                      review.employee?.designation || review.designation,
+                      review.employee?.department || review.department,
+                    ]
+                      .filter(Boolean)
+                      .join(' • ') || 'Employee';
+                    const cycle = review.cycleName || review.reviewCycle || 'Annual 2026';
+
+                    return (
+                      <tr key={review.id} className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
+                        {showEmployeeColumn && (
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0">
+                                {empAvatar ? (
+                                  <img
+                                    src={empAvatar}
+                                    alt={empName}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  empName.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-gray-900 dark:text-[#ececec] truncate">
+                                  {empName}
+                                </div>
+                                <div className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">
+                                  {empMeta}
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">
-                              {[review.employee.designation, review.employee.department]
-                                .filter(Boolean)
-                                .join(' • ') || 'Employee'}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    )}
-                    <td className="px-4 py-3.5 font-medium text-gray-700 dark:text-zinc-300 whitespace-nowrap">
-                      {review.cycleName}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <RatingCell value={review.selfRating} />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <RatingCell value={review.managerRating} />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <RatingCell value={review.finalScore} />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <Badge variant={badge.variant} size="sm" className="font-semibold text-[11px]">
-                        {badge.label}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3.5 text-gray-700 dark:text-zinc-300 whitespace-nowrap">
-                      {formatDueDate(review.dueDate)}
-                    </td>
-                    <td className="px-4 py-3.5 text-right">
-                      <div className="inline-flex items-center gap-1.5">
-                        {isActionable && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => onStartReview(review)}
-                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
-                          >
-                            <PenSquare className="w-3.5 h-3.5 mr-1" />
-                            Start Review
-                          </Button>
+                          </td>
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onViewDetails(review)}
-                          className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-                        >
-                          <Eye className="w-3.5 h-3.5 mr-1" />
-                          View Details
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                        <td className="px-4 py-3.5 font-medium text-gray-700 dark:text-zinc-300 whitespace-nowrap">
+                          {cycle}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <RatingCell value={review.selfRating} />
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <RatingCell value={review.managerRating ?? review.overallRating ?? review.rating} />
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <RatingCell value={review.finalScore ?? review.overallRating ?? review.rating} />
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <Badge variant={badge.variant} size="sm" className="font-semibold text-[11px]">
+                            {badge.label}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3.5 text-gray-700 dark:text-zinc-300 whitespace-nowrap">
+                          {formatDueDate(review.dueDate)}
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            {isActionable && (
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => onStartReview(review)}
+                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                              >
+                                <PenSquare className="w-3.5 h-3.5 mr-1" />
+                                Start Review
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onViewDetails(review)}
+                              className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+                            >
+                              <Eye className="w-3.5 h-3.5 mr-1" />
+                              View Details
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
             </tbody>
           </table>
         </div>

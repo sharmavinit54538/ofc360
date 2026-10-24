@@ -10,7 +10,7 @@ import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { cn } from '@/shared/lib/utils';
 import { useGetReviewByIdQuery, useSubmitReviewMutation } from '../api/performanceApi';
 import { submitReviewSchema, type SubmitReviewFormData } from '../schemas/performance.schemas';
-import type { AppraisalReview, ReviewRole, ReviewStatus } from '../types/performance.types';
+import type { AppraisalReview, ReviewRole, CompetencyRating } from '../types/performance.types';
 
 interface SubmitReviewModalProps {
   review: AppraisalReview | null;
@@ -18,13 +18,15 @@ interface SubmitReviewModalProps {
   onClose: () => void;
 }
 
-const ROLE_BY_STATUS: Partial<Record<ReviewStatus, ReviewRole>> = {
+const ROLE_BY_STATUS: Partial<Record<string, ReviewRole>> = {
   SELF_REVIEW_PENDING: 'SELF',
   MANAGER_REVIEW_PENDING: 'MANAGER',
   HR_REVIEW_PENDING: 'HR',
+  PENDING: 'MANAGER',
+  IN_PROGRESS: 'MANAGER',
 };
 
-const NEXT_STATUS: Record<ReviewRole, ReviewStatus> = {
+const NEXT_STATUS: Record<ReviewRole, string> = {
   SELF: 'MANAGER_REVIEW_PENDING',
   MANAGER: 'HR_REVIEW_PENDING',
   HR: 'COMPLETED',
@@ -38,7 +40,7 @@ const ROLE_LABELS: Record<ReviewRole, string> = {
 
 export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, isOpen, onClose }) => {
   const toast = useToast();
-  const role: ReviewRole = review ? ROLE_BY_STATUS[review.status] ?? 'SELF' : 'SELF';
+  const role: ReviewRole = review ? ROLE_BY_STATUS[review.status] ?? 'MANAGER' : 'MANAGER';
 
   const { data: detail, isLoading: isDetailLoading } = useGetReviewByIdQuery(review?.id ?? '', {
     skip: !isOpen || !review,
@@ -57,8 +59,8 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
     resolver: zodResolver(submitReviewSchema),
     defaultValues: {
       role,
-      ratings: [],
-      overallRating: 3,
+      ratings: [{ competencyId: 'core-performance', name: 'Core Performance & Delivery', rating: 4, comments: '' }],
+      overallRating: 4,
       strengths: '',
       areasOfImprovement: '',
       recommendedPromotion: false,
@@ -71,24 +73,34 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
   // Hydrate competency rows from the live review detail when it arrives
   useEffect(() => {
     if (!isOpen || !review) return;
+    const initialStrengths = detail?.strengths || review.strengths || '';
+    const initialImprovements = detail?.areasOfImprovement || detail?.improvements || review.areasOfImprovement || review.improvements || '';
+
     reset({
       role,
       ratings: [],
-      overallRating: 3,
-      strengths: detail?.strengths ?? '',
-      areasOfImprovement: detail?.areasOfImprovement ?? '',
+      overallRating: (review.rating ?? review.overallRating) || 4,
+      strengths: initialStrengths,
+      areasOfImprovement: initialImprovements,
       recommendedPromotion: false,
-      status: NEXT_STATUS[role],
+      status: NEXT_STATUS[role] || 'COMPLETED',
     });
+
     if (detail?.ratings?.length) {
       replace(
-        detail.ratings.map((r) => ({
+        detail.ratings.map((r: CompetencyRating) => ({
           competencyId: r.competencyId,
           name: r.name,
-          rating: r.rating || 3,
+          rating: r.rating || 4,
           comments: r.comments || '',
         }))
       );
+    } else {
+      replace([
+        { competencyId: 'comp-1', name: 'Job Knowledge & Quality of Work', rating: 4, comments: '' },
+        { competencyId: 'comp-2', name: 'Communication & Teamwork', rating: 4, comments: '' },
+        { competencyId: 'comp-3', name: 'Problem Solving & Initiative', rating: 4, comments: '' },
+      ]);
     }
   }, [isOpen, review, detail, reset, replace, role]);
 
@@ -109,11 +121,14 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
 
   if (!isOpen || !review) return null;
 
+  const empName = review.employee?.name || review.employeeName || 'Employee';
+  const cycle = review.cycleName || review.reviewCycle || 'Annual 2026';
+
   const addCompetencyRow = () => {
     append({
       competencyId: `custom-${Date.now()}-${fields.length}`,
       name: '',
-      rating: 3,
+      rating: 4,
       comments: '',
     });
   };
@@ -124,6 +139,9 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
         id: review.id,
         data: {
           role,
+          employee_id: review.employeeId || review.employee?.id,
+          review_period: cycle,
+          cycle,
           ratings: data.ratings.map((r) => ({
             competencyId: r.competencyId,
             name: r.name,
@@ -131,10 +149,13 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
             comments: r.comments ?? '',
           })),
           overallRating: Number(data.overallRating),
+          rating: Number(data.overallRating),
           strengths: data.strengths,
           areasOfImprovement: data.areasOfImprovement,
+          improvements: data.areasOfImprovement,
+          comments: `${data.strengths}\n\n${data.areasOfImprovement}`,
           recommendedPromotion: data.recommendedPromotion || undefined,
-          status: NEXT_STATUS[role],
+          status: NEXT_STATUS[role] || 'COMPLETED',
         },
       }).unwrap();
       toast.success(`${ROLE_LABELS[role]} submitted successfully.`, 'Review Submitted');
@@ -162,7 +183,7 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ review, is
                 {ROLE_LABELS[role]}
               </h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400">
-                {review.employee.name} • {review.cycleName}
+                {empName} • {cycle}
               </p>
             </div>
           </div>

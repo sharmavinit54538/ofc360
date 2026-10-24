@@ -63,17 +63,17 @@ export const createGoalSchema = z
   .object({
     title: z
       .string()
-      .min(5, 'Goal title must be at least 5 characters')
+      .min(3, 'Goal title must be at least 3 characters')
       .max(120, 'Goal title cannot exceed 120 characters'),
     description: z
       .string()
       .max(1000, 'Description cannot exceed 1000 characters')
       .optional()
       .or(z.literal('')),
-    category: z.enum(['ORGANIZATIONAL', 'DEPARTMENTAL', 'INDIVIDUAL', 'TECHNICAL']),
-    metricType: z.enum(['PERCENTAGE', 'NUMERIC', 'BOOLEAN']),
-    targetValue: z.coerce.number().positive('Target value must be a positive number'),
-    priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+    category: z.enum(['ORGANIZATIONAL', 'DEPARTMENTAL', 'INDIVIDUAL', 'TECHNICAL', 'PROFESSIONAL']).default('INDIVIDUAL'),
+    metricType: z.enum(['PERCENTAGE', 'NUMERIC', 'BOOLEAN']).default('PERCENTAGE'),
+    targetValue: z.coerce.number().min(0, 'Target value must be at least 0').default(100),
+    priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
     targetDate: z.string().regex(DATE_REGEX, 'Please select a valid target date (YYYY-MM-DD)'),
     assigneeId: z.string().optional().or(z.literal('')),
   })
@@ -96,7 +96,7 @@ export type CreateGoalFormData = z.infer<typeof createGoalSchema>;
  * Validates a goal progress update.
  */
 export const updateGoalProgressSchema = z.object({
-  currentValue: z.coerce.number().positive('Current value must be a positive number'),
+  currentValue: z.coerce.number().min(0, 'Current value cannot be negative'),
   notes: z
     .string()
     .max(500, 'Notes cannot exceed 500 characters')
@@ -114,7 +114,7 @@ export const peerFeedbackSchema = z.object({
   cycleId: z.string().optional().or(z.literal('')),
   feedback: z
     .string()
-    .min(15, 'Feedback must be at least 15 characters')
+    .min(10, 'Feedback must be at least 10 characters')
     .max(1000, 'Feedback cannot exceed 1000 characters'),
   rating: z.coerce
     .number()

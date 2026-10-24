@@ -14,15 +14,30 @@ export type ReviewStatus =
   | 'SELF_REVIEW_PENDING'
   | 'MANAGER_REVIEW_PENDING'
   | 'HR_REVIEW_PENDING'
-  | 'COMPLETED';
+  | 'COMPLETED'
+  | 'PENDING'
+  | 'IN_PROGRESS'
+  | string;
 
 /** Role submitting an appraisal review. */
 export type ReviewRole = 'SELF' | 'MANAGER' | 'HR';
 
-export type GoalCategory = 'ORGANIZATIONAL' | 'DEPARTMENTAL' | 'INDIVIDUAL' | 'TECHNICAL';
+export type GoalCategory =
+  | 'ORGANIZATIONAL'
+  | 'DEPARTMENTAL'
+  | 'INDIVIDUAL'
+  | 'TECHNICAL'
+  | 'PROFESSIONAL'
+  | string;
+
 export type GoalMetricType = 'PERCENTAGE' | 'NUMERIC' | 'BOOLEAN';
-export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH';
-export type GoalStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'AT_RISK';
+export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH' | string;
+export type GoalStatus =
+  | 'NOT_STARTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'AT_RISK'
+  | string;
 
 /**
  * Organization-wide aggregate performance KPI metrics.
@@ -34,6 +49,9 @@ export interface PerformanceStats {
   pendingReviews: number;
   goalsOnTrackPercentage: number;
   activePips: number;
+  activeGoals?: number;
+  goalsCompletionRate?: number;
+  topPerformersCount?: number;
 }
 
 /**
@@ -72,6 +90,25 @@ export interface AppraisalReview {
   finalScore?: number;
   status: ReviewStatus;
   dueDate: string;
+  // Bi-directional / flattened properties for backend compatibility
+  employeeId?: string;
+  employeeName?: string;
+  employeeCode?: string;
+  department?: string;
+  designation?: string;
+  avatarUrl?: string | null;
+  reviewerId?: string;
+  reviewerName?: string;
+  reviewCycle?: string;
+  rating?: number;
+  overallRating?: number;
+  strengths?: string;
+  improvements?: string;
+  areasOfImprovement?: string;
+  comments?: string;
+  managerComments?: string;
+  submittedAt?: string;
+  createdAt?: string;
 }
 
 /**
@@ -98,13 +135,20 @@ export type ReviewDetail = AppraisalReview & {
  * Payload for a self / manager / HR review submission.
  */
 export interface SubmitReviewPayload {
-  role: ReviewRole;
-  ratings: CompetencyRating[];
-  overallRating: number;
-  strengths: string;
-  areasOfImprovement: string;
+  role?: ReviewRole;
+  ratings?: CompetencyRating[];
+  overallRating?: number;
+  rating?: number;
+  strengths?: string;
+  areasOfImprovement?: string;
+  improvements?: string;
+  comments?: string;
   recommendedPromotion?: boolean;
-  status: string;
+  status?: string;
+  employee_id?: string | null;
+  reviewer_id?: string | null;
+  review_period?: string;
+  cycle?: string;
 }
 
 /**
@@ -153,23 +197,40 @@ export interface GoalItem {
   status: GoalStatus;
   targetDate: string;
   assignee: { id: string; name: string };
+  // Bi-directional / flattened properties for backend compatibility
+  employeeId?: string;
+  employeeName?: string;
+  progress?: number;
+  dueDate?: string;
+  startDate?: string;
+  keyResults?: any[];
+  createdAt?: string;
 }
 
 export interface CreateGoalPayload {
   title: string;
   description?: string;
-  category: GoalCategory;
-  metricType: GoalMetricType;
-  targetValue: number;
-  priority: GoalPriority;
-  targetDate: string;
+  category?: GoalCategory;
+  metricType?: GoalMetricType;
+  targetValue?: number;
+  currentValue?: number;
+  priority?: GoalPriority;
+  targetDate?: string;
+  dueDate?: string;
   assigneeId?: string;
+  employeeId?: string;
+  progress?: number;
+  status?: string;
+  [key: string]: any;
 }
 
 export interface UpdateGoalProgressPayload {
   id: string;
-  currentValue: number;
+  currentValue?: number;
+  progress?: number;
   notes?: string;
+  status?: string;
+  [key: string]: any;
 }
 
 /**

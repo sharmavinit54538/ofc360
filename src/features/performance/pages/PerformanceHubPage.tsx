@@ -32,6 +32,7 @@ import type {
   GoalItem,
   PerformanceScope,
   ReviewStatus,
+  PeerFeedbackItem,
 } from '../types/performance.types';
 
 type HubTab = 'reviews' | 'goals' | 'feedback';
@@ -48,8 +49,16 @@ const GOAL_SCOPE_OPTIONS: { id: PerformanceScope; label: string }[] = [
   { id: 'ALL', label: 'Organization' },
 ];
 
-const formatFeedbackDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatFeedbackDate = (iso?: string | null): string => {
+  if (!iso) return 'Recent';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+};
 
 export const PerformanceHubPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<HubTab>('reviews');
@@ -122,6 +131,10 @@ export const PerformanceHubPage: React.FC = () => {
     setStatusFilter('ALL');
   };
 
+  const goalsOnTrackVal = Math.round(
+    stats?.goalsOnTrackPercentage ?? stats?.goalsCompletionRate ?? 0
+  );
+
   return (
     <div className="space-y-6">
       {/* Hero Banner with live KPIs */}
@@ -151,7 +164,7 @@ export const PerformanceHubPage: React.FC = () => {
             <div className="text-center px-3 py-1.5 border-r border-white/10">
               <p className="text-xs text-slate-400 font-medium">Goals On Track</p>
               <p className="text-xl font-bold text-cyan-400">
-                {isStatsLoading ? '—' : `${Math.round(stats?.goalsOnTrackPercentage ?? 0)}%`}
+                {isStatsLoading ? '—' : `${goalsOnTrackVal}%`}
               </p>
             </div>
             <div className="text-center px-3 py-1.5">
@@ -333,13 +346,13 @@ export const PerformanceHubPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-                  {(feedbackItems || []).map((item) => (
+                  {(feedbackItems || []).map((item: PeerFeedbackItem) => (
                     <div key={item.id} className="px-4 md:px-6 py-4 hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <span className="text-sm font-semibold text-gray-900 dark:text-[#ececec] inline-flex items-center gap-1.5">
-                          {item.fromEmployee.name}
+                          {item.fromEmployee?.name || 'Colleague'}
                           <ArrowRightLeft className="w-3 h-3 text-gray-400" />
-                          {item.toEmployee.name}
+                          {item.toEmployee?.name || 'Employee'}
                         </span>
                         <span className="inline-flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (

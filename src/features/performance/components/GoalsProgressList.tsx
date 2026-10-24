@@ -4,7 +4,7 @@ import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { cn } from '@/shared/lib/utils';
-import type { GoalItem, GoalPriority, GoalStatus } from '../types/performance.types';
+import type { GoalItem } from '../types/performance.types';
 
 interface GoalsProgressListProps {
   goals: GoalItem[];
@@ -15,40 +15,51 @@ interface GoalsProgressListProps {
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
 
-const STATUS_BADGE: Record<GoalStatus, { variant: BadgeVariant; label: string }> = {
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   NOT_STARTED: { variant: 'slate', label: 'Not Started' },
   IN_PROGRESS: { variant: 'brand', label: 'In Progress' },
   COMPLETED: { variant: 'success', label: 'Completed' },
   AT_RISK: { variant: 'danger', label: 'At Risk' },
 };
 
-const PRIORITY_BADGE: Record<GoalPriority, { variant: BadgeVariant; label: string }> = {
+const PRIORITY_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   LOW: { variant: 'slate', label: 'Low' },
   MEDIUM: { variant: 'warning', label: 'Medium' },
   HIGH: { variant: 'danger', label: 'High' },
 };
 
-const CATEGORY_LABELS: Record<GoalItem['category'], string> = {
+const CATEGORY_LABELS: Record<string, string> = {
   ORGANIZATIONAL: 'Organizational',
   DEPARTMENTAL: 'Departmental',
   INDIVIDUAL: 'Individual',
   TECHNICAL: 'Technical',
+  PROFESSIONAL: 'Professional',
 };
 
-const formatTargetDate = (dateStr: string): string =>
-  new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatTargetDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+};
 
 const formatMetricProgress = (goal: GoalItem): string => {
+  const current = goal.currentValue ?? goal.progress ?? 0;
+  const target = goal.targetValue ?? 100;
   if (goal.metricType === 'BOOLEAN') {
-    return goal.currentValue >= goal.targetValue ? 'Milestone achieved' : 'Milestone pending';
+    return current >= target ? 'Milestone achieved' : 'Milestone pending';
   }
-  if (goal.metricType === 'PERCENTAGE') {
-    return `${goal.currentValue}% of ${goal.targetValue}%`;
+  if (goal.metricType === 'PERCENTAGE' || !goal.metricType) {
+    return `${Math.round(current)}% of ${target}%`;
   }
-  return `${goal.currentValue} of ${goal.targetValue}`;
+  return `${current} of ${target}`;
 };
 
-const clampProgress = (value: number): number => Math.min(100, Math.max(0, value));
+const clampProgress = (value?: number): number => Math.min(100, Math.max(0, Number(value ?? 0)));
 
 export const GoalsProgressList: React.FC<GoalsProgressListProps> = ({
   goals,
@@ -99,9 +110,19 @@ export const GoalsProgressList: React.FC<GoalsProgressListProps> = ({
       ) : (
         <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
           {goals.map((goal) => {
-            const statusBadge = STATUS_BADGE[goal.status];
-            const priorityBadge = PRIORITY_BADGE[goal.priority];
-            const progress = clampProgress(goal.progressPercentage);
+            const statusBadge = STATUS_BADGE[goal.status] || {
+              variant: goal.status === 'COMPLETED' ? 'success' : 'brand',
+              label: goal.status ? goal.status.replace(/_/g, ' ') : 'In Progress',
+            };
+            const priorityBadge = PRIORITY_BADGE[goal.priority] || {
+              variant: 'warning',
+              label: goal.priority || 'Medium',
+            };
+            const categoryLabel = CATEGORY_LABELS[goal.category] || goal.category || 'General';
+            const progress = clampProgress(goal.progressPercentage ?? goal.progress);
+            const ownerName = goal.assignee?.name || goal.employeeName || 'Employee';
+            const dueDateStr = formatTargetDate(goal.targetDate || goal.dueDate);
+
             return (
               <div key={goal.id} className="px-4 md:px-6 py-4 hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                 <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -111,7 +132,7 @@ export const GoalsProgressList: React.FC<GoalsProgressListProps> = ({
                         {goal.title}
                       </span>
                       <Badge variant="slate" size="sm" className="text-[10px] font-semibold">
-                        {CATEGORY_LABELS[goal.category]}
+                        {categoryLabel}
                       </Badge>
                       <Badge variant={priorityBadge.variant} size="sm" className="text-[10px] font-semibold">
                         {priorityBadge.label}
@@ -147,7 +168,7 @@ export const GoalsProgressList: React.FC<GoalsProgressListProps> = ({
 
                     <p className="mt-1.5 text-[11px] text-gray-500 dark:text-zinc-400 flex items-center gap-1">
                       <TrendingUp className="w-3 h-3" />
-                      {formatMetricProgress(goal)} • Owner: {goal.assignee.name} • Due {formatTargetDate(goal.targetDate)}
+                      {formatMetricProgress(goal)} • Owner: {ownerName} • Due {dueDateStr}
                     </p>
                   </div>
 

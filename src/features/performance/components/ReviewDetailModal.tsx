@@ -4,7 +4,7 @@ import { Badge } from '@/shared/ui/Badge';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { cn } from '@/shared/lib/utils';
 import { useGetReviewByIdQuery } from '../api/performanceApi';
-import type { AppraisalReview, ReviewStatus } from '../types/performance.types';
+import type { AppraisalReview, CompetencyRating } from '../types/performance.types';
 
 interface ReviewDetailModalProps {
   review: AppraisalReview | null;
@@ -14,11 +14,13 @@ interface ReviewDetailModalProps {
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
 
-const STATUS_BADGE: Record<ReviewStatus, { variant: BadgeVariant; label: string }> = {
+const STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
   SELF_REVIEW_PENDING: { variant: 'warning', label: 'Self Pending' },
   MANAGER_REVIEW_PENDING: { variant: 'brand', label: 'Manager Review' },
   HR_REVIEW_PENDING: { variant: 'role', label: 'HR Review' },
   COMPLETED: { variant: 'success', label: 'Completed' },
+  PENDING: { variant: 'warning', label: 'Pending' },
+  IN_PROGRESS: { variant: 'brand', label: 'In Progress' },
 };
 
 const RatingStars: React.FC<{ value: number }> = ({ value }) => (
@@ -43,7 +45,20 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
 
   if (!isOpen || !review) return null;
 
-  const badge = STATUS_BADGE[review.status];
+  const badge = STATUS_BADGE[review.status] || {
+    variant: review.status === 'COMPLETED' ? 'success' : 'brand',
+    label: review.status ? review.status.replace(/_/g, ' ') : 'Pending',
+  };
+  const empName = review.employee?.name || review.employeeName || 'Employee';
+  const cycle = review.cycleName || review.reviewCycle || 'Annual 2026';
+
+  const selfRating = detail?.selfRating ?? review.selfRating;
+  const managerRating = detail?.managerRating ?? review.managerRating ?? review.overallRating ?? review.rating;
+  const finalScore = detail?.finalScore ?? review.finalScore ?? review.overallRating ?? review.rating;
+
+  const strengthsText = detail?.strengths || review.strengths;
+  const improvementsText = detail?.areasOfImprovement || detail?.improvements || review.areasOfImprovement || review.improvements;
+  const commentsText = detail?.managerComments || detail?.comments || review.managerComments || review.comments;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in-50">
@@ -63,7 +78,7 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
                 Appraisal Review Detail
               </h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400">
-                {review.employee.name} • {review.cycleName}
+                {empName} • {cycle}
               </p>
             </div>
           </div>
@@ -85,9 +100,9 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
           {/* Rating summary */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Self Rating', value: detail?.selfRating ?? review.selfRating },
-              { label: 'Manager Rating', value: detail?.managerRating ?? review.managerRating },
-              { label: 'Final Score', value: detail?.finalScore ?? review.finalScore },
+              { label: 'Self Rating', value: selfRating },
+              { label: 'Manager Rating', value: managerRating },
+              { label: 'Final Score', value: finalScore },
             ].map((tile) => (
               <div
                 key={tile.label}
@@ -97,8 +112,8 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
                   {tile.label}
                 </p>
                 <div className="mt-1.5 flex justify-center">
-                  {tile.value !== undefined && tile.value !== null ? (
-                    <RatingStars value={tile.value} />
+                  {tile.value !== undefined && tile.value !== null && Number(tile.value) > 0 ? (
+                    <RatingStars value={Number(tile.value)} />
                   ) : (
                     <span className="text-sm text-gray-400 dark:text-zinc-500">—</span>
                   )}
@@ -120,7 +135,7 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
               </div>
             ) : detail?.ratings?.length ? (
               <div className="space-y-2">
-                {detail.ratings.map((rating) => (
+                {detail.ratings.map((rating: CompetencyRating) => (
                   <div
                     key={rating.competencyId}
                     className="rounded-xl border border-gray-200 dark:border-zinc-800 p-3.5 bg-gray-50/60 dark:bg-zinc-900/50"
@@ -150,35 +165,35 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({ review, is
           </div>
 
           {/* Narrative sections */}
-          {(detail?.strengths || detail?.areasOfImprovement || detail?.managerComments) && (
+          {(strengthsText || improvementsText || commentsText) && (
             <div className="space-y-3">
-              {detail?.strengths && (
+              {strengthsText && (
                 <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/50 bg-emerald-500/5 p-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                     Key Strengths
                   </h4>
                   <p className="mt-1.5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
-                    {detail.strengths}
+                    {strengthsText}
                   </p>
                 </div>
               )}
-              {detail?.areasOfImprovement && (
+              {improvementsText && (
                 <div className="rounded-xl border border-amber-200/60 dark:border-amber-800/50 bg-amber-500/5 p-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
                     Areas of Improvement
                   </h4>
                   <p className="mt-1.5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
-                    {detail.areasOfImprovement}
+                    {improvementsText}
                   </p>
                 </div>
               )}
-              {detail?.managerComments && (
+              {commentsText && (
                 <div className="rounded-xl border border-indigo-200/60 dark:border-indigo-800/50 bg-indigo-500/5 p-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-                    Manager Comments
+                    Review Comments
                   </h4>
                   <p className="mt-1.5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
-                    {detail.managerComments}
+                    {commentsText}
                   </p>
                 </div>
               )}

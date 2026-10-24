@@ -27,6 +27,10 @@ export const UpdateGoalProgressModal: React.FC<UpdateGoalProgressModalProps> = (
   const toast = useToast();
   const [updateProgress, { isLoading: isSaving }] = useUpdateGoalProgressMutation();
 
+  const currentVal = goal?.currentValue ?? goal?.progress ?? 0;
+  const targetVal = goal?.targetValue ?? 100;
+  const progressPct = goal?.progressPercentage ?? goal?.progress ?? Math.round((currentVal / (targetVal || 1)) * 100);
+
   const {
     register,
     handleSubmit,
@@ -34,22 +38,25 @@ export const UpdateGoalProgressModal: React.FC<UpdateGoalProgressModalProps> = (
     formState: { errors },
   } = useForm<UpdateGoalProgressFormData>({
     resolver: zodResolver(updateGoalProgressSchema),
-    defaultValues: { currentValue: undefined, notes: '' },
+    defaultValues: { currentValue: 0, notes: '' },
   });
 
   useEffect(() => {
     if (goal && isOpen) {
-      reset({ currentValue: goal.currentValue, notes: '' });
+      reset({ currentValue: currentVal, notes: '' });
     }
-  }, [goal, isOpen, reset]);
+  }, [goal, isOpen, reset, currentVal]);
 
   if (!isOpen || !goal) return null;
 
   const onSubmit = async (data: UpdateGoalProgressFormData) => {
     try {
+      const val = Number(data.currentValue);
       await updateProgress({
         id: goal.id,
-        currentValue: Number(data.currentValue),
+        currentValue: val,
+        progress: val,
+        targetValue: targetVal,
         notes: data.notes || undefined,
       }).unwrap();
       toast.success(`Progress updated for "${goal.title}".`, 'Progress Saved');
@@ -92,9 +99,9 @@ export const UpdateGoalProgressModal: React.FC<UpdateGoalProgressModalProps> = (
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-800 p-3.5 text-xs text-gray-600 dark:text-zinc-300">
-            Current: <span className="font-semibold">{goal.currentValue}</span>
-            {' '}of target <span className="font-semibold">{goal.targetValue}</span>
-            {' '}({Math.round(goal.progressPercentage)}% complete)
+            Current: <span className="font-semibold">{currentVal}</span>
+            {' '}of target <span className="font-semibold">{targetVal}</span>
+            {' '}({Math.round(progressPct)}% complete)
           </div>
 
           <Input
