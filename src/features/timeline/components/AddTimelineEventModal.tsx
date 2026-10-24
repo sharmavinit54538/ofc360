@@ -13,7 +13,6 @@ import {
   User,
   Calendar,
   FileText,
-  TrendingUp,
   Award,
   Building2,
   Star,

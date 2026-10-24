@@ -29,16 +29,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
     overview: true,
     workforce: true,
-    recruitment: true,
+    talent: true,
     attendance: true,
     payroll: true,
-    leave: true,
-    performance: true,
     reports: true,
     aihub: true,
     documents: true,
     hrops: true,
     settings: true,
+    recruitment: true,
+    leave: true,
+    performance: true,
   });
 
   const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({
@@ -65,16 +66,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     const tabsBySection: Record<SidebarSection, DashboardTabItem[]> = {
       overview: [],
       workforce: [],
-      recruitment: [],
+      talent: [],
       attendance: [],
       payroll: [],
-      leave: [],
-      performance: [],
       reports: [],
       aihub: [],
       documents: [],
       hrops: [],
       settings: [],
+      recruitment: [],
+      leave: [],
+      performance: [],
     };
     DASHBOARD_TABS.forEach((tab) => {
       tabsBySection[tab.section].push(tab);

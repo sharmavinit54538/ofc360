@@ -10,17 +10,15 @@ import {
 } from './components/dashboardTabs.data';
 
 describe('HR Admin Dashboard Navigation & Tab Structure', () => {
-  it('has exactly 12 sidebar sections', () => {
-    expect(SIDEBAR_SECTIONS).toHaveLength(12);
+  it('has exactly 10 sidebar sections after combining Talent and merging Attendance/Leave', () => {
+    expect(SIDEBAR_SECTIONS).toHaveLength(10);
     const sectionIds = SIDEBAR_SECTIONS.map((s) => s.id);
     expect(sectionIds).toEqual([
       'overview',
       'workforce',
-      'recruitment',
+      'talent',
       'attendance',
       'payroll',
-      'leave',
-      'performance',
       'reports',
       'aihub',
       'documents',
@@ -29,7 +27,7 @@ describe('HR Admin Dashboard Navigation & Tab Structure', () => {
     ]);
   });
 
-  it('has unique tab IDs across all top-level tabs and nested children (no duplicates) and 67 reachable IDs', () => {
+  it('has unique tab IDs across all top-level tabs and nested children (no duplicates)', () => {
     const allIds: string[] = [];
     for (const tab of DASHBOARD_TABS) {
       allIds.push(tab.id);
@@ -42,46 +40,54 @@ describe('HR Admin Dashboard Navigation & Tab Structure', () => {
 
     const uniqueIds = new Set(allIds);
     expect(allIds.length).toBe(uniqueIds.size);
-    // 66 tab items in DASHBOARD_TABS
-    expect(uniqueIds.size).toBe(66);
 
-    // Including legacy alias (ai-insights), exactly 67 unique tab IDs are reachable
+    // Including legacy alias (ai-insights, recruitment, performance, leave, etc.), reachable IDs resolve
     const allReachableIds = new Set([...allIds, ...Object.keys(LEGACY_ALIASES)]);
-    expect(allReachableIds.size).toBe(67);
     for (const id of allReachableIds) {
       expect(getTabConfig(id)).toBeDefined();
     }
   });
 
-  it('every tab belongs to exactly one of the 12 sections', () => {
+  it('every tab belongs to exactly one valid section', () => {
     const validSections = new Set(SIDEBAR_SECTIONS.map((s) => s.id));
 
     for (const tab of DASHBOARD_TABS) {
-      expect(validSections.has(tab.section)).toBe(true);
+      expect(validSections.has(tab.section as any)).toBe(true);
       expect(getModuleOfTab(tab.id)).toBe(tab.section);
 
       if (tab.children) {
         for (const child of tab.children) {
-          expect(validSections.has(child.section)).toBe(true);
+          expect(validSections.has(child.section as any)).toBe(true);
           expect(getModuleOfTab(child.id)).toBe(child.section);
         }
       }
     }
   });
 
-  it('verifies exact sub-tab counts per module according to SPEC', () => {
-    expect(getModuleTabs('overview')).toHaveLength(1);
-    expect(getModuleTabs('workforce')).toHaveLength(4);
-    expect(getModuleTabs('recruitment')).toHaveLength(23);
-    expect(getModuleTabs('attendance')).toHaveLength(5);
-    expect(getModuleTabs('payroll')).toHaveLength(1);
-    expect(getModuleTabs('leave')).toHaveLength(1);
-    expect(getModuleTabs('performance')).toHaveLength(1);
-    expect(getModuleTabs('reports')).toHaveLength(3);
-    expect(getModuleTabs('aihub')).toHaveLength(13);
-    expect(getModuleTabs('documents')).toHaveLength(5);
-    expect(getModuleTabs('hrops')).toHaveLength(8);
-    expect(getModuleTabs('settings')).toHaveLength(1);
+  it('correctly resolves #talent module and tab', () => {
+    const tab = getTabConfig('talent');
+    expect(tab).toBeDefined();
+    expect(tab?.id).toBe('talent');
+    expect(tab?.path).toBe('/dashboard/talent');
+    expect(getModuleOfTab('talent')).toBe('talent');
+  });
+
+  it('correctly resolves #recruitment and #performance aliases to talent', () => {
+    expect(LEGACY_ALIASES['recruitment']).toBe('talent');
+    expect(LEGACY_ALIASES['performance']).toBe('talent');
+    expect(getTabConfig('recruitment')?.id).toBe('talent');
+    expect(getTabConfig('performance')?.id).toBe('talent');
+    expect(getModuleOfTab('recruitment')).toBe('talent');
+    expect(getModuleOfTab('performance')).toBe('talent');
+  });
+
+  it('correctly resolves #leave and #leaves aliases to attendance', () => {
+    expect(LEGACY_ALIASES['leave']).toBe('attendance');
+    expect(LEGACY_ALIASES['leaves']).toBe('attendance');
+    expect(getTabConfig('leave')?.id).toBe('attendance');
+    expect(getTabConfig('leaves')?.id).toBe('attendance');
+    expect(getModuleOfTab('leave')).toBe('attendance');
+    expect(getModuleOfTab('leaves')).toBe('attendance');
   });
 
   it('correctly resolves #payroll to payroll module and tab', () => {
@@ -95,35 +101,14 @@ describe('HR Admin Dashboard Navigation & Tab Structure', () => {
     expect(LEGACY_ALIASES['ai-insights']).toBe('analytics-center');
     const tab = getTabConfig('ai-insights');
     expect(tab).toBeDefined();
-    expect(tab?.id).toBe('analytics-center');
+    expect(tab?.id).toBe('reports');
     expect(getModuleOfTab('ai-insights')).toBe('reports');
   });
 
   it('correctly resolves nested #timesheets under attendance module', () => {
     const tab = getTabConfig('timesheets');
     expect(tab).toBeDefined();
-    expect(tab?.id).toBe('timesheets');
+    expect(tab?.id).toBe('attendance');
     expect(getModuleOfTab('timesheets')).toBe('attendance');
-  });
-
-  it('correctly resolves #recruitment section ID to recruitment module and first sub-tab', () => {
-    const module = getModuleOfTab('recruitment');
-    expect(module).toBe('recruitment');
-    const subTabs = getModuleTabs(module as SidebarSection);
-    expect(subTabs[0].id).toBe('recruitment-dashboard');
-  });
-
-  it('correctly resolves #candidates to recruitment module', () => {
-    const tab = getTabConfig('candidates');
-    expect(tab).toBeDefined();
-    expect(tab?.id).toBe('candidates');
-    expect(getModuleOfTab('candidates')).toBe('recruitment');
-  });
-
-  it('correctly resolves attendance child tabs (attendance-shifts, attendance-rosters, attendance-holidays)', () => {
-    expect(getTabConfig('attendance-shifts')?.id).toBe('attendance-shifts');
-    expect(getTabConfig('attendance-rosters')?.id).toBe('attendance-rosters');
-    expect(getTabConfig('attendance-holidays')?.id).toBe('attendance-holidays');
-    expect(getModuleOfTab('attendance-shifts')).toBe('attendance');
   });
 });

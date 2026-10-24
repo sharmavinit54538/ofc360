@@ -5,7 +5,12 @@
 
 import React from 'react';
 
-export const Skeleton: React.FC<{ className?: string; style?: React.CSSProperties }> = ({
+export interface SkeletonProps {
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export const Skeleton: React.FC<SkeletonProps> = ({
   className = '',
   style,
 }) => (

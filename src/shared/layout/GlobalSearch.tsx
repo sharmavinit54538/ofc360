@@ -17,8 +17,6 @@ import {
   FileText,
   Activity,
   ArrowRight,
-  Sun,
-  Moon,
   Sparkles,
 } from 'lucide-react';
 import { useGetEmployeesQuery } from '@/features/workforce/api/workforceApi';
@@ -73,12 +71,20 @@ const STATIC_PAGES: StaticNavOption[] = [
     keywords: ['attendance', 'punch', 'clock in', 'clock out', 'shifts', 'roster', 'biometric', 'face attendance', 'regularization'],
   },
   {
-    title: 'Leave Management',
-    subtitle: 'Leave requests, balances, approvals & holiday calendar',
-    url: '/dashboard/leave',
+    title: 'Talent Management Hub',
+    subtitle: 'Unified talent acquisition, candidate pipeline & performance appraisals',
+    url: '/dashboard/talent',
+    category: 'pages',
+    icon: Sparkles,
+    keywords: ['talent', 'recruitment', 'performance', 'hiring', 'candidates', 'reviews', 'appraisals', 'goals'],
+  },
+  {
+    title: 'Leave & Time Off',
+    subtitle: 'Leave requests, balances, approvals & holiday calendar under Attendance',
+    url: '/dashboard/attendance?tab=leave',
     category: 'pages',
     icon: Palmtree,
-    keywords: ['leave', 'vacation', 'time off', 'sick leave', 'casual leave', 'balance', 'apply leave'],
+    keywords: ['leave', 'vacation', 'time off', 'sick leave', 'casual leave', 'balance', 'apply leave', 'attendance leave'],
   },
   {
     title: 'Payroll & Compensation',
@@ -90,16 +96,16 @@ const STATIC_PAGES: StaticNavOption[] = [
   },
   {
     title: 'Performance & Appraisals',
-    subtitle: 'Review cycles, goals, OKRs & 360° feedback',
-    url: '/dashboard/performance',
+    subtitle: 'Review cycles, goals, OKRs & 360° feedback under Talent',
+    url: '/dashboard/talent?tab=performance',
     category: 'pages',
     icon: Target,
     keywords: ['performance', 'appraisal', 'review', 'goal', 'okr', 'rating', 'feedback', 'kpi'],
   },
   {
     title: 'Recruitment & Candidates',
-    subtitle: 'Job openings, applicants pipeline & interview stages',
-    url: '/dashboard/recruitment',
+    subtitle: 'Job openings, applicants pipeline & interview stages under Talent',
+    url: '/dashboard/talent?tab=recruitment',
     category: 'pages',
     icon: Briefcase,
     keywords: ['recruitment', 'jobs', 'hiring', 'candidates', 'interviews', 'applicants', 'openings'],
@@ -165,18 +171,18 @@ const QUICK_ACTIONS: QuickActionOption[] = [
   },
   {
     title: 'Apply for Leave',
-    subtitle: 'Submit leave or time-off request',
+    subtitle: 'Submit leave or time-off request in Attendance hub',
     category: 'actions',
     icon: Palmtree,
-    url: '/dashboard/leave',
+    url: '/dashboard/attendance?tab=leave',
     keywords: ['apply leave', 'request leave', 'take time off', 'sick leave'],
   },
   {
     title: 'Create Goal / OKR',
-    subtitle: 'Define a measurable performance objective',
+    subtitle: 'Define a measurable performance objective in Talent hub',
     category: 'actions',
     icon: Target,
-    url: '/dashboard/performance',
+    url: '/dashboard/talent?tab=performance',
     keywords: ['create goal', 'new goal', 'add okr', 'target'],
   },
   {
@@ -191,7 +197,7 @@ const QUICK_ACTIONS: QuickActionOption[] = [
 
 export const GlobalSearch: React.FC = () => {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');

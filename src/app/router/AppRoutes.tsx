@@ -21,6 +21,7 @@ import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-manageme
 import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
 import { DashboardWorkforceRoute } from '@/routes/dashboard.workforce';
+import { DashboardTalentRoute } from '@/routes/dashboard.talent';
 import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
 import { DashboardLeaveRoute } from '@/routes/dashboard.leave';
@@ -186,17 +187,6 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Recruitment & Talent Acquisition Hub */}
-      <Route
-        path="/dashboard/recruitment"
-        element={
-          <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}
-          >
-            <DashboardRecruitmentRoute />
-          </ProtectedRoute>
-        }
-      />
 
       {/* Corporate Travel Requests & Approvals */}
       <Route
@@ -376,16 +366,26 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Recruitment Hub & Applicant Pipeline */}
+      {/* Talent Management Hub (Recruitment & Performance) */}
       <Route
-        path="/dashboard/recruitment"
+        path="/dashboard/talent"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
-            <DashboardRecruitmentRoute />
+            <DashboardTalentRoute />
           </ProtectedRoute>
         }
+      />
+
+      {/* Recruitment & Performance routes redirected to Talent Hub */}
+      <Route
+        path="/dashboard/recruitment"
+        element={<Navigate to="/dashboard/talent?tab=recruitment" replace />}
+      />
+      <Route
+        path="/dashboard/performance"
+        element={<Navigate to="/dashboard/talent?tab=performance" replace />}
       />
 
       {/* Documents & Compliance Hub */}
@@ -411,38 +411,18 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Leave Management & Time Off */}
+      {/* Leave Management redirected into Attendance Hub */}
       <Route
         path="/dashboard/leave"
-        element={
-          <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
-          >
-            <DashboardLeaveRoute />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/dashboard/attendance?tab=leave" replace />}
       />
       <Route
         path="/dashboard/leaves"
-        element={
-          <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
-          >
-            <DashboardLeaveRoute />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/dashboard/attendance?tab=leave" replace />}
       />
-
-      {/* Performance Reviews, OKRs & Appraisals */}
       <Route
-        path="/dashboard/performance"
-        element={
-          <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
-          >
-            <DashboardPerformanceRoute />
-          </ProtectedRoute>
-        }
+        path="/dashboard/attendance/leave"
+        element={<Navigate to="/dashboard/attendance?tab=leave" replace />}
       />
 
       {/* Workforce Analytics & AI Intelligence Center */}

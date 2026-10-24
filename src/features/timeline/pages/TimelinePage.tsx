@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { History, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { useToast } from '@/shared/ui/Toast';

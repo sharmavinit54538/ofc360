@@ -306,4 +306,15 @@ export interface HolidayItem {
   date: string;
   day: string;
   isOptional: boolean;
+  type?: 'PUBLIC' | 'COMPANY' | 'OPTIONAL' | string;
+  description?: string;
 }
+
+export interface CreateHolidayPayload {
+  name: string;
+  date: string;
+  isOptional?: boolean;
+  type?: 'PUBLIC' | 'COMPANY' | 'OPTIONAL' | string;
+  description?: string;
+}
+

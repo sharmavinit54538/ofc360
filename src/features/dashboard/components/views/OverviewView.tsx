@@ -350,7 +350,7 @@ const PendingApprovalsQueue: React.FC<{
         </div>
       ))}
       {total > 5 && (
-        <Button variant="ghost" size="sm" className="w-full" onClick={() => onNavigate('/dashboard/leaves?status=PENDING')}>
+        <Button variant="ghost" size="sm" className="w-full" onClick={() => onNavigate('/dashboard/attendance?tab=leave&status=PENDING')}>
           View all {total} leave requests <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       )}
@@ -893,7 +893,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
           description={`${pendingApprovals?.leaves.total || 0} pending leave requests`}
           icon={<Calendar className="w-4 h-4" />}
           iconColor="text-amber-500 dark:text-amber-400"
-          onClick={() => handleNavigate('/dashboard/leaves?status=PENDING')}
+          onClick={() => handleNavigate('/dashboard/attendance?tab=leave&status=PENDING')}
           variant="outline"
         />
         <QuickActionButton
@@ -925,7 +925,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
               <AlertTriangle className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               Pending Approvals Queue
             </h3>
-            <Button variant="ghost" size="sm" onClick={() => handleNavigate('/dashboard/leaves?status=PENDING')}>
+            <Button variant="ghost" size="sm" onClick={() => handleNavigate('/dashboard/attendance?tab=leave&status=PENDING')}>
               View All <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>

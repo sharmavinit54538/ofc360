@@ -2,32 +2,31 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
-  Briefcase,
   CalendarDays,
   CreditCard,
-  Palmtree,
-  Gauge,
   LineChart,
   FolderKanban,
   Activity,
   Settings,
   MessageSquare,
+  Sparkles,
 } from 'lucide-react';
 import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
 export type SidebarSection =
   | 'overview'
   | 'workforce'
-  | 'recruitment'
+  | 'talent'
   | 'attendance'
   | 'payroll'
-  | 'leave'
-  | 'performance'
   | 'reports'
   | 'aihub'
   | 'documents'
   | 'hrops'
-  | 'settings';
+  | 'settings'
+  | 'recruitment'
+  | 'leave'
+  | 'performance';
 
 export type TabGroup = SidebarSection;
 
@@ -68,9 +67,9 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     order: 1,
   },
   {
-    id: 'recruitment',
-    label: 'Recruitment',
-    icon: Briefcase,
+    id: 'talent',
+    label: 'Talent',
+    icon: Sparkles,
     collapsible: false,
     order: 2,
   },
@@ -89,64 +88,48 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     order: 4,
   },
   {
-    id: 'leave',
-    label: 'Leave',
-    icon: Palmtree,
-    collapsible: false,
-    order: 5,
-  },
-  {
-    id: 'performance',
-    label: 'Performance',
-    icon: Gauge,
-    collapsible: false,
-    order: 6,
-  },
-  {
     id: 'reports',
     label: 'Reports & Analytics',
     icon: LineChart,
     collapsible: false,
-    order: 7,
+    order: 5,
   },
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
     icon: GeminiIcon,
     collapsible: false,
-    order: 8,
+    order: 6,
   },
   {
     id: 'documents',
     label: 'Documents & Compliance',
     icon: FolderKanban,
     collapsible: false,
-    order: 9,
+    order: 7,
   },
   {
     id: 'hrops',
     label: 'HR Operations',
     icon: Activity,
     collapsible: false,
-    order: 10,
+    order: 8,
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: Settings,
     collapsible: false,
-    order: 11,
+    order: 9,
   },
 ];
 
 const OverviewView = React.lazy(() => import('./views/OverviewView'));
 const ComingSoonView = React.lazy(() => import('./views/ComingSoonView'));
 const WorkforceHubPage = React.lazy(() => import('@/features/workforce/pages/WorkforceHubPage'));
-const RecruitmentHubPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentHubPage'));
+const TalentHubPage = React.lazy(() => import('@/features/talent/pages/TalentHubPage'));
 const AttendanceHubPage = React.lazy(() => import('@/features/attendance/pages/AttendanceHubPage'));
 const PayrollHubPage = React.lazy(() => import('@/features/payroll/pages/PayrollHubPage'));
-const LeaveManagementHubPage = React.lazy(() => import('@/features/leave/pages/LeaveManagementHubPage'));
-const PerformanceHubPage = React.lazy(() => import('@/features/performance/pages/PerformanceHubPage'));
 const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pages/ReportsAnalyticsHubPage'));
 const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
 const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
@@ -179,20 +162,22 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 3. RECRUITMENT (1 tab - links to /dashboard/recruitment)
+  // 3. TALENT (1 tab - links to /dashboard/talent)
+  // Combines Recruitment & Performance
   // ==========================================
   {
-    id: 'recruitment',
-    label: 'Recruitment',
-    icon: Briefcase,
-    group: 'recruitment',
-    section: 'recruitment',
-    path: '/dashboard/recruitment',
-    component: RecruitmentHubPage,
+    id: 'talent',
+    label: 'Talent',
+    icon: Sparkles,
+    group: 'talent',
+    section: 'talent',
+    path: '/dashboard/talent',
+    component: TalentHubPage,
   },
 
   // ==========================================
   // 4. ATTENDANCE (1 tab - links to /dashboard/attendance)
+  // Combines Attendance & Leave Management
   // ==========================================
   {
     id: 'attendance',
@@ -205,7 +190,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 5. PAYROLL & BENEFITS (1 tab) - Collapsible group
+  // 5. PAYROLL & BENEFITS (1 tab - links to /dashboard/payroll)
   // ==========================================
   {
     id: 'payroll',
@@ -217,36 +202,8 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
     component: PayrollHubPage,
   },
 
-
-
   // ==========================================
-  // 6. LEAVE (1 tab - links to /dashboard/leave)
-  // ==========================================
-  {
-    id: 'leave',
-    label: 'Leave',
-    icon: Palmtree,
-    group: 'leave',
-    section: 'leave',
-    path: '/dashboard/leave',
-    component: LeaveManagementHubPage,
-  },
-
-  // ==========================================
-  // 7. PERFORMANCE (1 tab - links to /dashboard/performance)
-  // ==========================================
-  {
-    id: 'performance',
-    label: 'Performance',
-    icon: Gauge,
-    group: 'performance',
-    section: 'performance',
-    path: '/dashboard/performance',
-    component: PerformanceHubPage,
-  },
-
-  // ==========================================
-  // 8. REPORTS & ANALYTICS (1 tab - links to /dashboard/reports)
+  // 6. REPORTS & ANALYTICS (1 tab - links to /dashboard/reports)
   // ==========================================
   {
     id: 'reports',
@@ -259,7 +216,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 9. AI INTELLIGENCE HUB (1 tab - links to /dashboard/ai-hub)
+  // 7. AI INTELLIGENCE HUB (1 tab - links to /dashboard/ai-hub)
   // ==========================================
   {
     id: 'aihub',
@@ -272,7 +229,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 10. DOCUMENTS & COMPLIANCE (1 tab - links to /dashboard/documents)
+  // 8. DOCUMENTS & COMPLIANCE (1 tab - links to /dashboard/documents)
   // ==========================================
   {
     id: 'documents',
@@ -285,7 +242,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 11. HR OPERATIONS (1 tab - links to /dashboard/hr-ops)
+  // 9. HR OPERATIONS (1 tab - links to /dashboard/hr-ops)
   // ==========================================
   {
     id: 'hrops',
@@ -298,7 +255,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 12. SETTINGS (1 tab - links to /settings)
+  // 10. SETTINGS (1 tab - links to /settings)
   // ==========================================
   {
     id: 'settings',
@@ -312,15 +269,20 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
 ];
 
 export const LEGACY_ALIASES: Record<string, string> = {
+  'recruitment': 'talent',
+  'recruitment-dashboard': 'talent',
+  'performance': 'talent',
+  'performance-dashboard': 'talent',
+  'leave': 'attendance',
+  'leaves': 'attendance',
   'ai-insights': 'analytics-center',
   'hrops-dashboard': 'hrops',
-  'recruitment-dashboard': 'recruitment',
-  'all-jobs': 'recruitment',
-  'requisitions': 'recruitment',
-  'candidates': 'recruitment',
-  'pipeline': 'recruitment',
-  'interviews': 'recruitment',
-  'offers': 'recruitment',
+  'all-jobs': 'talent',
+  'requisitions': 'talent',
+  'candidates': 'talent',
+  'pipeline': 'talent',
+  'interviews': 'talent',
+  'offers': 'talent',
   'aihub-dashboard': 'aihub',
   'chat-assistant': 'aihub',
   'meeting-intelligence': 'aihub',
@@ -333,7 +295,6 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'compliance-monitor': 'documents',
   'policy-assistant': 'documents',
   'document-generator': 'documents',
-  'leaves': 'leave',
   'employees': 'workforce',
   'managers': 'workforce',
   'departments': 'workforce',
