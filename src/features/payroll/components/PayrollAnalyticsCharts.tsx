@@ -107,20 +107,24 @@ export const PayrollAnalyticsCharts: React.FC<PayrollAnalyticsChartsProps> = ({
   const monthlyData = useMemo(() => {
     if (runs && runs.length >= 3) {
       // Map API runs to chart points if available
-      return runs.slice(0, 6).reverse().map((run) => {
-        const net = (run.totalNetPay || 4250000) / 100000;
-        const gross = (run.totalGrossPay || 4820000) / 100000;
-        const ded = (run.totalDeductions || 570000) / 100000;
-        return {
-          month: `${run.month}/${run.year}`,
-          shortMonth: String(run.month),
-          netPayout: Number(net.toFixed(2)),
-          statutory: Number((ded * 0.55).toFixed(2)),
-          tds: Number((ded * 0.45).toFixed(2)),
-          grossTotal: Number(gross.toFixed(2)),
-          headcount: run.totalEmployees || 148,
-        };
-      });
+      return (runs || [])
+        .filter(Boolean)
+        .slice(0, 6)
+        .reverse()
+        .map((run) => {
+          const net = (run?.totalNetPay || 4250000) / 100000;
+          const gross = (run?.totalGrossPay || 4820000) / 100000;
+          const ded = (run?.totalDeductions || 570000) / 100000;
+          return {
+            month: `${run?.month ?? 10}/${run?.year ?? 2026}`,
+            shortMonth: String(run?.month ?? 10),
+            netPayout: Number(net.toFixed(2)),
+            statutory: Number((ded * 0.55).toFixed(2)),
+            tds: Number((ded * 0.45).toFixed(2)),
+            grossTotal: Number(gross.toFixed(2)),
+            headcount: run?.totalEmployees || 148,
+          };
+        });
     }
     return MONTHLY_PAYROLL_DATA;
   }, [runs]);
@@ -143,14 +147,27 @@ export const PayrollAnalyticsCharts: React.FC<PayrollAnalyticsChartsProps> = ({
   }
 
   // Y-axis max scale calculation
-  const maxGross = Math.max(...monthlyData.map((d) => d.grossTotal), 55);
+  const maxGross = Math.max(...(monthlyData || []).map((d) => d?.grossTotal || 0), 55);
   const chartHeight = 180;
 
   // Donut chart calculations
   const donutRadius = 65;
   const donutStrokeWidth = 26;
   const circumference = 2 * Math.PI * donutRadius;
-  let accumulatedPercent = 0;
+
+  const donutSegments = useMemo(() => {
+    let currentPercent = 0;
+    return (DEPARTMENT_COST_DATA || []).map((dept) => {
+      const strokeDash = (dept.percentage / 100) * circumference;
+      const strokeOffset = circumference - (currentPercent / 100) * circumference;
+      currentPercent += dept.percentage;
+      return {
+        ...dept,
+        strokeDash,
+        strokeOffset,
+      };
+    });
+  }, [circumference]);
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -418,11 +435,7 @@ export const PayrollAnalyticsCharts: React.FC<PayrollAnalyticsChartsProps> = ({
                   />
 
                   {/* SVG Segments */}
-                  {DEPARTMENT_COST_DATA.map((dept) => {
-                    const strokeDash = (dept.percentage / 100) * circumference;
-                    const strokeOffset = circumference - (accumulatedPercent / 100) * circumference;
-                    accumulatedPercent += dept.percentage;
-
+                  {donutSegments.map((dept) => {
                     const isHovered = hoveredDeptId === dept.id;
 
                     return (
@@ -434,8 +447,8 @@ export const PayrollAnalyticsCharts: React.FC<PayrollAnalyticsChartsProps> = ({
                         fill="transparent"
                         stroke={dept.color}
                         strokeWidth={isHovered ? donutStrokeWidth + 4 : donutStrokeWidth}
-                        strokeDasharray={`${strokeDash} ${circumference}`}
-                        strokeDashoffset={strokeOffset}
+                        strokeDasharray={`${dept.strokeDash} ${circumference}`}
+                        strokeDashoffset={dept.strokeOffset}
                         className="transition-all duration-200 cursor-pointer hover:opacity-90"
                         onMouseEnter={() => setHoveredDeptId(dept.id)}
                         onMouseLeave={() => setHoveredDeptId(null)}

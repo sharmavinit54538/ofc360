@@ -45,6 +45,7 @@ import { PfComplianceCenter } from '../components/PfComplianceCenter';
 import { PayrollApprovalStepper } from '../components/PayrollApprovalStepper';
 import { DashboardKpiGrid } from '../components/DashboardKpiGrid';
 import { PayrollOverviewDetail } from '../components/PayrollOverviewDetail';
+import { PayrollDetailHeader } from '../components/PayrollDetailHeader';
 
 const PAGE_SIZE = 10;
 
@@ -111,17 +112,23 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 export const PayrollHubPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab') as PayrollTab | null;
-  const [activeTab, setActiveTab] = useState<PayrollTab>(urlTab || 'overview');
+  const [activeModule, setActiveModule] = useState<PayrollTab | null>(urlTab || null);
 
   useEffect(() => {
-    if (urlTab && urlTab !== activeTab) {
-      setActiveTab(urlTab);
+    if (urlTab !== activeModule) {
+      setActiveModule(urlTab || null);
     }
   }, [urlTab]);
 
-  const handleSelectTab = (tab: PayrollTab) => {
-    setActiveTab(tab);
-    setSearchParams({ tab });
+  const handleSelectModule = (module: PayrollTab | string) => {
+    const nextMod = module as PayrollTab;
+    setActiveModule(nextMod);
+    setSearchParams({ tab: nextMod });
+  };
+
+  const handleBackToHub = () => {
+    setActiveModule(null);
+    setSearchParams({});
   };
 
   const [month, setMonth] = useState(() => new Date().getMonth() + 1);
@@ -154,7 +161,7 @@ export const PayrollHubPage: React.FC = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setDebouncedPayslipSearch(payslipSearch.trim());
+      setDebouncedPayslipSearch((payslipSearch || '').trim());
       setPayslipPage(1);
     }, 350);
     return () => window.clearTimeout(timer);
@@ -162,7 +169,7 @@ export const PayrollHubPage: React.FC = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setDebouncedStructureSearch(structureSearch.trim());
+      setDebouncedStructureSearch((structureSearch || '').trim());
       setStructurePage(1);
     }, 350);
     return () => window.clearTimeout(timer);
@@ -206,7 +213,7 @@ export const PayrollHubPage: React.FC = () => {
     error: payslipsError,
     refetch: refetchPayslips,
   } = useGetPayslipsQuery(payslipFilters, {
-    skip: activeTab !== 'payslips' && activeTab !== 'overview',
+    skip: activeModule !== 'payslips' && activeModule !== 'overview',
   });
 
   const {
@@ -216,7 +223,7 @@ export const PayrollHubPage: React.FC = () => {
     error: runsError,
     refetch: refetchRuns,
   } = useGetPayrollRunsQuery(runsArgs, {
-    skip: activeTab !== 'runs' && activeTab !== 'overview' && activeTab !== 'pf-ecr',
+    skip: activeModule !== 'runs' && activeModule !== 'overview' && activeModule !== 'pf-ecr',
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
   });
@@ -228,7 +235,7 @@ export const PayrollHubPage: React.FC = () => {
     error: structuresError,
     refetch: refetchStructures,
   } = useGetSalaryStructuresQuery(structureFilters, {
-    skip: activeTab !== 'structures',
+    skip: activeModule !== 'structures',
   });
 
   const {
@@ -247,7 +254,7 @@ export const PayrollHubPage: React.FC = () => {
     refetch: refetchDeclarations,
   } = useGetTaxDeclarationsQuery(
     { financialYear, scope, status: taxStatus },
-    { skip: activeTab !== 'tax' }
+    { skip: activeModule !== 'tax' }
   );
 
   const { data: departments = [] } = useGetDepartmentsQuery();
@@ -290,44 +297,27 @@ export const PayrollHubPage: React.FC = () => {
     setPayslipPage(1);
   };
 
-  return (
-    <div className="space-y-6 pb-12">
-      {/* 1. Header with Title and Global Actions */}
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Payroll Hub
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
-            Indian statutory compliance, salary disbursement, and tax management
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {activeTab === 'payslips' && (
+  const renderDetailActions = (module: PayrollTab) => {
+    switch (module) {
+      case 'overview':
+        return (
+          <>
+            <Link to="/settings/payroll">
+              <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
+                Payroll Settings
+              </Button>
+            </Link>
             <Button
-              variant="outline"
               size="sm"
-              onClick={() => setIsAdjustmentOpen(true)}
-              leftIcon={<CirclePlus className="w-3.5 h-3.5" />}
+              onClick={() => setIsInitiateOpen(true)}
+              leftIcon={<Play className="w-3.5 h-3.5" />}
             >
-              Add Adjustment
+              Initiate Payroll
             </Button>
-          )}
-          {activeTab === 'tax' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsTaxDeclarationOpen(true)}
-              leftIcon={<Send className="w-3.5 h-3.5" />}
-            >
-              Submit Declaration
-            </Button>
-          )}
-          <Link to="/settings/payroll">
-            <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
-              Payroll Settings
-            </Button>
-          </Link>
+          </>
+        );
+      case 'runs':
+        return (
           <Button
             size="sm"
             onClick={() => setIsInitiateOpen(true)}
@@ -335,298 +325,382 @@ export const PayrollHubPage: React.FC = () => {
           >
             Initiate Payroll
           </Button>
-        </div>
-      </header>
+        );
+      case 'payslips':
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAdjustmentOpen(true)}
+            leftIcon={<CirclePlus className="w-3.5 h-3.5" />}
+          >
+            Add Adjustment
+          </Button>
+        );
+      case 'structures':
+      case 'components':
+      case 'statutory':
+        return (
+          <Link to="/settings/payroll">
+            <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
+              Payroll Settings
+            </Button>
+          </Link>
+        );
+      case 'pf-ecr':
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetchRuns()}
+            disabled={runsFetching}
+            leftIcon={<RefreshCw className={cn('w-3.5 h-3.5', runsFetching && 'animate-spin')} />}
+          >
+            Refresh
+          </Button>
+        );
+      case 'tax':
+        return (
+          <Button
+            size="sm"
+            onClick={() => setIsTaxDeclarationOpen(true)}
+            leftIcon={<Send className="w-3.5 h-3.5" />}
+          >
+            Submit Declaration
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
 
-      {/* 2. Top Summary KPI Cards */}
-      {statsError && (
-        <ErrorDisplay
-          title="Payroll summary unavailable"
-          error={statsError}
-          onRetry={() => refetchStats()}
-          compact
-        />
-      )}
+  return (
+    <div className="space-y-6 pb-12">
+      {activeModule === null ? (
+        /* Hub View: Header, Top 5 KPIs, 8-Card Launcher Grid ONLY (with no active border) */
+        <>
+          <header className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Payroll Hub
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
+                Indian statutory compliance, salary disbursement, and tax management
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link to="/settings/payroll">
+                <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
+                  Payroll Settings
+                </Button>
+              </Link>
+              <Button
+                size="sm"
+                onClick={() => setIsInitiateOpen(true)}
+                leftIcon={<Play className="w-3.5 h-3.5" />}
+              >
+                Initiate Payroll
+              </Button>
+            </div>
+          </header>
 
-      <PayrollKpiCards stats={stats} isLoading={statsLoading} />
+          {statsError && (
+            <ErrorDisplay
+              title="Payroll summary unavailable"
+              error={statsError}
+              onRetry={() => refetchStats()}
+              compact
+            />
+          )}
 
-      {/* 3. 8-Module Launcher Grid with Active Tab Indicator */}
-      <div className="pt-1">
-        <DashboardKpiGrid activeId={activeTab} onSelect={(id) => handleSelectTab(id as PayrollTab)} />
-      </div>
+          <PayrollKpiCards stats={stats} isLoading={statsLoading} />
 
-      {/* 4. Active Tab Content */}
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <PayrollOverviewDetail
-          stats={stats}
-          activeRun={activeRun}
-          onNavigate={(tab) => handleSelectTab(tab as PayrollTab)}
-          onInitiatePayroll={() => setIsInitiateOpen(true)}
-          onRefreshRuns={refetchRuns}
-          onRefreshStats={refetchStats}
-        />
-      )}
-
-      {/* Payroll Runs Tab */}
-      {activeTab === 'runs' && (
+          <div className="pt-1">
+            <DashboardKpiGrid activeId={null} onSelect={(id) => handleSelectModule(id as PayrollTab)} />
+          </div>
+        </>
+      ) : (
+        /* Dedicated Module Detail View (8-card grid & Hub header are completely hidden) */
         <div className="space-y-6">
-          {activeRun && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                Selected Batch Lifecycle Stepper
-              </h3>
-              <PayrollApprovalStepper
-                run={activeRun}
+          <PayrollDetailHeader
+            activeModuleId={activeModule}
+            onBack={handleBackToHub}
+            onSelectModule={(id) => handleSelectModule(id as PayrollTab)}
+            actions={renderDetailActions(activeModule)}
+          />
+
+          {/* Overview Tab */}
+          {activeModule === 'overview' && (
+            <PayrollOverviewDetail
+              stats={stats}
+              activeRun={activeRun}
+              onNavigate={(tab) => handleSelectModule(tab as PayrollTab)}
+              onInitiatePayroll={() => setIsInitiateOpen(true)}
+              onRefreshRuns={refetchRuns}
+              onRefreshStats={refetchStats}
+            />
+          )}
+
+          {/* Payroll Runs Tab */}
+          {activeModule === 'runs' && (
+            <div className="space-y-6">
+              {activeRun && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    Selected Batch Lifecycle Stepper
+                  </h3>
+                  <PayrollApprovalStepper
+                    run={activeRun}
+                    onRefresh={() => {
+                      refetchRuns();
+                      refetchStats();
+                    }}
+                    onViewPayslips={() => handleSelectModule('payslips')}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717]">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-white">Payroll batch year</p>
+                    <p className="text-[11px] text-gray-500 dark:text-zinc-400">
+                      Select a run below to review its stage or execute approvals
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      aria-label="Payroll run year"
+                      value={year}
+                      onChange={(event) => handleYearChange(Number(event.target.value))}
+                      className="px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
+                    >
+                      {runYears.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetchRuns()}
+                      disabled={runsFetching}
+                      leftIcon={<RefreshCw className={cn('w-3.5 h-3.5', runsFetching && 'animate-spin')} />}
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+
+                {runsError ? (
+                  <ErrorDisplay
+                    title="Unable to load payroll runs"
+                    error={runsError}
+                    onRetry={() => refetchRuns()}
+                  />
+                ) : (
+                  <PayrollRunsTable
+                    runs={runs}
+                    isLoading={runsLoading}
+                    onInitiate={() => setIsInitiateOpen(true)}
+                    onStatusChange={(run, status) => {
+                      setSelectedRunId(run.id);
+                      setStatusTarget({ run, status });
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Payslips Tab */}
+          {activeModule === 'payslips' && (
+            <div className="space-y-4">
+              <PayrollFilterBar
+                scope={scope}
+                onScopeChange={handleScopeChange}
+                month={month}
+                onMonthChange={handleMonthChange}
+                year={year}
+                onYearChange={handleYearChange}
+                departmentId={payslipDepartment}
+                onDepartmentChange={(value) => {
+                  setPayslipDepartment(value);
+                  setPayslipPage(1);
+                }}
+                departments={departments}
+                status={payslipStatus}
+                onStatusChange={(value) => {
+                  setPayslipStatus(value);
+                  setPayslipPage(1);
+                }}
+                search={payslipSearch}
+                onSearchChange={setPayslipSearch}
+                onReset={resetPayslipFilters}
                 onRefresh={() => {
-                  refetchRuns();
+                  refetchPayslips();
                   refetchStats();
                 }}
-                onViewPayslips={() => handleSelectTab('payslips')}
+                isRefreshing={payslipsFetching && !payslipsLoading}
               />
+              {payslipsError ? (
+                <ErrorDisplay
+                  title="Unable to load payslips"
+                  error={payslipsError}
+                  onRetry={() => refetchPayslips()}
+                />
+              ) : (
+                <>
+                  <PayslipsTable
+                    payslips={payslips}
+                    isLoading={payslipsLoading}
+                    onView={(payslip) => setSelectedPayslipId(payslip.id)}
+                  />
+                  <PaginationControls
+                    page={payslipPage}
+                    total={payslipsData?.total || 0}
+                    limit={payslipsData?.limit || PAGE_SIZE}
+                    isFetching={payslipsFetching}
+                    onPageChange={setPayslipPage}
+                    resourceLabel="payslips"
+                  />
+                </>
+              )}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717]">
-              <div>
-                <p className="text-xs font-semibold text-gray-900 dark:text-white">Payroll batch year</p>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-400">
-                  Select a run below to review its stage or execute approvals
-                </p>
+          {/* Structures Tab */}
+          {activeModule === 'structures' && (
+            <div className="space-y-4">
+              {structuresError ? (
+                <ErrorDisplay
+                  title="Unable to load salary structures"
+                  error={structuresError}
+                  onRetry={() => refetchStructures()}
+                />
+              ) : (
+                <>
+                  <SalaryStructuresTable
+                    structures={structures}
+                    isLoading={structuresLoading}
+                    departments={departments}
+                    search={structureSearch}
+                    onSearchChange={setStructureSearch}
+                    departmentId={structureDepartment}
+                    onDepartmentChange={(value) => {
+                      setStructureDepartment(value);
+                      setStructurePage(1);
+                    }}
+                    onRefresh={() => refetchStructures()}
+                    isRefreshing={structuresFetching && !structuresLoading}
+                  />
+                  <PaginationControls
+                    page={structurePage}
+                    total={structuresData?.total || 0}
+                    limit={structuresData?.limit || PAGE_SIZE}
+                    isFetching={structuresFetching}
+                    onPageChange={setStructurePage}
+                    resourceLabel="salary structures"
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Components Catalog Tab */}
+          {activeModule === 'components' && (
+            <PayComponentsCatalog />
+          )}
+
+          {/* Statutory Center Tab */}
+          {activeModule === 'statutory' && (
+            <StatutoryComplianceCenter />
+          )}
+
+          {/* EPFO PF & ECR Compliance Tab */}
+          {activeModule === 'pf-ecr' && (
+            <PfComplianceCenter runs={runs} />
+          )}
+
+          {/* Tax Declarations Tab */}
+          {activeModule === 'tax' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col xl:flex-row xl:items-end gap-3">
+                <div className="space-y-1.5">
+                  <label htmlFor="tax-financial-year" className="text-xs font-semibold text-gray-900 dark:text-white">
+                    Financial Year
+                  </label>
+                  <input
+                    id="tax-financial-year"
+                    value={financialYear}
+                    onChange={(event) => setFinancialYear(event.target.value)}
+                    placeholder="YYYY-YY"
+                    className="w-full xl:w-36 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="tax-scope" className="text-xs font-semibold text-gray-900 dark:text-white">
+                    Scope
+                  </label>
+                  <select
+                    id="tax-scope"
+                    value={scope}
+                    onChange={(event) => handleScopeChange(event.target.value as PayrollScope)}
+                    className="w-full xl:w-44 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
+                  >
+                    <option value="MY">My Declarations</option>
+                    <option value="ALL">All Organization</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="tax-status" className="text-xs font-semibold text-gray-900 dark:text-white">
+                    Verification Status
+                  </label>
+                  <select
+                    id="tax-status"
+                    value={taxStatus}
+                    onChange={(event) => setTaxStatus(event.target.value)}
+                    className="w-full xl:w-44 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="VERIFIED">Verified</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2 xl:ml-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchDeclarations()}
+                    disabled={declarationsFetching}
+                    leftIcon={<RefreshCw className={cn('w-3.5 h-3.5', declarationsFetching && 'animate-spin')} />}
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsTaxDeclarationOpen(true)}
+                    leftIcon={<Send className="w-3.5 h-3.5" />}
+                  >
+                    Submit Declaration
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <select
-                  aria-label="Payroll run year"
-                  value={year}
-                  onChange={(event) => handleYearChange(Number(event.target.value))}
-                  className="px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
-                >
-                  {runYears.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchRuns()}
-                  disabled={runsFetching}
-                  leftIcon={<RefreshCw className={cn('w-3.5 h-3.5', runsFetching && 'animate-spin')} />}
-                >
-                  Refresh
-                </Button>
-              </div>
+              {declarationsError ? (
+                <ErrorDisplay
+                  title="Unable to load tax declarations"
+                  error={declarationsError}
+                  onRetry={() => refetchDeclarations()}
+                />
+              ) : (
+                <TaxDeclarationsTable
+                  declarations={declarations}
+                  isLoading={declarationsLoading}
+                />
+              )}
             </div>
-
-            {runsError ? (
-              <ErrorDisplay
-                title="Unable to load payroll runs"
-                error={runsError}
-                onRetry={() => refetchRuns()}
-              />
-            ) : (
-              <PayrollRunsTable
-                runs={runs}
-                isLoading={runsLoading}
-                onInitiate={() => setIsInitiateOpen(true)}
-                onStatusChange={(run, status) => {
-                  setSelectedRunId(run.id);
-                  setStatusTarget({ run, status });
-                }}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Payslips Tab */}
-      {activeTab === 'payslips' && (
-        <div className="space-y-4">
-          <PayrollFilterBar
-            scope={scope}
-            onScopeChange={handleScopeChange}
-            month={month}
-            onMonthChange={handleMonthChange}
-            year={year}
-            onYearChange={handleYearChange}
-            departmentId={payslipDepartment}
-            onDepartmentChange={(value) => {
-              setPayslipDepartment(value);
-              setPayslipPage(1);
-            }}
-            departments={departments}
-            status={payslipStatus}
-            onStatusChange={(value) => {
-              setPayslipStatus(value);
-              setPayslipPage(1);
-            }}
-            search={payslipSearch}
-            onSearchChange={setPayslipSearch}
-            onReset={resetPayslipFilters}
-            onRefresh={() => {
-              refetchPayslips();
-              refetchStats();
-            }}
-            isRefreshing={payslipsFetching && !payslipsLoading}
-          />
-          {payslipsError ? (
-            <ErrorDisplay
-              title="Unable to load payslips"
-              error={payslipsError}
-              onRetry={() => refetchPayslips()}
-            />
-          ) : (
-            <>
-              <PayslipsTable
-                payslips={payslips}
-                isLoading={payslipsLoading}
-                onView={(payslip) => setSelectedPayslipId(payslip.id)}
-              />
-              <PaginationControls
-                page={payslipPage}
-                total={payslipsData?.total || 0}
-                limit={payslipsData?.limit || PAGE_SIZE}
-                isFetching={payslipsFetching}
-                onPageChange={setPayslipPage}
-                resourceLabel="payslips"
-              />
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Structures Tab */}
-      {activeTab === 'structures' && (
-        <div className="space-y-4">
-          {structuresError ? (
-            <ErrorDisplay
-              title="Unable to load salary structures"
-              error={structuresError}
-              onRetry={() => refetchStructures()}
-            />
-          ) : (
-            <>
-              <SalaryStructuresTable
-                structures={structures}
-                isLoading={structuresLoading}
-                departments={departments}
-                search={structureSearch}
-                onSearchChange={setStructureSearch}
-                departmentId={structureDepartment}
-                onDepartmentChange={(value) => {
-                  setStructureDepartment(value);
-                  setStructurePage(1);
-                }}
-                onRefresh={() => refetchStructures()}
-                isRefreshing={structuresFetching && !structuresLoading}
-              />
-              <PaginationControls
-                page={structurePage}
-                total={structuresData?.total || 0}
-                limit={structuresData?.limit || PAGE_SIZE}
-                isFetching={structuresFetching}
-                onPageChange={setStructurePage}
-                resourceLabel="salary structures"
-              />
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Components Catalog Tab */}
-      {activeTab === 'components' && (
-        <PayComponentsCatalog />
-      )}
-
-      {/* Statutory Center Tab */}
-      {activeTab === 'statutory' && (
-        <StatutoryComplianceCenter />
-      )}
-
-      {/* EPFO PF & ECR Compliance Tab */}
-      {activeTab === 'pf-ecr' && (
-        <PfComplianceCenter runs={runs} />
-      )}
-
-      {/* Tax Declarations Tab */}
-      {activeTab === 'tax' && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col xl:flex-row xl:items-end gap-3">
-            <div className="space-y-1.5">
-              <label htmlFor="tax-financial-year" className="text-xs font-semibold text-gray-900 dark:text-white">
-                Financial Year
-              </label>
-              <input
-                id="tax-financial-year"
-                value={financialYear}
-                onChange={(event) => setFinancialYear(event.target.value)}
-                placeholder="YYYY-YY"
-                className="w-full xl:w-36 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="tax-scope" className="text-xs font-semibold text-gray-900 dark:text-white">
-                Scope
-              </label>
-              <select
-                id="tax-scope"
-                value={scope}
-                onChange={(event) => handleScopeChange(event.target.value as PayrollScope)}
-                className="w-full xl:w-44 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
-              >
-                <option value="MY">My Declarations</option>
-                <option value="ALL">All Organization</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="tax-status" className="text-xs font-semibold text-gray-900 dark:text-white">
-                Verification Status
-              </label>
-              <select
-                id="tax-status"
-                value={taxStatus}
-                onChange={(event) => setTaxStatus(event.target.value)}
-                className="w-full xl:w-44 px-3 py-2 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="VERIFIED">Verified</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2 xl:ml-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchDeclarations()}
-                disabled={declarationsFetching}
-                leftIcon={<RefreshCw className={cn('w-3.5 h-3.5', declarationsFetching && 'animate-spin')} />}
-              >
-                Refresh
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setIsTaxDeclarationOpen(true)}
-                leftIcon={<Send className="w-3.5 h-3.5" />}
-              >
-                Submit Declaration
-              </Button>
-            </div>
-          </div>
-          {declarationsError ? (
-            <ErrorDisplay
-              title="Unable to load tax declarations"
-              error={declarationsError}
-              onRetry={() => refetchDeclarations()}
-            />
-          ) : (
-            <TaxDeclarationsTable
-              declarations={declarations}
-              isLoading={declarationsLoading}
-            />
           )}
         </div>
       )}
@@ -641,7 +715,7 @@ export const PayrollHubPage: React.FC = () => {
         onClose={() => setIsInitiateOpen(false)}
         month={month}
         year={year}
-        onSuccess={() => handleSelectTab('runs')}
+        onSuccess={() => handleSelectModule('runs')}
       />
       <AddAdjustmentModal
         isOpen={isAdjustmentOpen}
