@@ -115,9 +115,7 @@ export const PayrollHubPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<PayrollTab | null>(urlTab || null);
 
   useEffect(() => {
-    if (urlTab !== activeModule) {
-      setActiveModule(urlTab || null);
-    }
+    setActiveModule(urlTab || null);
   }, [urlTab]);
 
   const handleSelectModule = (module: PayrollTab | string) => {
@@ -377,9 +375,32 @@ export const PayrollHubPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {activeModule === null ? (
-        /* Hub View: Header, Top 5 KPIs, 8-Card Launcher Grid ONLY (with no active border) */
-        <>
-
+        /* Main Hub View: 8-Module KPI Card Grid + Live Financial KPIs */
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Payroll Management
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                Click any module card below to open its dedicated workspace
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link to="/settings/payroll">
+                <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
+                  Payroll Settings
+                </Button>
+              </Link>
+              <Button
+                size="sm"
+                onClick={() => setIsInitiateOpen(true)}
+                leftIcon={<Play className="w-3.5 h-3.5" />}
+              >
+                Initiate Payroll
+              </Button>
+            </div>
+          </div>
 
           {statsError && (
             <ErrorDisplay
@@ -392,28 +413,35 @@ export const PayrollHubPage: React.FC = () => {
 
           <PayrollKpiCards stats={stats} isLoading={statsLoading} />
 
-
-        </>
+          {/* 8-Module Interactive KPI Cards Grid */}
+          <div className="pt-1">
+            <DashboardKpiGrid
+              activeId={null}
+              onSelect={(id) => handleSelectModule(id as PayrollTab)}
+            />
+          </div>
+        </div>
       ) : (
-        /* Dedicated Module Detail View (8-card grid & Hub header are completely hidden) */
+        /* Dedicated Module Page View */
         <div className="space-y-6">
           <PayrollDetailHeader
             activeModuleId={activeModule}
             onBack={handleBackToHub}
-            onSelectModule={(id) => handleSelectModule(id as PayrollTab)}
             actions={renderDetailActions(activeModule)}
           />
 
-          {/* Overview Tab */}
+          {/* 1. Overview Tab */}
           {activeModule === 'overview' && (
-            <PayrollOverviewDetail
-              stats={stats}
-              activeRun={activeRun}
-              onNavigate={(tab) => handleSelectModule(tab as PayrollTab)}
-              onInitiatePayroll={() => setIsInitiateOpen(true)}
-              onRefreshRuns={refetchRuns}
-              onRefreshStats={refetchStats}
-            />
+            <div className="space-y-6">
+              <PayrollOverviewDetail
+                stats={stats}
+                activeRun={activeRun}
+                onNavigate={(tab) => handleSelectModule(tab as PayrollTab)}
+                onInitiatePayroll={() => setIsInitiateOpen(true)}
+                onRefreshRuns={refetchRuns}
+                onRefreshStats={refetchStats}
+              />
+            </div>
           )}
 
           {/* Payroll Runs Tab */}

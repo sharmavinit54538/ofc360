@@ -148,33 +148,26 @@ export const StatutoryComplianceCenter: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-transparent dark:from-indigo-500/10 dark:via-purple-500/10 dark:to-transparent">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                <ShieldCheck className="w-5 h-5" />
-              </span>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Indian Statutory Compliance Center
-              </h2>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-              Deterministic calculation engine for Provident Fund (EPFO), Employee State Insurance (ESIC), State-wise Professional Tax, Labour Welfare Fund (LWF), and Income Tax TDS (Old vs New Regime).
-            </p>
-          </div>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSaveConfig}
-            disabled={isUpdating || isConfigLoading}
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            {isUpdating ? 'Saving...' : 'Save Rulebook'}
-          </Button>
+      {/* Top Action Row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+            Statutory Engine (EPF, ESIC, PT, TDS)
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400">
+            Real-time calculation engine & live Gross-to-Net simulator
+          </p>
         </div>
+
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSaveConfig}
+          disabled={isUpdating || isConfigLoading}
+          leftIcon={<Save className="w-3.5 h-3.5" />}
+        >
+          {isUpdating ? 'Saving...' : 'Save Rulebook'}
+        </Button>
       </div>
 
       {/* Grid: Left = Statutory Rulebook, Right = Live Gross-to-Net Simulator */}
