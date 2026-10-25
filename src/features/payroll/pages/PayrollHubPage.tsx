@@ -379,30 +379,7 @@ export const PayrollHubPage: React.FC = () => {
       {activeModule === null ? (
         /* Hub View: Header, Top 5 KPIs, 8-Card Launcher Grid ONLY (with no active border) */
         <>
-          <header className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                Payroll Hub
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
-                Indian statutory compliance, salary disbursement, and tax management
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link to="/settings/payroll">
-                <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
-                  Payroll Settings
-                </Button>
-              </Link>
-              <Button
-                size="sm"
-                onClick={() => setIsInitiateOpen(true)}
-                leftIcon={<Play className="w-3.5 h-3.5" />}
-              >
-                Initiate Payroll
-              </Button>
-            </div>
-          </header>
+
 
           {statsError && (
             <ErrorDisplay
@@ -415,9 +392,7 @@ export const PayrollHubPage: React.FC = () => {
 
           <PayrollKpiCards stats={stats} isLoading={statsLoading} />
 
-          <div className="pt-1">
-            <DashboardKpiGrid activeId={null} onSelect={(id) => handleSelectModule(id as PayrollTab)} />
-          </div>
+
         </>
       ) : (
         /* Dedicated Module Detail View (8-card grid & Hub header are completely hidden) */
