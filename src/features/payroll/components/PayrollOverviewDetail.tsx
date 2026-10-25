@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PayrollApprovalStepper } from './PayrollApprovalStepper';
+import { PayrollAnalyticsCharts } from './PayrollAnalyticsCharts';
 import type { PayrollRunItem, PayrollStats } from '../types/payroll.types';
 
 interface PayrollOverviewDetailProps {
