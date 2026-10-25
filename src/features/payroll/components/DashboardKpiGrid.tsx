@@ -1,135 +1,134 @@
 /**
  * @file DashboardKpiGrid.tsx
- * @description Executive KPI Card Grid component for Indian Payroll & HR module navigation.
- * Renders 8 modules as interactive cards with live metrics, icons, badges, and active state highlights.
+ * @description Rich "Feature & Module Launcher Card" layout for Indian Payroll & HR modules.
+ * Renders an executive 3-column responsive grid with pastel gradient wash, pulsating badges,
+ * capability tags, and animated action footers.
  */
 
 import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import {
-  DASHBOARD_KPI_CARDS,
-  type DashboardKpiCardItem,
-  type KpiStatusColor,
+  DASHBOARD_LAUNCHER_CARDS,
+  type DashboardLauncherCardItem,
+  type CardThemeColor,
 } from './dashboardKpiCards.data';
 
 export interface DashboardKpiGridProps {
-  items?: DashboardKpiCardItem[];
+  items?: DashboardLauncherCardItem[];
   activeId?: string;
   onSelect?: (id: string) => void;
   className?: string;
 }
 
-// Color styles mapping for active states, icon containers, and badges
-const COLOR_CONFIG: Record<
-  KpiStatusColor,
-  {
-    iconBg: string;
-    iconColor: string;
-    activeBorder: string;
-    activeBg: string;
-    activeRing: string;
-    badgeBg: string;
-    badgeText: string;
-  }
-> = {
+interface ThemeTokens {
+  iconBg: string;
+  iconColor: string;
+  badgeBg: string;
+  badgeText: string;
+  pulseDot: string;
+  washBg: string;
+  activeRing: string;
+}
+
+const THEME_STYLES: Record<CardThemeColor, ThemeTokens> = {
   indigo: {
-    iconBg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400',
+    iconBg: 'bg-indigo-50 dark:bg-indigo-950/50',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
-    activeBorder: 'border-indigo-500 dark:border-indigo-400',
-    activeBg: 'bg-indigo-50/50 dark:bg-indigo-950/20',
-    activeRing: 'ring-1 ring-indigo-500/30 dark:ring-indigo-400/20',
-    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/60',
+    badgeBg: 'bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-800/50',
     badgeText: 'text-indigo-700 dark:text-indigo-300',
+    pulseDot: 'bg-indigo-500 dark:bg-indigo-400',
+    washBg: 'bg-gradient-to-br from-indigo-100/60 via-indigo-50/20 to-transparent dark:from-indigo-900/25 dark:via-indigo-950/10',
+    activeRing: 'ring-2 ring-indigo-500 border-indigo-200 dark:border-indigo-800',
   },
   amber: {
-    iconBg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
+    iconBg: 'bg-amber-50 dark:bg-amber-950/50',
     iconColor: 'text-amber-600 dark:text-amber-400',
-    activeBorder: 'border-amber-500 dark:border-amber-400',
-    activeBg: 'bg-amber-50/50 dark:bg-amber-950/20',
-    activeRing: 'ring-1 ring-amber-500/30 dark:ring-amber-400/20',
-    badgeBg: 'bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60',
+    badgeBg: 'bg-amber-50/80 dark:bg-amber-950/60 border border-amber-200/50 dark:border-amber-800/50',
     badgeText: 'text-amber-700 dark:text-amber-300',
+    pulseDot: 'bg-amber-500 dark:bg-amber-400',
+    washBg: 'bg-gradient-to-br from-amber-100/60 via-amber-50/20 to-transparent dark:from-amber-900/25 dark:via-amber-950/10',
+    activeRing: 'ring-2 ring-amber-500 border-amber-200 dark:border-amber-800',
   },
   emerald: {
-    iconBg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
+    iconBg: 'bg-emerald-50 dark:bg-emerald-950/50',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
-    activeBorder: 'border-emerald-500 dark:border-emerald-400',
-    activeBg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
-    activeRing: 'ring-1 ring-emerald-500/30 dark:ring-emerald-400/20',
-    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
+    badgeBg: 'bg-emerald-50/80 dark:bg-emerald-950/60 border border-emerald-200/50 dark:border-emerald-800/50',
     badgeText: 'text-emerald-700 dark:text-emerald-300',
+    pulseDot: 'bg-emerald-500 dark:bg-emerald-400',
+    washBg: 'bg-gradient-to-br from-emerald-100/60 via-emerald-50/20 to-transparent dark:from-emerald-900/25 dark:via-emerald-950/10',
+    activeRing: 'ring-2 ring-emerald-500 border-emerald-200 dark:border-emerald-800',
   },
   purple: {
-    iconBg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400',
+    iconBg: 'bg-purple-50 dark:bg-purple-950/50',
     iconColor: 'text-purple-600 dark:text-purple-400',
-    activeBorder: 'border-purple-500 dark:border-purple-400',
-    activeBg: 'bg-purple-50/50 dark:bg-purple-950/20',
-    activeRing: 'ring-1 ring-purple-500/30 dark:ring-purple-400/20',
-    badgeBg: 'bg-purple-50 text-purple-700 border-purple-200/60 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60',
+    badgeBg: 'bg-purple-50/80 dark:bg-purple-950/60 border border-purple-200/50 dark:border-purple-800/50',
     badgeText: 'text-purple-700 dark:text-purple-300',
+    pulseDot: 'bg-purple-500 dark:bg-purple-400',
+    washBg: 'bg-gradient-to-br from-purple-100/60 via-purple-50/20 to-transparent dark:from-purple-900/25 dark:via-purple-950/10',
+    activeRing: 'ring-2 ring-purple-500 border-purple-200 dark:border-purple-800',
   },
   blue: {
-    iconBg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400',
+    iconBg: 'bg-blue-50 dark:bg-blue-950/50',
     iconColor: 'text-blue-600 dark:text-blue-400',
-    activeBorder: 'border-blue-500 dark:border-blue-400',
-    activeBg: 'bg-blue-50/50 dark:bg-blue-950/20',
-    activeRing: 'ring-1 ring-blue-500/30 dark:ring-blue-400/20',
-    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60',
+    badgeBg: 'bg-blue-50/80 dark:bg-blue-950/60 border border-blue-200/50 dark:border-blue-800/50',
     badgeText: 'text-blue-700 dark:text-blue-300',
+    pulseDot: 'bg-blue-500 dark:bg-blue-400',
+    washBg: 'bg-gradient-to-br from-blue-100/60 via-blue-50/20 to-transparent dark:from-blue-900/25 dark:via-blue-950/10',
+    activeRing: 'ring-2 ring-blue-500 border-blue-200 dark:border-blue-800',
   },
   teal: {
-    iconBg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400',
+    iconBg: 'bg-teal-50 dark:bg-teal-950/50',
     iconColor: 'text-teal-600 dark:text-teal-400',
-    activeBorder: 'border-teal-500 dark:border-teal-400',
-    activeBg: 'bg-teal-50/50 dark:bg-teal-950/20',
-    activeRing: 'ring-1 ring-teal-500/30 dark:ring-teal-400/20',
-    badgeBg: 'bg-teal-50 text-teal-700 border-teal-200/60 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800/60',
+    badgeBg: 'bg-teal-50/80 dark:bg-teal-950/60 border border-teal-200/50 dark:border-teal-800/50',
     badgeText: 'text-teal-700 dark:text-teal-300',
+    pulseDot: 'bg-teal-500 dark:bg-teal-400',
+    washBg: 'bg-gradient-to-br from-teal-100/60 via-teal-50/20 to-transparent dark:from-teal-900/25 dark:via-teal-950/10',
+    activeRing: 'ring-2 ring-teal-500 border-teal-200 dark:border-teal-800',
   },
   cyan: {
-    iconBg: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400',
+    iconBg: 'bg-cyan-50 dark:bg-cyan-950/50',
     iconColor: 'text-cyan-600 dark:text-cyan-400',
-    activeBorder: 'border-cyan-500 dark:border-cyan-400',
-    activeBg: 'bg-cyan-50/50 dark:bg-cyan-950/20',
-    activeRing: 'ring-1 ring-cyan-500/30 dark:ring-cyan-400/20',
-    badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200/60 dark:bg-cyan-950/50 dark:text-cyan-300 dark:border-cyan-800/60',
+    badgeBg: 'bg-cyan-50/80 dark:bg-cyan-950/60 border border-cyan-200/50 dark:border-cyan-800/50',
     badgeText: 'text-cyan-700 dark:text-cyan-300',
+    pulseDot: 'bg-cyan-500 dark:bg-cyan-400',
+    washBg: 'bg-gradient-to-br from-cyan-100/60 via-cyan-50/20 to-transparent dark:from-cyan-900/25 dark:via-cyan-950/10',
+    activeRing: 'ring-2 ring-cyan-500 border-cyan-200 dark:border-cyan-800',
   },
   rose: {
-    iconBg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400',
+    iconBg: 'bg-rose-50 dark:bg-rose-950/50',
     iconColor: 'text-rose-600 dark:text-rose-400',
-    activeBorder: 'border-rose-500 dark:border-rose-400',
-    activeBg: 'bg-rose-50/50 dark:bg-rose-950/20',
-    activeRing: 'ring-1 ring-rose-500/30 dark:ring-rose-400/20',
-    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/60',
+    badgeBg: 'bg-rose-50/80 dark:bg-rose-950/60 border border-rose-200/50 dark:border-rose-800/50',
     badgeText: 'text-rose-700 dark:text-rose-300',
+    pulseDot: 'bg-rose-500 dark:bg-rose-400',
+    washBg: 'bg-gradient-to-br from-rose-100/60 via-rose-50/20 to-transparent dark:from-rose-900/25 dark:via-rose-950/10',
+    activeRing: 'ring-2 ring-rose-500 border-rose-200 dark:border-rose-800',
   },
 };
 
 export const DashboardKpiGrid: React.FC<DashboardKpiGridProps> = ({
-  items = DASHBOARD_KPI_CARDS,
+  items = DASHBOARD_LAUNCHER_CARDS,
   activeId = 'overview',
   onSelect,
   className = '',
 }) => {
   return (
     <div
-      role="tablist"
-      aria-label="Payroll modules"
-      className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4', className)}
+      role="region"
+      aria-label="Payroll Feature & Module Launchers"
+      className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6', className)}
     >
       {items.map((card) => {
         const Icon = card.icon;
         const isSelected = activeId === card.id;
-        const colors = COLOR_CONFIG[card.statusColor] || COLOR_CONFIG.indigo;
+        const theme = THEME_STYLES[card.theme] || THEME_STYLES.indigo;
 
         return (
-          <button
+          <div
             key={card.id}
-            type="button"
-            role="tab"
-            aria-selected={isSelected}
+            role="button"
             tabIndex={0}
+            aria-selected={isSelected}
             onClick={() => onSelect?.(card.id)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -138,76 +137,88 @@ export const DashboardKpiGrid: React.FC<DashboardKpiGridProps> = ({
               }
             }}
             className={cn(
-              'group relative flex flex-col text-left p-4 sm:p-4.5 rounded-2xl border transition-all duration-200 select-none outline-none',
-              'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-offset-zinc-950',
+              'group relative flex flex-col justify-between p-6 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden select-none outline-none',
+              'bg-white dark:bg-[#171717]',
+              'hover:shadow-md hover:-translate-y-1',
+              'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950',
               isSelected
-                ? cn(
-                    'bg-white dark:bg-[#1a1a1a] shadow-md shadow-gray-200/50 dark:shadow-black/40',
-                    colors.activeBorder,
-                    colors.activeBg,
-                    colors.activeRing
-                  )
-                : 'bg-white dark:bg-[#171717] border-gray-200 dark:border-zinc-800/80 shadow-sm hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow hover:-translate-y-0.5'
+                ? cn(theme.activeRing, 'shadow-md bg-slate-50/40 dark:bg-[#1b1b1b]')
+                : 'border-slate-100 dark:border-zinc-800 shadow-sm hover:border-slate-200 dark:hover:border-zinc-700'
             )}
           >
-            {/* Top row: Icon and Badge */}
-            <div className="flex items-center justify-between gap-2">
-              <div
-                className={cn(
-                  'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105',
-                  colors.iconBg
-                )}
-              >
-                <Icon className={cn('w-4.5 h-4.5', colors.iconColor)} />
-              </div>
+            {/* Top-Right Soft Radial / Linear Pastel Gradient Wash */}
+            <div
+              className={cn(
+                'absolute -top-10 -right-10 w-44 h-44 rounded-full pointer-events-none transition-opacity duration-300 blur-xl',
+                theme.washBg,
+                isSelected ? 'opacity-90' : 'opacity-60 group-hover:opacity-100'
+              )}
+              aria-hidden="true"
+            />
 
-              {card.badgeText && (
-                <span
+            {/* Top Content Area */}
+            <div className="relative z-10">
+              {/* Header Row: Left Icon Box + Right Pulse Badge */}
+              <div className="flex items-center justify-between gap-3">
+                <div
                   className={cn(
-                    'inline-flex items-center px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-full border',
-                    colors.badgeBg
+                    'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105',
+                    theme.iconBg
                   )}
                 >
-                  {card.badgeText}
-                </span>
-              )}
+                  <Icon className={cn('w-5 h-5', theme.iconColor)} />
+                </div>
+
+                <div
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase',
+                    theme.badgeBg,
+                    theme.badgeText
+                  )}
+                >
+                  <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', theme.pulseDot)} />
+                  {card.badge}
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {card.title}
+              </h3>
+
+              {/* 2-line Description */}
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+                {card.description}
+              </p>
+
+              {/* Feature/KPI Pills Row */}
+              <div className="flex flex-wrap gap-1.5 mt-4">
+                {card.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors group-hover:bg-slate-200/70 dark:group-hover:bg-zinc-750"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* Title */}
-            <h3 className="mt-3 text-xs font-medium text-gray-500 dark:text-zinc-400 group-hover:text-gray-700 dark:group-hover:text-zinc-200 truncate">
-              {card.title}
-            </h3>
+            {/* Bottom Action Footer */}
+            <div className="relative z-10 border-t border-slate-100 dark:border-zinc-800/80 pt-3 mt-5 flex items-center justify-between">
+              <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
+                {card.footerCta}
+              </span>
 
-            {/* Primary KPI Metric */}
-            <div className="mt-1 text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white truncate">
-              {card.primaryMetric}
+              <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:translate-x-1 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/60">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
             </div>
-
-            {/* Subtext / Trend */}
-            <div className="mt-1.5 flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400">
-              <span className="truncate">{card.subtext}</span>
-            </div>
-
-            {/* Active Pill Indicator bar at bottom */}
-            {isSelected && (
-              <span
-                className={cn(
-                  'absolute bottom-0 left-4 right-4 h-0.5 rounded-full',
-                  card.statusColor === 'indigo' && 'bg-indigo-600 dark:bg-indigo-400',
-                  card.statusColor === 'amber' && 'bg-amber-600 dark:bg-amber-400',
-                  card.statusColor === 'emerald' && 'bg-emerald-600 dark:bg-emerald-400',
-                  card.statusColor === 'purple' && 'bg-purple-600 dark:bg-purple-400',
-                  card.statusColor === 'blue' && 'bg-blue-600 dark:bg-blue-400',
-                  card.statusColor === 'teal' && 'bg-teal-600 dark:bg-teal-400',
-                  card.statusColor === 'cyan' && 'bg-cyan-600 dark:bg-cyan-400',
-                  card.statusColor === 'rose' && 'bg-rose-600 dark:bg-rose-400'
-                )}
-              />
-            )}
-          </button>
+          </div>
         );
       })}
     </div>
   );
 };
 
+export default DashboardKpiGrid;
