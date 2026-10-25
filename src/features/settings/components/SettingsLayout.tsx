@@ -4,7 +4,7 @@
  * unsaved changes detection, and API unavailable alert integration.
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, Component } from 'react';
 import { useLocation, useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   Building2,
@@ -33,6 +33,62 @@ import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 import { useGetCompanySettingsQuery } from '@/features/settings/api/settingsApi';
 import type { SettingCategory, SettingsSection } from '@/features/settings/types/settings.types';
+
+// ==========================================
+// Error Boundary
+// ==========================================
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class SectionErrorBoundary extends Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[SettingsSection Error]', error, info);
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-rose-600 dark:text-rose-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+            This section failed to load
+          </h3>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6 max-w-md">
+            {this.state.error?.message || 'An unexpected error occurred. Please try again.'}
+          </p>
+          <button
+            type="button"
+            onClick={this.handleRetry}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl
+              bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ==========================================
 // Section Configuration
@@ -488,100 +544,15 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
       onSidebarToggle={toggleSidebar}
     >
       <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-[#121212]">
-        {/* If inside a specific section, show sub-header with Back to Settings button, breadcrumb, pills, and export/import */}
-        {!isOverview && (
-          <div className="sticky top-0 z-20 bg-white/95 dark:bg-[#171717]/95 backdrop-blur border-b border-slate-200 dark:border-zinc-800 px-4 md:px-8 py-3">
-            <div className="flex flex-col gap-3 max-w-7xl mx-auto">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/settings')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>All Settings</span>
-                  </button>
-                  <span className="text-slate-300 dark:text-zinc-700">/</span>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-base font-semibold text-slate-900 dark:text-white capitalize">
-                      {SETTINGS_SECTIONS.find((s) => s.id === activeSection)?.label || 'Settings'}
-                    </h1>
-                    {dirtySections.length > 0 && (
-                      <Badge variant="warning" size="sm" className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                        {dirtySections.length} unsaved
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.dispatchEvent(new CustomEvent('settings:export'))}
-                    disabled={isLoading}
-                  >
-                    Export
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => document.getElementById('settings-import')?.click()}
-                    disabled={isLoading}
-                  >
-                    Import
-                  </Button>
-                  <input
-                    id="settings-import"
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        window.dispatchEvent(new CustomEvent('settings:import', { detail: formData }));
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Horizontal Pill Tabs */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                {filteredSections.map((sec) => {
-                  const SecIcon = sec.icon;
-                  const isActive = activeSection === sec.id;
-                  return (
-                    <button
-                      key={sec.id}
-                      type="button"
-                      onClick={() => navigate(`/settings/${sec.id}`)}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all duration-150',
-                        isActive
-                          ? 'bg-indigo-600 text-white shadow-sm font-semibold'
-                          : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white'
-                      )}
-                    >
-                      <SecIcon className="w-3.5 h-3.5" />
-                      <span>{sec.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             <SettingsContext.Provider value={settingsContext}>
-              {children || <Outlet />}
+              <SectionErrorBoundary>
+                {children || <Outlet />}
+              </SectionErrorBoundary>
             </SettingsContext.Provider>
           </div>
         </div>

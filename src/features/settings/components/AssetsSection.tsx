@@ -155,14 +155,14 @@ export const AssetsSection: React.FC = () => {
   useEffect(() => {
     if (assetsSettings && !isLoading) {
       reset({
-        categories: assetsSettings.categories,
-        tagConfig: assetsSettings.tagConfig,
-        allocationRules: assetsSettings.allocationRules,
-        defaultWarrantyMonths: assetsSettings.defaultWarrantyMonths,
-        enableMaintenanceTracking: assetsSettings.enableMaintenanceTracking,
-        maintenanceReminderDays: assetsSettings.maintenanceReminderDays,
-        enableAssetAudit: assetsSettings.enableAssetAudit,
-        auditFrequencyMonths: assetsSettings.auditFrequencyMonths,
+        categories: assetsSettings.categories ?? [],
+        tagConfig: assetsSettings.tagConfig ?? { prefix: 'AST', separator: '-', sequenceLength: 5 },
+        allocationRules: assetsSettings.allocationRules ?? {},
+        defaultWarrantyMonths: assetsSettings.defaultWarrantyMonths ?? 12,
+        enableMaintenanceTracking: assetsSettings.enableMaintenanceTracking ?? true,
+        maintenanceReminderDays: assetsSettings.maintenanceReminderDays ?? 30,
+        enableAssetAudit: assetsSettings.enableAssetAudit ?? false,
+        auditFrequencyMonths: assetsSettings.auditFrequencyMonths ?? 12,
       });
       markClean('assets');
     }
@@ -369,7 +369,7 @@ export const AssetsSection: React.FC = () => {
                       control={control}
                       render={({ field }) => (
                         <FormField label="Depreciation Method" error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
                             <SelectContent>
                               {DEPRECIATION_METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
@@ -580,7 +580,7 @@ export const AssetsSection: React.FC = () => {
                       name={`allocationRules.${index}.categoryId`}
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value} className="w-40">
+                        <Select onValueChange={field.onChange} value={field.value} className="w-40">
                           <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
                           <SelectContent>
                             {categoryFields.map((c, i) => (
@@ -601,7 +601,7 @@ export const AssetsSection: React.FC = () => {
                       rules={{ required: 'Condition is required' }}
                       render={({ field }) => (
                         <FormField label="Condition" required error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select condition" /></SelectTrigger>
                             <SelectContent>
                               {ALLOCATION_CONDITIONS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
@@ -626,7 +626,7 @@ export const AssetsSection: React.FC = () => {
                       rules={{ required: 'Category is required' }}
                       render={({ field }) => (
                         <FormField label="Asset Category" required error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                             <SelectContent>
                               {categoryFields.map((c, i) => (

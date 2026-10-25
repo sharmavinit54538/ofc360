@@ -33,6 +33,12 @@ import type {
   UpdatePayrollRunStatusPayload,
   UpdateSalaryStructurePayload,
   UpdateStatutoryConfigPayload,
+  ChallanRecordPayload,
+  EmployeePfUpdatePayload,
+  PfEcrResponse,
+  StatutoryFilingCalendarItem,
+  UanValidationItem,
+  UanValidationSummary,
 } from '../types/payroll.types';
 
 const transformResponse = <T>(response: any): T => {
@@ -60,6 +66,9 @@ export const payrollApi = createApi({
     'StatutoryConfig',
     'PaymentBatches',
     'RunEmployees',
+    'PfCompliance',
+    'FilingCalendar',
+    'UanValidation',
   ],
   endpoints: (builder) => ({
     // ─────────────────────────────────────────────────────────────────────────
@@ -433,6 +442,91 @@ export const payrollApi = createApi({
       },
       providesTags: ['PaymentBatches'],
     }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 10. EPFO PF ECR & Compliance Module
+    // ─────────────────────────────────────────────────────────────────────────
+
+    getPfEcr: builder.query<PfEcrResponse, { periodId: string; format?: string; download?: boolean }>({
+      query: ({ periodId, format = 'json', download = false }) =>
+        withQuery(
+          '/payroll/statutory/pf-ecr',
+          new URLSearchParams({
+            period_id: periodId,
+            format,
+            download: String(download),
+          })
+        ),
+      transformResponse: (response: any) => transformResponse<PfEcrResponse>(response),
+      providesTags: ['PfCompliance'],
+    }),
+
+    getPfSummary: builder.query<PfEcrResponse, { periodId: string }>({
+      query: ({ periodId }) =>
+        withQuery(
+          '/payroll/statutory/pf-summary',
+          new URLSearchParams({
+            period_id: periodId,
+          })
+        ),
+      transformResponse: (response: any) => transformResponse<PfEcrResponse>(response),
+      providesTags: ['PfCompliance'],
+    }),
+
+    getStatutoryFilingCalendar: builder.query<StatutoryFilingCalendarItem[], { year?: number }>({
+      query: ({ year } = {}) => {
+        const params = new URLSearchParams();
+        if (year) params.append('year', String(year));
+        return withQuery('/payroll/statutory/filing-calendar', params);
+      },
+      transformResponse: (response: any): StatutoryFilingCalendarItem[] => {
+        const data = transformResponse<any>(response);
+        return Array.isArray(data) ? data : data?.items || [];
+      },
+      providesTags: ['FilingCalendar'],
+    }),
+
+    recordChallan: builder.mutation<any, ChallanRecordPayload>({
+      query: (payload) => ({
+        url: '/payroll/statutory/challan/record',
+        method: 'POST',
+        body: payload,
+      }),
+      transformResponse: (response: any) => transformResponse<any>(response),
+      invalidatesTags: ['FilingCalendar', 'PfCompliance'],
+    }),
+
+    uploadChallanReceipt: builder.mutation<any, { periodId: string; fileType: 'CHALLAN' | 'RECEIPT'; file: File }>({
+      query: ({ periodId, fileType, file }) => {
+        const formData = new FormData();
+        formData.append('period_id', periodId);
+        formData.append('file_type', fileType);
+        formData.append('file', file);
+        return {
+          url: '/payroll/statutory/challan/upload',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      transformResponse: (response: any) => transformResponse<any>(response),
+      invalidatesTags: ['FilingCalendar', 'PfCompliance'],
+    }),
+
+    getUanValidationAudit: builder.query<UanValidationSummary, void>({
+      query: () => '/payroll/statutory/uan-validation',
+      transformResponse: (response: any) => transformResponse<UanValidationSummary>(response),
+      providesTags: ['UanValidation'],
+    }),
+
+    updateEmployeePfSettings: builder.mutation<any, { employeeId: string; data: EmployeePfUpdatePayload }>({
+      query: ({ employeeId, data }) => ({
+        url: `/payroll/statutory/employee-pf/${employeeId}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      transformResponse: (response: any) => transformResponse<any>(response),
+      invalidatesTags: ['UanValidation', 'PfCompliance'],
+    }),
   }),
 });
 
@@ -465,6 +559,14 @@ export const {
   useGetTaxDeclarationsQuery,
   useSubmitTaxDeclarationMutation,
   useGetPaymentBatchesQuery,
+  useGetPfEcrQuery,
+  useLazyGetPfEcrQuery,
+  useGetPfSummaryQuery,
+  useGetStatutoryFilingCalendarQuery,
+  useRecordChallanMutation,
+  useUploadChallanReceiptMutation,
+  useGetUanValidationAuditQuery,
+  useUpdateEmployeePfSettingsMutation,
 } = payrollApi;
 
 export default payrollApi;

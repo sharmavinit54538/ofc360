@@ -159,10 +159,11 @@ export const DocumentsSection: React.FC = () => {
   useEffect(() => {
     if (documentsSettings && !isLoading) {
       reset({
-        templates: documentsSettings.templates,
-        digitalSignature: documentsSettings.digitalSignature,
-        defaultTemplateIds: documentsSettings.defaultTemplateIds,
-        documentStorage: documentsSettings.documentStorage,
+        templates: documentsSettings.templates ?? [],
+        digitalSignature: documentsSettings.digitalSignature ?? {},
+        defaultTemplateIds: documentsSettings.defaultTemplateIds ?? {},
+        documentStorage: documentsSettings.documentStorage ?? {},
+        storageConfig: documentsSettings.storageConfig ?? {},
       });
       markClean('documents');
     }
@@ -312,7 +313,7 @@ export const DocumentsSection: React.FC = () => {
                       rules={{ required: 'Type is required' }}
                       render={({ field }) => (
                         <FormField label="Template Type" required error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                             <SelectContent>
                               {TEMPLATE_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -405,7 +406,7 @@ export const DocumentsSection: React.FC = () => {
                   control={control}
                   render={({ field }) => (
                     <FormField label={type.label} error={field.error}>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select default" />
                         </SelectTrigger>
@@ -451,7 +452,7 @@ export const DocumentsSection: React.FC = () => {
                   control={control}
                   render={({ field }) => (
                     <FormField label="Signature Provider" error={field.error} disabled={!watch('digitalSignature.enabled')}>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watch('digitalSignature.enabled')}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={!watch('digitalSignature.enabled')}>
                         <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="internal">Internal (Built-in)</SelectItem>
@@ -562,7 +563,7 @@ export const DocumentsSection: React.FC = () => {
               control={control}
               render={({ field }) => (
                 <FormField label="Storage Provider" error={field.error}>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="local">Local Storage</SelectItem>

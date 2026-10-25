@@ -179,14 +179,14 @@ export const PayrollSection: React.FC = () => {
   useEffect(() => {
     if (payrollSettings && !isLoading) {
       reset({
-        salaryComponents: payrollSettings.salaryComponents,
-        statutory: payrollSettings.statutory,
-        payCycles: payrollSettings.payCycles,
-        defaultPayFrequency: payrollSettings.defaultPayFrequency,
-        bankDetailsRequired: payrollSettings.bankDetailsRequired,
-        payslipPasswordFormat: payrollSettings.payslipPasswordFormat,
-        enableArrears: payrollSettings.enableArrears,
-        enableReimbursements: payrollSettings.enableReimbursements,
+        salaryComponents: payrollSettings.salaryComponents ?? [],
+        statutory: payrollSettings.statutory ?? {},
+        payCycles: payrollSettings.payCycles ?? [],
+        defaultPayFrequency: payrollSettings.defaultPayFrequency ?? 'monthly',
+        bankDetailsRequired: payrollSettings.bankDetailsRequired ?? true,
+        payslipPasswordFormat: payrollSettings.payslipPasswordFormat ?? 'dob',
+        enableArrears: payrollSettings.enableArrears ?? false,
+        enableReimbursements: payrollSettings.enableReimbursements ?? false,
       });
       markClean('payroll');
     }
@@ -401,7 +401,7 @@ export const PayrollSection: React.FC = () => {
                       control={control}
                       render={({ field }) => (
                         <FormField label="Calculation Type" error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -460,7 +460,7 @@ export const PayrollSection: React.FC = () => {
                       control={control}
                       render={({ field }) => (
                         <FormField label="Statutory Type" error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watch(`salaryComponents.${index}.isStatutory`)}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!watch(`salaryComponents.${index}.isStatutory`)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -476,7 +476,7 @@ export const PayrollSection: React.FC = () => {
                       control={control}
                       render={({ field }) => (
                         <FormField label="Applies To" error={field.error}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select scope" />
                             </SelectTrigger>
@@ -745,7 +745,7 @@ export const PayrollSection: React.FC = () => {
                 control={control}
                 render={({ field }) => (
                   <FormField label="Tax Regime" error={field.error}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watch('statutory.tds.enabled')}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!watch('statutory.tds.enabled')}>
                       <SelectTrigger><SelectValue placeholder="Select regime" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="old">Old Regime</SelectItem>
@@ -811,7 +811,7 @@ export const PayrollSection: React.FC = () => {
                 control={control}
                 render={({ field, fieldState }) => (
                   <FormField label="Formula" error={fieldState.error?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watch('statutory.gratuity.enabled')}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!watch('statutory.gratuity.enabled')}>
                       <SelectTrigger><SelectValue placeholder="Select formula" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="15/26">15/26 (Monthly)</SelectItem>
@@ -930,7 +930,7 @@ export const PayrollSection: React.FC = () => {
                       control={control}
                       render={({ field, fieldState }) => (
                         <FormField label="Frequency" error={fieldState.error?.message}>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
                             <SelectContent>
                               {PAY_FREQUENCIES.map((f) => <SelectItem key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</SelectItem>)}
@@ -1016,7 +1016,7 @@ export const PayrollSection: React.FC = () => {
                 control={control}
                 render={({ field, fieldState }) => (
                   <FormField label="Default Pay Frequency" error={fieldState.error?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
                       <SelectContent>
                         {PAY_FREQUENCIES.map((f) => <SelectItem key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</SelectItem>)}

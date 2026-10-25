@@ -74,6 +74,7 @@ import type {
   NotificationChannel,
   UserNotificationPreference,
 } from '../types/settings.types';
+import { TIMEZONES } from '../types/settings.types';
 
 // ==========================================
 // Constants
@@ -356,9 +357,9 @@ export const NotificationsSection: React.FC = () => {
   useEffect(() => {
     if (notificationsSettings && !isLoading) {
       reset({
-        channels: notificationsSettings.channels,
-        events: notificationsSettings.events,
-        defaultPreferences: notificationsSettings.defaultPreferences,
+        channels: notificationsSettings.channels ?? [],
+        events: notificationsSettings.events ?? [],
+        defaultPreferences: notificationsSettings.defaultPreferences ?? {},
       });
       markClean('notifications');
     }
@@ -523,7 +524,7 @@ export const NotificationsSection: React.FC = () => {
                         rules={{ required: false }}
                         render={({ field }) => (
                           <FormField label="Provider" error={field.error}>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select provider" />
                               </SelectTrigger>
@@ -533,19 +534,27 @@ export const NotificationsSection: React.FC = () => {
                                   { value: 'mailgun', label: 'Mailgun' },
                                   { value: 'ses', label: 'AWS SES' },
                                   { value: 'smtp', label: 'Custom SMTP' },
-                                ]}
+                                ].map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                                 {channelConfig.channel === 'sms' && [
                                   { value: 'twilio', label: 'Twilio' },
                                   { value: 'vonage', label: 'Vonage' },
                                   { value: 'plivo', label: 'Plivo' },
-                                ]}
+                                ].map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                                 {channelConfig.channel === 'push' && [
                                   { value: 'firebase', label: 'Firebase Cloud Messaging' },
                                   { value: 'onesignal', label: 'OneSignal' },
-                                ]}
+                                ].map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                                 {channelConfig.channel === 'webhook' && [
                                   { value: 'generic', label: 'Generic Webhook' },
-                                ]}
+                                ].map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormField>
@@ -690,7 +699,7 @@ export const NotificationsSection: React.FC = () => {
                     control={control}
                     render={({ field }) => (
                       <FormField label="Timezone" error={field.error}>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timezone" />
                           </SelectTrigger>
@@ -738,7 +747,7 @@ export const NotificationsSection: React.FC = () => {
                     control={control}
                     render={({ field }) => (
                       <FormField label="Digest Frequency" error={field.error}>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!watchedPreferences.digestEnabled}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchedPreferences.digestEnabled}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select frequency" />
                           </SelectTrigger>

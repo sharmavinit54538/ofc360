@@ -1033,7 +1033,7 @@ export const MyProfileSection: React.FC = () => {
                   control={securityForm.control}
                   render={({ field }) => (
                     <FormField label="2FA Method" error={field.error}>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || securitySettings.twoFactorMethod}>
+                      <Select onValueChange={field.onChange} value={field.value || securitySettings.twoFactorMethod}>
                         <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="authenticator">Authenticator App</SelectItem>

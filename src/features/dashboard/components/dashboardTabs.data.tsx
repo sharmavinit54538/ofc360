@@ -13,6 +13,12 @@ import {
 } from 'lucide-react';
 import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
+// Monochrome wrapper — renders GeminiIcon with currentColor (no gradient)
+// so it visually matches all other sidebar icons
+const GeminiIconMono: React.FC<{ className?: string }> = ({ className }) => (
+  <GeminiIcon className={className} useGradient={false} />
+);
+
 export type SidebarSection =
   | 'overview'
   | 'workforce'
@@ -97,7 +103,7 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
-    icon: GeminiIcon,
+    icon: GeminiIconMono,
     collapsible: false,
     order: 6,
   },
@@ -221,7 +227,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   {
     id: 'aihub',
     label: 'AI Intelligence Hub',
-    icon: GeminiIcon,
+    icon: GeminiIconMono,
     group: 'aihub',
     section: 'aihub',
     path: '/dashboard/ai-hub',

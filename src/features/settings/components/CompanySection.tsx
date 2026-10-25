@@ -25,6 +25,7 @@ import {
   RotateCcw,
   AlertCircle,
   Info,
+  Calendar,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { cn } from '@/shared/lib/utils';
@@ -207,35 +208,45 @@ export const CompanySection: React.FC = () => {
   const [uploadLogo] = useUploadCompanyLogoMutation();
   const [deleteLogo] = useDeleteCompanyLogoMutation();
 
-  // Load settings into form
+  // Load settings into form - null-safe merge over defaults
   useEffect(() => {
     if (companySettings && !isLoading) {
-      const details = companySettings.details;
-      const branding = companySettings.branding;
+      const details = companySettings.details ?? {};
+      const branding = companySettings.branding ?? {};
+      const address = details.address ?? {};
 
       reset({
         details: {
-          legalName: details.legalName,
-          displayName: details.displayName,
-          registrationNumber: details.registrationNumber,
-          taxId: details.taxId,
-          website: details.website || '',
-          email: details.email,
-          phone: details.phone || '',
-          address: details.address,
+          legalName: details.legalName ?? '',
+          displayName: details.displayName ?? '',
+          registrationNumber: details.registrationNumber ?? '',
+          taxId: details.taxId ?? '',
+          website: details.website ?? '',
+          email: details.email ?? '',
+          phone: details.phone ?? '',
+          address: {
+            line1: address.line1 ?? '',
+            line2: address.line2 ?? '',
+            city: address.city ?? '',
+            state: address.state ?? '',
+            postalCode: address.postalCode ?? '',
+            country: address.country ?? '',
+          },
         },
         branding: {
-          primaryColor: branding.primaryColor,
-          secondaryColor: branding.secondaryColor,
-          fontFamily: branding.fontFamily,
+          primaryColor: branding.primaryColor ?? '#3B82F6',
+          secondaryColor: branding.secondaryColor ?? '#1E40AF',
+          fontFamily: branding.fontFamily ?? 'Inter',
+          logoUrl: branding.logoUrl,
+          faviconUrl: branding.faviconUrl,
         },
-        timezone: companySettings.timezone,
-        currency: companySettings.currency,
-        dateFormat: companySettings.dateFormat,
-        timeFormat: companySettings.timeFormat,
-        weekStartDay: companySettings.weekStartDay,
-        fiscalYearStart: companySettings.fiscalYearStart,
-        language: companySettings.language,
+        timezone: companySettings.timezone ?? 'UTC',
+        currency: companySettings.currency ?? 'USD',
+        dateFormat: companySettings.dateFormat ?? 'YYYY-MM-DD',
+        timeFormat: companySettings.timeFormat ?? '24h',
+        weekStartDay: companySettings.weekStartDay ?? 1,
+        fiscalYearStart: companySettings.fiscalYearStart ?? 4,
+        language: companySettings.language ?? 'en',
       });
 
       if (branding.logoUrl) {
@@ -509,7 +520,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Country is required', maxLength: 100 }}
                 render={({ field }) => (
                   <FormField label="Country" required error={errors.details?.address?.country?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
@@ -650,7 +661,7 @@ export const CompanySection: React.FC = () => {
               rules={{ required: 'Font family is required' }}
               render={({ field }) => (
                 <FormField label="Font Family" required error={errors.branding?.fontFamily?.message} hint="CSS font-family value">
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select font" />
                     </SelectTrigger>
@@ -680,7 +691,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Timezone is required' }}
                 render={({ field }) => (
                   <FormField label="Timezone" required error={errors.timezone?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
@@ -699,7 +710,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Currency is required' }}
                 render={({ field }) => (
                   <FormField label="Currency" required error={errors.currency?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
@@ -720,7 +731,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Date format is required' }}
                 render={({ field }) => (
                   <FormField label="Date Format" required error={errors.dateFormat?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
@@ -741,7 +752,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Time format is required' }}
                 render={({ field }) => (
                   <FormField label="Time Format" required error={errors.timeFormat?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
@@ -768,7 +779,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Week start day is required' }}
                 render={({ field }) => (
                   <FormField label="Week Starts On" required error={errors.weekStartDay?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select day" />
                       </SelectTrigger>
@@ -787,7 +798,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Fiscal year start is required' }}
                 render={({ field }) => (
                   <FormField label="Fiscal Year Starts" required error={errors.fiscalYearStart?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select month" />
                       </SelectTrigger>
@@ -808,7 +819,7 @@ export const CompanySection: React.FC = () => {
                 rules={{ required: 'Language is required' }}
                 render={({ field }) => (
                   <FormField label="Default Language" required error={errors.language?.message}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>

@@ -225,7 +225,7 @@ const LeaveTypeAccordionItem: React.FC<{
             control={control}
             render={({ field: workflowField }) => (
               <FormField label="Approval Workflow" error={workflowField.error}>
-                <Select onValueChange={workflowField.onChange} defaultValue={workflowField.value}>
+                <Select onValueChange={workflowField.onChange} value={workflowField.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select workflow" />
                   </SelectTrigger>
@@ -287,7 +287,7 @@ const LeaveTypeAccordionItem: React.FC<{
             control={control}
             render={({ field: freqField }) => (
               <FormField label="Accrual Frequency" error={freqField.error}>
-                <Select onValueChange={freqField.onChange} defaultValue={freqField.value} disabled={!accrualEnabled}>
+                <Select onValueChange={freqField.onChange} value={freqField.value} disabled={!accrualEnabled}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select frequency" />
                   </SelectTrigger>
@@ -331,7 +331,7 @@ const LeaveTypeAccordionItem: React.FC<{
             control={control}
             render={({ field: carryField }) => (
               <FormField label="Carry Forward" error={carryField.error}>
-                <Select onValueChange={carryField.onChange} defaultValue={carryField.value}>
+                <Select onValueChange={carryField.onChange} value={carryField.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
@@ -472,7 +472,7 @@ const PolicyAccordionItem: React.FC<{
             control={control}
             render={({ field: ruleField }) => (
               <FormField label="Eligibility Rule" error={ruleField.error}>
-                <Select onValueChange={ruleField.onChange} defaultValue={ruleField.value}>
+                <Select onValueChange={ruleField.onChange} value={ruleField.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select rule" />
                   </SelectTrigger>
@@ -573,17 +573,17 @@ export const LeaveSection: React.FC = () => {
   useEffect(() => {
     if (leaveSettings && !isLoading) {
       reset({
-        leaveTypes: leaveSettings.leaveTypes,
-        policies: leaveSettings.policies,
-        defaultPolicyId: leaveSettings.defaultPolicyId || '',
-        globalMinAdvanceNoticeDays: leaveSettings.globalMinAdvanceNoticeDays,
-        globalMaxConsecutiveDays: leaveSettings.globalMaxConsecutiveDays,
-        enableHalfDayLeave: leaveSettings.enableHalfDayLeave,
-        enableHourlyLeave: leaveSettings.enableHourlyLeave,
-        weekendInclusion: leaveSettings.weekendInclusion,
-        holidayInclusion: leaveSettings.holidayInclusion,
-        compOffEnabled: leaveSettings.compOffEnabled,
-        compOffExpiryDays: leaveSettings.compOffExpiryDays,
+        leaveTypes: leaveSettings.leaveTypes ?? [],
+        policies: leaveSettings.policies ?? [],
+        defaultPolicyId: leaveSettings.defaultPolicyId ?? '',
+        globalMinAdvanceNoticeDays: leaveSettings.globalMinAdvanceNoticeDays ?? 0,
+        globalMaxConsecutiveDays: leaveSettings.globalMaxConsecutiveDays ?? 30,
+        enableHalfDayLeave: leaveSettings.enableHalfDayLeave ?? true,
+        enableHourlyLeave: leaveSettings.enableHourlyLeave ?? false,
+        weekendInclusion: leaveSettings.weekendInclusion ?? 'exclude',
+        holidayInclusion: leaveSettings.holidayInclusion ?? 'exclude',
+        compOffEnabled: leaveSettings.compOffEnabled ?? false,
+        compOffExpiryDays: leaveSettings.compOffExpiryDays ?? 90,
       });
       markClean('leave');
     }
@@ -765,7 +765,7 @@ export const LeaveSection: React.FC = () => {
               control={control}
               render={({ field }) => (
                 <FormField label="Default Policy" error={field.error}>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select default policy" />
                     </SelectTrigger>
@@ -860,7 +860,7 @@ export const LeaveSection: React.FC = () => {
                 control={control}
                 render={({ field }) => (
                   <FormField label="Weekend Inclusion" error={field.error}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select option" />
                       </SelectTrigger>
@@ -878,7 +878,7 @@ export const LeaveSection: React.FC = () => {
                 control={control}
                 render={({ field }) => (
                   <FormField label="Holiday Inclusion" error={field.error}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select option" />
                       </SelectTrigger>

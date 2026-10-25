@@ -213,13 +213,36 @@ export const EmployeesSection: React.FC = () => {
 
   useEffect(() => {
     if (employeeSettings && !isLoading) {
+      const idFormat = employeeSettings.idFormat ?? {};
+      const roleDefaults = employeeSettings.roleDefaults ?? {};
+      const visibilityRules = employeeSettings.visibilityRules ?? {};
       reset({
-        idFormat: employeeSettings.idFormat,
-        roleDefaults: employeeSettings.roleDefaults,
-        visibilityRules: employeeSettings.visibilityRules,
-        autoGenerateEmail: employeeSettings.autoGenerateEmail,
-        emailDomain: employeeSettings.emailDomain || '',
-        requireEmployeeCode: employeeSettings.requireEmployeeCode,
+        idFormat: {
+          prefix: idFormat.prefix ?? 'EMP',
+          separator: idFormat.separator ?? '-',
+          sequenceLength: idFormat.sequenceLength ?? 5,
+          includeYear: idFormat.includeYear ?? true,
+          includeDepartment: idFormat.includeDepartment ?? false,
+          currentSequence: idFormat.currentSequence ?? 0,
+          example: idFormat.example ?? '',
+        },
+        roleDefaults: {
+          defaultRole: roleDefaults.defaultRole ?? 'EMPLOYEE',
+          defaultDepartment: roleDefaults.defaultDepartment ?? '',
+          defaultJobTitle: roleDefaults.defaultJobTitle ?? '',
+          probationPeriodDays: roleDefaults.probationPeriodDays ?? 90,
+          noticePeriodDays: roleDefaults.noticePeriodDays ?? 30,
+        },
+        visibilityRules: {
+          showSalaryToManagers: visibilityRules.showSalaryToManagers ?? false,
+          showPersonalInfoToPeers: visibilityRules.showPersonalInfoToPeers ?? false,
+          showContactInfoToAll: visibilityRules.showContactInfoToAll ?? false,
+          maskSsnInExports: visibilityRules.maskSsnInExports ?? true,
+          maskBankDetailsInExports: visibilityRules.maskBankDetailsInExports ?? true,
+        },
+        autoGenerateEmail: employeeSettings.autoGenerateEmail ?? false,
+        emailDomain: employeeSettings.emailDomain ?? '',
+        requireEmployeeCode: employeeSettings.requireEmployeeCode ?? false,
       });
       markClean('employees');
     }
@@ -432,7 +455,7 @@ export const EmployeesSection: React.FC = () => {
                 rules={{ required: 'Default role is required' }}
                 render={({ field }) => (
                   <FormField label="Default Role" required error={field.error}>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select default role" />
                       </SelectTrigger>

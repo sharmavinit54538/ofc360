@@ -408,17 +408,17 @@ export const AttendanceSection: React.FC = () => {
   useEffect(() => {
     if (attendanceSettings && !isLoading) {
       reset({
-        shifts: attendanceSettings.shifts,
-        geofences: attendanceSettings.geofences,
-        ipRestrictions: attendanceSettings.ipRestrictions,
-        defaultShiftId: attendanceSettings.defaultShiftId || '',
-        allowMultipleCheckIns: attendanceSettings.allowMultipleCheckIns,
-        requireGpsForCheckIn: attendanceSettings.requireGpsForCheckIn,
-        requirePhotoForCheckIn: attendanceSettings.requirePhotoForCheckIn,
-        enableOfflineMode: attendanceSettings.enableOfflineMode,
-        autoCheckoutEnabled: attendanceSettings.autoCheckoutEnabled,
-        autoCheckoutTime: attendanceSettings.autoCheckoutTime || '18:00',
-        overtimeThresholdHours: attendanceSettings.overtimeThresholdHours,
+        shifts: attendanceSettings.shifts ?? [],
+        geofences: attendanceSettings.geofences ?? [],
+        ipRestrictions: attendanceSettings.ipRestrictions ?? [],
+        defaultShiftId: attendanceSettings.defaultShiftId ?? '',
+        allowMultipleCheckIns: attendanceSettings.allowMultipleCheckIns ?? false,
+        requireGpsForCheckIn: attendanceSettings.requireGpsForCheckIn ?? false,
+        requirePhotoForCheckIn: attendanceSettings.requirePhotoForCheckIn ?? false,
+        enableOfflineMode: attendanceSettings.enableOfflineMode ?? false,
+        autoCheckoutEnabled: attendanceSettings.autoCheckoutEnabled ?? false,
+        autoCheckoutTime: attendanceSettings.autoCheckoutTime ?? '18:00',
+        overtimeThresholdHours: attendanceSettings.overtimeThresholdHours ?? 8,
       });
       markClean('attendance');
     }

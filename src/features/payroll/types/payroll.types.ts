@@ -515,3 +515,111 @@ export interface TaxDeclarationQueryParams {
   scope: PayrollScope;
   status?: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EPFO PF ECR & Compliance Module Contracts
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PfEcrRecord {
+  uan: string;
+  member_name: string;
+  gross_wages: number;
+  epf_wages: number;
+  eps_wages: number;
+  edli_wages: number;
+  ee_remitted: number;
+  eps_remitted: number;
+  er_diff_remitted: number;
+  ncp_days: number;
+  refund_advances: number;
+}
+
+export interface PfEcrResponse {
+  period_id: string;
+  period_month: number;
+  period_year: number;
+  wage_month: string;
+  filename: string;
+  record_count: number;
+  total_gross: number;
+  total_epf_wages: number;
+  total_eps_wages: number;
+  total_ee_share: number;
+  total_eps_share: number;
+  total_er_diff_share: number;
+  total_edli_share: number;
+  admin_charges: number;
+  total_pf_liability: number;
+  records: PfEcrRecord[];
+  ecr_text: string;
+  has_missing_uan: boolean;
+  missing_uan_count: number;
+}
+
+export interface StatutoryFilingCalendarItem {
+  id: string;
+  month: number;
+  year: number;
+  wage_month_label: string;
+  due_date: string;
+  status: 'PENDING' | 'ECR_GENERATED' | 'CHALLAN_UPLOADED' | 'FILED_ON_TIME' | 'OVERDUE' | 'FILED_LATE';
+  trrn_number?: string | null;
+  payment_date?: string | null;
+  utr_number?: string | null;
+  total_amount: number;
+  employee_count: number;
+  is_overdue: boolean;
+  overdue_days: number;
+  interest_7q_amount: number;
+  damages_14b_amount: number;
+  damages_14b_rate_pct: number;
+  challan_file_url?: string | null;
+  payment_receipt_url?: string | null;
+}
+
+export interface ChallanRecordPayload {
+  periodId: string;
+  trrnNumber: string;
+  challanGenerationDate?: string;
+  paymentDate?: string;
+  utrNumber?: string;
+  totalAmount?: number;
+  epfEmployeeAmount?: number;
+  epfEmployerAmount?: number;
+  epsAmount?: number;
+  edliAmount?: number;
+  adminCharges?: number;
+}
+
+export interface EmployeePfUpdatePayload {
+  uanNumber?: string | null;
+  isPfEligible?: boolean;
+  isInternationalWorker?: boolean;
+  pfWageCeilingApplicable?: boolean;
+}
+
+export interface UanValidationItem {
+  employee_id: string;
+  employee_code: string;
+  name: string;
+  uan_number?: string | null;
+  is_valid: boolean;
+  validation_error?: string | null;
+  is_pf_eligible: boolean;
+  is_international_worker: boolean;
+  pf_wage_ceiling_applicable: boolean;
+  pan_number?: string | null;
+  basic_salary: number;
+  gross_salary: number;
+}
+
+export interface UanValidationSummary {
+  total_active_employees: number;
+  valid_uan_count: number;
+  invalid_uan_count: number;
+  missing_uan_count: number;
+  pf_opted_in_count: number;
+  pf_opted_out_count: number;
+  international_worker_count: number;
+  employees: UanValidationItem[];
+}
