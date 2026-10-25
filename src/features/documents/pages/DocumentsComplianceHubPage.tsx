@@ -12,11 +12,14 @@ import {
   Upload,
   CheckCircle2,
   FileCheck,
+  Building2,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { useToast } from '@/shared/ui/Toast';
+import { PfComplianceCenter } from '@/features/payroll/components/PfComplianceCenter';
 
 interface DocumentModuleCard {
   id: string;
@@ -99,6 +102,19 @@ const DOCUMENT_MODULES: DocumentModuleCard[] = [
     actionText: 'Inspect Audits',
   },
   {
+    id: 'epfo-pf-compliance',
+    title: 'EPFO PF & ECR Filing Center',
+    category: 'compliance',
+    description: 'Automated 11-column EPFO ECR v2.0 text file generator (#|~|# delimiter), 12-month statutory calendar, TRRN challan tracking, and UAN audits.',
+    icon: Building2,
+    tags: ['EPFO ECR v2.0', '11-Column Delimiter', 'TRRN Challans', 'Sec 7Q / 14B', 'UAN KYC'],
+    gradient: 'from-amber-500/10 via-yellow-500/5 to-transparent',
+    iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    metric: { label: 'PF Due Date', value: '15th Monthly' },
+    actionText: 'Launch PF ECR Hub',
+  },
+  {
     id: 'recruitment-compliance',
     title: 'Hiring & Candidate Compliance',
     category: 'compliance',
@@ -141,11 +157,12 @@ const DOCUMENT_MODULES: DocumentModuleCard[] = [
 
 const CATEGORIES = [
   { id: 'all', label: 'All Modules' },
+  { id: 'epfo-pf', label: 'EPFO PF & ECR Compliance' },
+  { id: 'compliance', label: 'Compliance & Audits' },
   { id: 'repository', label: 'Vault & Storage' },
   { id: 'policies', label: 'Policies & Handbooks' },
   { id: 'generator', label: 'Document Generator' },
   { id: 'signatures', label: 'E-Signatures' },
-  { id: 'compliance', label: 'Compliance & Audits' },
 ];
 
 export const DocumentsComplianceHubPage: React.FC = () => {
@@ -170,6 +187,10 @@ export const DocumentsComplianceHubPage: React.FC = () => {
   }, [selectedCategory, searchQuery]);
 
   const handleCardClick = (module: DocumentModuleCard) => {
+    if (module.id === 'epfo-pf-compliance') {
+      setSelectedCategory('epfo-pf');
+      return;
+    }
     setActiveModal(module);
   };
 
@@ -194,6 +215,15 @@ export const DocumentsComplianceHubPage: React.FC = () => {
 
           {/* Quick Actions */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedCategory('epfo-pf')}
+              className="bg-amber-500/20 border-amber-400/40 text-amber-200 hover:bg-amber-500/30 hover:text-white flex items-center gap-1.5 shadow-sm"
+            >
+              <Building2 className="w-4 h-4 text-amber-300" />
+              <span>EPFO PF & ECR</span>
+            </Button>
             <Button
               variant="primary"
               size="sm"
@@ -283,183 +313,215 @@ export const DocumentsComplianceHubPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid of Document & Compliance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {filteredModules.map((module) => {
-          const Icon = module.icon;
-
-          return (
-            <div
-              key={module.id}
-              onClick={() => handleCardClick(module)}
-              className={cn(
-                'group relative flex flex-col justify-between rounded-2xl p-6 cursor-pointer',
-                'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
-                'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-xl hover:-translate-y-0.5',
-                'transition-all duration-200 overflow-hidden'
-              )}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleCardClick(module);
-                }
-              }}
+      {/* View Switch: EPFO PF Center vs Document Modules */}
+      {selectedCategory === 'epfo-pf' ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-100 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('all')}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
             >
-              {/* Subtle top corner gradient */}
-              <div
-                className={cn(
-                  'absolute top-0 right-0 w-36 h-36 bg-gradient-to-br opacity-80 pointer-events-none rounded-bl-full transition-opacity group-hover:opacity-100',
-                  module.gradient
-                )}
-              />
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Documents & Policies Vault</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <Badge variant="warning" size="sm">
+                EPFO ECR v2.0
+              </Badge>
+              <Badge variant="slate" size="sm">
+                Sec 7Q / 14B Compliance Engine
+              </Badge>
+            </div>
+          </div>
+          <PfComplianceCenter />
+        </div>
+      ) : (
+        <>
+          {/* Grid of Document & Compliance Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredModules.map((module) => {
+              const Icon = module.icon;
 
-              <div className="relative z-10 space-y-4">
-                {/* Icon & Metric badge */}
-                <div className="flex items-center justify-between">
+              return (
+                <div
+                  key={module.id}
+                  onClick={() => handleCardClick(module)}
+                  className={cn(
+                    'group relative flex flex-col justify-between rounded-2xl p-6 cursor-pointer',
+                    'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
+                    'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-xl hover:-translate-y-0.5',
+                    'transition-all duration-200 overflow-hidden'
+                  )}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCardClick(module);
+                    }
+                  }}
+                >
+                  {/* Subtle top corner gradient */}
                   <div
                     className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
-                      module.iconBg
+                      'absolute top-0 right-0 w-36 h-36 bg-gradient-to-br opacity-80 pointer-events-none rounded-bl-full transition-opacity group-hover:opacity-100',
+                      module.gradient
                     )}
-                  >
-                    <Icon className={cn('w-6 h-6', module.iconColor)} />
-                  </div>
-                  {module.metric && (
-                    <div className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/60 text-right">
-                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 block leading-none">
-                        {module.metric.label}
-                      </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 block leading-none">
-                        {module.metric.value}
-                      </span>
+                  />
+
+                  <div className="relative z-10 space-y-4">
+                    {/* Icon & Metric badge */}
+                    <div className="flex items-center justify-between">
+                      <div
+                        className={cn(
+                          'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
+                          module.iconBg
+                        )}
+                      >
+                        <Icon className={cn('w-6 h-6', module.iconColor)} />
+                      </div>
+                      {module.metric && (
+                        <div className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/60 text-right">
+                          <span className="text-[10px] text-slate-500 dark:text-zinc-400 block leading-none">
+                            {module.metric.label}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 block leading-none">
+                            {module.metric.value}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Title & Description */}
+                    <div>
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        {module.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
+                        {module.description}
+                      </p>
+                    </div>
+
+                    {/* Feature Tags */}
+                    {module.tags && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {module.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Footer */}
+                  <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                    <span>{module.actionText || 'Manage Module'}</span>
+                    <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200">
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredModules.length === 0 && (
+            <div className="text-center py-16 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-zinc-800">
+              <Search className="w-10 h-10 text-slate-400 dark:text-zinc-600 mx-auto mb-3" />
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                No document modules match &ldquo;{searchQuery}&rdquo;
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                Try searching for another keyword or select &quot;All Modules&quot;.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+                className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
+
+          {/* Module Action Modal */}
+          {activeModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-zinc-800 max-w-lg w-full p-6 shadow-2xl space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', activeModal.iconBg)}>
+                      <activeModal.icon className={cn('w-6 h-6', activeModal.iconColor)} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{activeModal.title}</h3>
+                      <Badge variant="slate" size="sm" className="mt-1">
+                        {activeModal.category.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm"
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                {/* Title & Description */}
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {module.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                    {module.description}
-                  </p>
-                </div>
+                <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                  {activeModal.description}
+                </p>
 
-                {/* Feature Tags */}
-                {module.tags && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {module.tags.map((tag) => (
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 block">
+                    Features & Security Rules:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeModal.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400"
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300"
                       >
-                        {tag}
+                        ✓ {tag}
                       </span>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Bottom Footer */}
-              <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                <span>{module.actionText || 'Manage Module'}</span>
-                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200">
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {filteredModules.length === 0 && (
-        <div className="text-center py-16 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-zinc-800">
-          <Search className="w-10 h-10 text-slate-400 dark:text-zinc-600 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-            No document modules match &ldquo;{searchQuery}&rdquo;
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Try searching for another keyword or select &quot;All Modules&quot;.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
-            className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
-          >
-            Reset Filters
-          </button>
-        </div>
-      )}
-
-      {/* Module Action Modal */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-zinc-800 max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', activeModal.iconBg)}>
-                  <activeModal.icon className={cn('w-6 h-6', activeModal.iconColor)} />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{activeModal.title}</h3>
-                  <Badge variant="slate" size="sm" className="mt-1">
-                    {activeModal.category.toUpperCase()}
-                  </Badge>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm"
-              >
-                ✕
-              </button>
-            </div>
 
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              {activeModal.description}
-            </p>
-
-            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-              <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 block">
-                Features & Security Rules:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {activeModal.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300"
+                <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                  <Button variant="ghost" size="sm" onClick={() => setActiveModal(null)}>
+                    Close
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      if (activeModal.id === 'epfo-pf-compliance') {
+                        setSelectedCategory('epfo-pf');
+                        setActiveModal(null);
+                        return;
+                      }
+                      toast.success(`${activeModal.title} workspace is synchronized and active.`, 'Access Granted');
+                      setActiveModal(null);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
                   >
-                    ✓ {tag}
-                  </span>
-                ))}
+                    Launch Workspace
+                  </Button>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-zinc-800">
-              <Button variant="ghost" size="sm" onClick={() => setActiveModal(null)}>
-                Close
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  toast.success(`${activeModal.title} workspace is synchronized and active.`, 'Access Granted');
-                  setActiveModal(null);
-                }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Launch Workspace
-              </Button>
-            </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );

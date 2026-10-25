@@ -15,9 +15,8 @@ import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
 // Monochrome wrapper — renders GeminiIcon with currentColor (no gradient)
 // so it visually matches all other sidebar icons
-const GeminiIconMono: React.FC<{ className?: string }> = ({ className }) => (
-  <GeminiIcon className={className} useGradient={false} />
-);
+const GeminiIconMono: React.FC<{ className?: string }> = ({ className }) =>
+  React.createElement(GeminiIcon, { className, useGradient: false });
 
 export type SidebarSection =
   | 'overview'

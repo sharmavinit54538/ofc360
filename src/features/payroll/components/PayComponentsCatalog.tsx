@@ -314,7 +314,7 @@ export const PayComponentsCatalog: React.FC = () => {
           Loading pay components...
         </div>
       ) : error ? (
-        <ErrorDisplay message="Failed to load pay components catalog." onRetry={refetch} />
+        <ErrorDisplay message="Failed to load pay components catalog." onRetry={() => { refetch(); }} />
       ) : filteredComponents.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50">
           <Layers className="w-8 h-8 text-gray-400 mx-auto mb-2 opacity-50" />

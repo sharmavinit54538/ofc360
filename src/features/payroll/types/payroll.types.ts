@@ -254,6 +254,8 @@ export interface PayrollStats {
 export interface PayrollRunItem {
   id: string;
   run_number?: string;
+  period_id?: string;
+  period_name?: string;
   month: number;
   year: number;
   period_month?: number;

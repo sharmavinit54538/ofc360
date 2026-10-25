@@ -37,7 +37,6 @@ import type {
   EmployeePfUpdatePayload,
   PfEcrResponse,
   StatutoryFilingCalendarItem,
-  UanValidationItem,
   UanValidationSummary,
 } from '../types/payroll.types';
 

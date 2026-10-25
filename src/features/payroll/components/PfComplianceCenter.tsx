@@ -52,8 +52,8 @@ export const PfComplianceCenter: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   // Queries
-  const { data: runs = [], isLoading: isLoadingRuns } = useGetPayrollRunsQuery({});
-  const { data: calendarItems = [], isLoading: isLoadingCalendar, refetch: refetchCalendar } =
+  const { data: runs = [] } = useGetPayrollRunsQuery({});
+  const { data: calendarItems = [], refetch: refetchCalendar } =
     useGetStatutoryFilingCalendarQuery({ year: currentYear });
   const { data: uanAudit, isLoading: isLoadingAudit, refetch: refetchAudit } =
     useGetUanValidationAuditQuery();
@@ -64,7 +64,7 @@ export const PfComplianceCenter: React.FC = () => {
   // Fallback to first available run if none selected
   const activePeriodId = useMemo(() => {
     if (selectedPeriodId) return selectedPeriodId;
-    if (runs.length > 0 && runs[0].period_id) return runs[0].period_id;
+    if (runs.length > 0) return runs[0].period_id || runs[0].id;
     return '';
   }, [selectedPeriodId, runs]);
 
@@ -142,7 +142,7 @@ export const PfComplianceCenter: React.FC = () => {
       // Find matching payroll run for this month
       const matchRun = runs.find((r) => r.period_month === monthItem.month && r.period_year === monthItem.year);
       setChallanForm({
-        periodId: matchRun?.period_id || activePeriodId,
+        periodId: matchRun?.period_id || matchRun?.id || activePeriodId,
         trrnNumber: monthItem.trrn_number || '',
         challanGenerationDate: new Date().toISOString().split('T')[0],
         paymentDate: monthItem.payment_date || new Date().toISOString().split('T')[0],
@@ -315,7 +315,7 @@ export const PfComplianceCenter: React.FC = () => {
             <div>
               <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                 <span>Action Required: UAN / KYC Validation Flags Detected</span>
-                <Badge variant="amber" size="sm">
+                <Badge variant="warning" size="sm">
                   {uanAudit.invalid_uan_count + uanAudit.missing_uan_count} Alerts
                 </Badge>
               </h3>
@@ -486,7 +486,7 @@ export const PfComplianceCenter: React.FC = () => {
             >
               {runs.map((r) => (
                 <option key={r.id} value={r.period_id || r.id}>
-                  {r.period_name || `Month ${r.period_month}/${r.period_year}`} ({r.run_number})
+                  {r.period_name || r.run_number || `Run ${r.month}/${r.year}`} ({r.run_number || r.id})
                 </option>
               ))}
             </select>
@@ -501,7 +501,7 @@ export const PfComplianceCenter: React.FC = () => {
             <div>
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <span>Official EPFO ECR v2.0 Formatted Schedule</span>
-                <Badge variant="indigo" size="sm">
+                <Badge variant="brand" size="sm">
                   {ecrData?.wage_month || 'Current Month'}
                 </Badge>
               </CardTitle>
@@ -681,7 +681,7 @@ export const PfComplianceCenter: React.FC = () => {
             <div>
               <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <span>12-Month EPFO Statutory Filing Calendar ({currentYear})</span>
-                <Badge variant="indigo" size="sm">Due: 15th of Succeeding Month</Badge>
+                <Badge variant="brand" size="sm">Due: 15th of Succeeding Month</Badge>
               </h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
                 Tracks PF remittance deadlines. Late payment triggers Section 7Q (12% p.a.) interest and Section 14B graded penal damages.
@@ -698,23 +698,23 @@ export const PfComplianceCenter: React.FC = () => {
               const isOverdue = item.is_overdue;
               const hasChallan = Boolean(item.trrn_number);
 
-              let badgeVariant: 'slate' | 'emerald' | 'amber' | 'rose' | 'indigo' = 'slate';
-              let badgeLabel = item.status;
+              let badgeVariant: 'slate' | 'success' | 'warning' | 'danger' | 'brand' = 'slate';
+              let badgeLabel = String(item.status);
 
               if (item.status === 'FILED_ON_TIME') {
-                badgeVariant = 'emerald';
+                badgeVariant = 'success';
                 badgeLabel = 'Filed On Time';
               } else if (item.status === 'OVERDUE') {
-                badgeVariant = 'rose';
+                badgeVariant = 'danger';
                 badgeLabel = `Overdue (${item.overdue_days}d)`;
               } else if (item.status === 'CHALLAN_UPLOADED') {
-                badgeVariant = 'amber';
+                badgeVariant = 'warning';
                 badgeLabel = 'Challan Recorded';
               } else if (item.status === 'ECR_GENERATED') {
-                badgeVariant = 'indigo';
+                badgeVariant = 'brand';
                 badgeLabel = 'ECR Generated';
               } else if (item.status === 'FILED_LATE') {
-                badgeVariant = 'amber';
+                badgeVariant = 'warning';
                 badgeLabel = 'Filed Late';
               } else {
                 badgeVariant = 'slate';
@@ -827,7 +827,7 @@ export const PfComplianceCenter: React.FC = () => {
             <div>
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <span>Employee UAN & Statutory KYC Verification</span>
-                <Badge variant="indigo" size="sm">
+                <Badge variant="brand" size="sm">
                   {uanAudit?.total_active_employees || 0} Active Employees
                 </Badge>
               </CardTitle>
@@ -891,21 +891,21 @@ export const PfComplianceCenter: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-center">
                           {emp.is_pf_eligible ? (
-                            <Badge variant="emerald" size="sm">Opted In</Badge>
+                            <Badge variant="success" size="sm">Opted In</Badge>
                           ) : (
                             <Badge variant="slate" size="sm">Opted Out</Badge>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {emp.pf_wage_ceiling_applicable ? (
-                            <Badge variant="blue" size="sm">₹15k Ceiling</Badge>
+                            <Badge variant="brand" size="sm">₹15k Ceiling</Badge>
                           ) : (
-                            <Badge variant="purple" size="sm">Full Basic</Badge>
+                            <Badge variant="slate" size="sm">Full Basic</Badge>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {emp.is_international_worker ? (
-                            <Badge variant="amber" size="sm">Yes (No Ceiling)</Badge>
+                            <Badge variant="warning" size="sm">Yes (No Ceiling)</Badge>
                           ) : (
                             <span className="text-gray-400">No</span>
                           )}

@@ -1,21 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Calculator,
   ChevronLeft,
   ChevronRight,
   CirclePlus,
-  FileCheck2,
   Layers3,
-  LayoutDashboard,
   Play,
-  ReceiptText,
   RefreshCw,
   Send,
   Settings2,
   ShieldCheck,
+  Building2,
   Sliders,
-  WalletCards,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
@@ -49,7 +45,9 @@ import { TaxDeclarationsTable } from '../components/TaxDeclarationsTable';
 import { SubmitTaxDeclarationModal } from '../components/SubmitTaxDeclarationModal';
 import { PayComponentsCatalog } from '../components/PayComponentsCatalog';
 import { StatutoryComplianceCenter } from '../components/StatutoryComplianceCenter';
+import { PfComplianceCenter } from '../components/PfComplianceCenter';
 import { PayrollApprovalStepper } from '../components/PayrollApprovalStepper';
+import { DashboardKpiGrid } from '../components/DashboardKpiGrid';
 
 const PAGE_SIZE = 10;
 
@@ -60,6 +58,7 @@ type PayrollTab =
   | 'structures'
   | 'components'
   | 'statutory'
+  | 'pf-ecr'
   | 'tax';
 
 interface PaginationControlsProps {
@@ -112,15 +111,6 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   );
 };
 
-const tabs = [
-  { id: 'overview' as const, label: 'Overview', icon: LayoutDashboard },
-  { id: 'runs' as const, label: 'Payroll Batches & Lifecycle', icon: Layers3 },
-  { id: 'payslips' as const, label: 'Payslips', icon: ReceiptText },
-  { id: 'structures' as const, label: 'Salary Structures (CTC)', icon: WalletCards },
-  { id: 'components' as const, label: 'Pay Components Catalog', icon: Sliders },
-  { id: 'statutory' as const, label: 'Statutory Compliance Center', icon: ShieldCheck },
-  { id: 'tax' as const, label: 'Tax Declarations', icon: FileCheck2 },
-];
 
 export const PayrollHubPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PayrollTab>('overview');
@@ -319,31 +309,10 @@ export const PayrollHubPage: React.FC = () => {
       )}
       <PayrollKpiCards stats={stats} isLoading={statsLoading} />
 
-      <nav
-        className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 rounded-2xl w-fit max-w-full overflow-x-auto shadow-sm"
-        aria-label="Payroll views"
-      >
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              aria-current={activeTab === tab.id ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all',
-                activeTab === tab.id
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
+      <DashboardKpiGrid
+        activeId={activeTab}
+        onSelect={(id) => setActiveTab(id as PayrollTab)}
+      />
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
@@ -591,6 +560,11 @@ export const PayrollHubPage: React.FC = () => {
       {/* Statutory Center Tab */}
       {activeTab === 'statutory' && (
         <StatutoryComplianceCenter />
+      )}
+
+      {/* EPFO PF & ECR Compliance Tab */}
+      {activeTab === 'pf-ecr' && (
+        <PfComplianceCenter />
       )}
 
       {/* Tax Declarations Tab */}
