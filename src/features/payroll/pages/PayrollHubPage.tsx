@@ -4,14 +4,10 @@ import {
   ChevronLeft,
   ChevronRight,
   CirclePlus,
-  Layers3,
   Play,
   RefreshCw,
   Send,
   Settings2,
-  ShieldCheck,
-  Building2,
-  Sliders,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
@@ -49,7 +45,6 @@ import { PfComplianceCenter } from '../components/PfComplianceCenter';
 import { PayrollApprovalStepper } from '../components/PayrollApprovalStepper';
 import { DashboardKpiGrid } from '../components/DashboardKpiGrid';
 import { PayrollOverviewDetail } from '../components/PayrollOverviewDetail';
-import { PayrollDetailHeader } from '../components/PayrollDetailHeader';
 
 const PAGE_SIZE = 10;
 
@@ -113,30 +108,22 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   );
 };
 
-
 export const PayrollHubPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab') as PayrollTab | null;
-  const [activeModuleId, setActiveModuleId] = useState<PayrollTab | null>(urlTab);
+  const [activeTab, setActiveTab] = useState<PayrollTab>(urlTab || 'overview');
 
   useEffect(() => {
-    if (urlTab !== activeModuleId) {
-      setActiveModuleId(urlTab);
+    if (urlTab && urlTab !== activeTab) {
+      setActiveTab(urlTab);
     }
   }, [urlTab]);
 
-  const handleSelectModule = (id: string) => {
-    const tab = id as PayrollTab;
-    setActiveModuleId(tab);
+  const handleSelectTab = (tab: PayrollTab) => {
+    setActiveTab(tab);
     setSearchParams({ tab });
   };
 
-  const handleBackToHub = () => {
-    setActiveModuleId(null);
-    setSearchParams({});
-  };
-
-  const activeTab = activeModuleId;
   const [month, setMonth] = useState(() => new Date().getMonth() + 1);
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [scope, setScope] = useState<PayrollScope>('MY');
@@ -199,12 +186,18 @@ export const PayrollHubPage: React.FC = () => {
     search: debouncedStructureSearch || undefined,
   }), [structurePage, structureDepartment, debouncedStructureSearch]);
 
+  const statsArgs = useMemo(() => ({ month, year }), [month, year]);
+  const runsArgs = useMemo(() => ({ year }), [year]);
+
   const {
     data: stats,
     isLoading: statsLoading,
     error: statsError,
     refetch: refetchStats,
-  } = useGetPayrollStatsQuery({ month, year });
+  } = useGetPayrollStatsQuery(statsArgs, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+  });
 
   const {
     data: payslipsData,
@@ -222,8 +215,10 @@ export const PayrollHubPage: React.FC = () => {
     isFetching: runsFetching,
     error: runsError,
     refetch: refetchRuns,
-  } = useGetPayrollRunsQuery({ year }, {
-    skip: activeTab !== 'runs' && activeTab !== 'overview',
+  } = useGetPayrollRunsQuery(runsArgs, {
+    skip: activeTab !== 'runs' && activeTab !== 'overview' && activeTab !== 'pf-ecr',
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
   });
 
   const {
@@ -295,22 +290,20 @@ export const PayrollHubPage: React.FC = () => {
     setPayslipPage(1);
   };
 
-  const renderDetailActions = (module: PayrollTab) => {
-    switch (module) {
-      case 'overview':
-      case 'runs':
-        return (
-          <Button
-            size="sm"
-            onClick={() => setIsInitiateOpen(true)}
-            leftIcon={<Play className="w-3.5 h-3.5" />}
-          >
-            Initiate Payroll
-          </Button>
-        );
-      case 'payslips':
-        return (
-          <>
+  return (
+    <div className="space-y-6 pb-12">
+      {/* 1. Header with Title and Global Actions */}
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            Payroll Hub
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
+            Indian statutory compliance, salary disbursement, and tax management
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {activeTab === 'payslips' && (
             <Button
               variant="outline"
               size="sm"
@@ -319,96 +312,62 @@ export const PayrollHubPage: React.FC = () => {
             >
               Add Adjustment
             </Button>
+          )}
+          {activeTab === 'tax' && (
             <Button
+              variant="outline"
               size="sm"
-              onClick={() => setIsInitiateOpen(true)}
-              leftIcon={<Play className="w-3.5 h-3.5" />}
+              onClick={() => setIsTaxDeclarationOpen(true)}
+              leftIcon={<Send className="w-3.5 h-3.5" />}
             >
-              Initiate Payroll
+              Submit Declaration
             </Button>
-          </>
-        );
-      case 'structures':
-      case 'components':
-      case 'statutory':
-        return (
+          )}
           <Link to="/settings/payroll">
             <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
-              Configure Settings
+              Payroll Settings
             </Button>
           </Link>
-        );
-      case 'tax':
-        return (
           <Button
             size="sm"
-            onClick={() => setIsTaxDeclarationOpen(true)}
-            leftIcon={<Send className="w-3.5 h-3.5" />}
+            onClick={() => setIsInitiateOpen(true)}
+            leftIcon={<Play className="w-3.5 h-3.5" />}
           >
-            Submit Declaration
+            Initiate Payroll
           </Button>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="space-y-6 pb-12">
-      {activeModuleId === null ? (
-        /* 1. Hub View: Header, Top 5 KPIs, and Minimal 8-Card Grid */
-        <div className="space-y-6">
-          <header className="flex flex-wrap items-center justify-end gap-2">
-            <Link to="/settings/payroll">
-              <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
-                Payroll Settings
-              </Button>
-            </Link>
-            <Button
-              size="sm"
-              onClick={() => setIsInitiateOpen(true)}
-              leftIcon={<Play className="w-3.5 h-3.5" />}
-            >
-              Initiate Payroll
-            </Button>
-          </header>
-
-          {statsError && (
-            <ErrorDisplay
-              title="Payroll summary unavailable"
-              error={statsError}
-              onRetry={() => refetchStats()}
-              compact
-            />
-          )}
-
-          <PayrollKpiCards stats={stats} isLoading={statsLoading} />
-
-          <div className="pt-2">
-            <DashboardKpiGrid onSelect={handleSelectModule} />
-          </div>
         </div>
-      ) : (
-        /* 2. Detail View: Sticky Header with Back Button + Active Module Content */
-        <div className="space-y-6">
-          <PayrollDetailHeader
-            activeModuleId={activeModuleId}
-            onBack={handleBackToHub}
-            onSelectModule={handleSelectModule}
-            actions={renderDetailActions(activeModuleId)}
-          />
+      </header>
 
-          {/* Overview Detail View */}
-          {activeModuleId === 'overview' && (
-            <PayrollOverviewDetail
-              stats={stats}
-              activeRun={activeRun}
-              onNavigate={handleSelectModule}
-              onInitiatePayroll={() => setIsInitiateOpen(true)}
-              onRefreshRuns={refetchRuns}
-              onRefreshStats={refetchStats}
-            />
-          )}
+      {/* 2. Top Summary KPI Cards */}
+      {statsError && (
+        <ErrorDisplay
+          title="Payroll summary unavailable"
+          error={statsError}
+          onRetry={() => refetchStats()}
+          compact
+        />
+      )}
+
+      <PayrollKpiCards stats={stats} isLoading={statsLoading} />
+
+      {/* 3. 8-Module Launcher Grid with Active Tab Indicator */}
+      <div className="pt-1">
+        <DashboardKpiGrid activeId={activeTab} onSelect={(id) => handleSelectTab(id as PayrollTab)} />
+      </div>
+
+      {/* 4. Active Tab Content */}
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <PayrollOverviewDetail
+          stats={stats}
+          activeRun={activeRun}
+          onNavigate={(tab) => handleSelectTab(tab as PayrollTab)}
+          onInitiatePayroll={() => setIsInitiateOpen(true)}
+          onRefreshRuns={refetchRuns}
+          onRefreshStats={refetchStats}
+        />
+      )}
 
       {/* Payroll Runs Tab */}
       {activeTab === 'runs' && (
@@ -424,7 +383,7 @@ export const PayrollHubPage: React.FC = () => {
                   refetchRuns();
                   refetchStats();
                 }}
-                onViewPayslips={() => setActiveTab('payslips')}
+                onViewPayslips={() => handleSelectTab('payslips')}
               />
             </div>
           )}
@@ -589,7 +548,7 @@ export const PayrollHubPage: React.FC = () => {
 
       {/* EPFO PF & ECR Compliance Tab */}
       {activeTab === 'pf-ecr' && (
-        <PfComplianceCenter />
+        <PfComplianceCenter runs={runs} />
       )}
 
       {/* Tax Declarations Tab */}
@@ -671,8 +630,6 @@ export const PayrollHubPage: React.FC = () => {
           )}
         </div>
       )}
-        </div>
-      )}
 
       {/* Modals */}
       <PayslipDetailModal
@@ -684,7 +641,7 @@ export const PayrollHubPage: React.FC = () => {
         onClose={() => setIsInitiateOpen(false)}
         month={month}
         year={year}
-        onSuccess={() => setActiveTab('runs')}
+        onSuccess={() => handleSelectTab('runs')}
       />
       <AddAdjustmentModal
         isOpen={isAdjustmentOpen}

@@ -795,3 +795,4 @@ export const PayrollAnalyticsCharts: React.FC<PayrollAnalyticsChartsProps> = ({
 };
 
 export default PayrollAnalyticsCharts;
+

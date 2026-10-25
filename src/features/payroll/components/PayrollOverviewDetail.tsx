@@ -265,6 +265,9 @@ export const PayrollOverviewDetail: React.FC<PayrollOverviewDetailProps> = ({
         </div>
       )}
 
+      {/* Visual Analytics & Charts */}
+      <PayrollAnalyticsCharts stats={stats} />
+
       {/* 3. Department-wise Payroll Cost Breakdown & Month-on-Month Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Department Cost Breakdown (2 cols) */}
