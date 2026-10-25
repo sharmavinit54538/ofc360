@@ -2,10 +2,9 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DashboardKpiGrid } from '../components/DashboardKpiGrid';
-import { DASHBOARD_LAUNCHER_CARDS } from '../components/dashboardKpiCards.data';
 
-describe('DashboardKpiGrid Component', () => {
-  it('renders all 8 payroll module launcher cards', () => {
+describe('DashboardKpiGrid Component (Minimal Mode)', () => {
+  it('renders all 8 payroll module launcher cards with titles', () => {
     render(<DashboardKpiGrid activeId="overview" />);
 
     expect(screen.getByText('Overview')).toBeDefined();
@@ -18,15 +17,13 @@ describe('DashboardKpiGrid Component', () => {
     expect(screen.getByText('Tax Declarations')).toBeDefined();
   });
 
-  it('displays badges, capability tags, and CTA actions for modules', () => {
+  it('keeps cards minimal by omitting verbose descriptions and CTA rows', () => {
     render(<DashboardKpiGrid activeId="overview" />);
 
-    expect(screen.getByText('LIVE CYCLE')).toBeDefined();
-    expect(screen.getByText('100% DISBURSED')).toBeDefined();
-    expect(screen.getByText('₹42.5L Payout')).toBeDefined();
-    expect(screen.getByText('All Grades Mapped')).toBeDefined();
-    expect(screen.getByText('Open Payroll Overview')).toBeDefined();
-    expect(screen.getByText('Review Tax Proofs')).toBeDefined();
+    // Extra verbose descriptions and CTA texts should be omitted from cards
+    expect(screen.queryByText('Open Payroll Overview')).toBeNull();
+    expect(screen.queryByText('Review Tax Proofs')).toBeNull();
+    expect(screen.queryByText('Consolidated payroll analytics, ₹42.5L net payout tracking')).toBeNull();
   });
 
   it('triggers onSelect with card id when clicked', () => {
@@ -46,4 +43,3 @@ describe('DashboardKpiGrid Component', () => {
     expect(card.getAttribute('aria-selected')).toBe('true');
   });
 });
-

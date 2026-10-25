@@ -75,12 +75,59 @@ export const payrollApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
 
     getPayrollStats: builder.query<PayrollStats, { month: number; year: number }>({
-      query: ({ month, year }) =>
-        withQuery(
-          '/payroll/stats',
-          new URLSearchParams({ month: String(month), year: String(year) })
-        ),
-      transformResponse: (response: any) => transformResponse<PayrollStats>(response),
+      queryFn: async ({ month, year }, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const params = new URLSearchParams({ month: String(month), year: String(year) });
+          const result = await baseQuery(withQuery('/payroll/stats', params));
+
+          if (result.error) {
+            // Graceful 404/Not Found or network fallback: zeroed-out stats for KPI cards
+            if (result.error.status === 404 || result.error.status === 'FETCH_ERROR') {
+              const fallbackStats: PayrollStats = {
+                month,
+                year,
+                totalGrossPayroll: 0,
+                totalNetPayable: 0,
+                employeesProcessed: 0,
+                onHoldCount: 0,
+                currentRunStatus: 'NOT_STARTED',
+                payDate: '',
+                statutoryBreakdown: {
+                  pfTotal: 0,
+                  esiTotal: 0,
+                  ptTotal: 0,
+                  tdsTotal: 0,
+                },
+              };
+              return { data: fallbackStats };
+            }
+            return { error: result.error };
+          }
+
+          const transformed = transformResponse<PayrollStats>(result.data);
+          return { data: transformed };
+        } catch {
+          return {
+            data: {
+              month,
+              year,
+              totalGrossPayroll: 0,
+              totalNetPayable: 0,
+              employeesProcessed: 0,
+              onHoldCount: 0,
+              currentRunStatus: 'NOT_STARTED',
+              payDate: '',
+              statutoryBreakdown: {
+                pfTotal: 0,
+                esiTotal: 0,
+                ptTotal: 0,
+                tdsTotal: 0,
+              },
+            },
+          };
+        }
+      },
+      keepUnusedDataFor: 300,
       providesTags: ['PayrollStats'],
     }),
 
@@ -183,15 +230,28 @@ export const payrollApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
 
     getPayrollRuns: builder.query<PayrollRunItem[], { year?: number }>({
-      query: ({ year } = {}) => {
-        const params = new URLSearchParams();
-        if (year) params.append('year', String(year));
-        return withQuery('/payroll/runs', params);
+      queryFn: async ({ year } = {}, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const params = new URLSearchParams();
+          if (year) params.append('year', String(year));
+          const result = await baseQuery(withQuery('/payroll/runs', params));
+
+          if (result.error) {
+            // Graceful 404/Not Found or network fallback: return empty array
+            if (result.error.status === 404 || result.error.status === 'FETCH_ERROR') {
+              return { data: [] };
+            }
+            return { error: result.error };
+          }
+
+          const data = transformResponse<any>(result.data);
+          const runsList = Array.isArray(data) ? data : data?.items || data?.runs || [];
+          return { data: runsList };
+        } catch {
+          return { data: [] };
+        }
       },
-      transformResponse: (response: any): PayrollRunItem[] => {
-        const data = transformResponse<any>(response);
-        return Array.isArray(data) ? data : data?.items || data?.runs || [];
-      },
+      keepUnusedDataFor: 300,
       providesTags: ['PayrollRuns'],
     }),
 

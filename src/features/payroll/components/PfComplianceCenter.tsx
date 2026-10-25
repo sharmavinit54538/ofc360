@@ -47,16 +47,28 @@ import type {
   UanValidationItem,
 } from '../types/payroll.types';
 
-export const PfComplianceCenter: React.FC = () => {
+export interface PfComplianceCenterProps {
+  runs?: PayrollRunItem[];
+}
+
+export const PfComplianceCenter: React.FC<PfComplianceCenterProps> = ({ runs: propRuns }) => {
   const toast = useToast();
   const currentYear = new Date().getFullYear();
 
-  // Queries
-  const { data: runs = [] } = useGetPayrollRunsQuery({});
+  // Queries - deduplicate with parent if propRuns is provided
+  const { data: fetchedRuns = [] } = useGetPayrollRunsQuery(
+    { year: currentYear },
+    {
+      skip: Boolean(propRuns),
+      refetchOnMountOrArgChange: false,
+      refetchOnFocus: false,
+    }
+  );
+  const runs = propRuns || fetchedRuns;
   const { data: calendarItems = [], refetch: refetchCalendar } =
-    useGetStatutoryFilingCalendarQuery({ year: currentYear });
+    useGetStatutoryFilingCalendarQuery({ year: currentYear }, { refetchOnFocus: false });
   const { data: uanAudit, isLoading: isLoadingAudit, refetch: refetchAudit } =
-    useGetUanValidationAuditQuery();
+    useGetUanValidationAuditQuery(undefined, { refetchOnFocus: false });
 
   // Selected Payroll Period for ECR
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>('');
