@@ -14,11 +14,13 @@ import { Badge } from '@/shared/ui/Badge';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { useToast } from '@/shared/ui/Toast';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
 
 import {
   useGetWorkforceStatsQuery,
   useGetEmployeesQuery,
   useGetDepartmentsQuery,
+  useDeleteEmployeeMutation,
 } from '../api/workforceApi';
 import type {
   EmployeeItem,
@@ -27,7 +29,7 @@ import type {
   WorkforceFilterParams,
 } from '../types/workforce.types';
 
-import { WorkforceKpiCards } from '../components/WorkforceKpiCards';
+import { WorkforceKpiCards, type WorkforceKpiCardId } from '../components/WorkforceKpiCards';
 import { WorkforceFilterBar } from '../components/WorkforceFilterBar';
 import { EmployeeDirectoryTable } from '../components/EmployeeDirectoryTable';
 import { AddEmployeeModal } from '../components/AddEmployeeModal';
@@ -155,12 +157,18 @@ export const WorkforceHubPage: React.FC = () => {
   const { user, role, activeRole } = useAuth();
   const effectiveRole = String(activeRole || role || user?.activeRole || 'HR_ADMIN').toUpperCase();
   const isSuperAdmin = effectiveRole === 'SUPER_ADMIN';
+  const { hasAnyRole } = useRBAC();
+  const canManage = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN']);
 
   const [activeTab, setActiveTab] = useState<'directory' | 'orgchart' | 'departments'>('directory');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [statusTarget, setStatusTarget] = useState<EmployeeItem | null>(null);
   const [profileTarget, setProfileTarget] = useState<EmployeeItem | null>(null);
   const [editTarget, setEditTarget] = useState<EmployeeItem | null>(null);
+  const [activeKpiCard, setActiveKpiCard] = useState<WorkforceKpiCardId | null>('employee');
+  const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteEmployee] = useDeleteEmployeeMutation();
 
   // Tenant / Company Context for Super Admin
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
@@ -202,9 +210,10 @@ export const WorkforceHubPage: React.FC = () => {
     if (employmentTypeFilter !== 'ALL') params.employmentType = employmentTypeFilter;
     if (statusFilter !== 'ALL') params.status = statusFilter;
     if (locationFilter) params.location = locationFilter;
+    if (roleFilter !== 'ALL') params.role = roleFilter;
     if (selectedCompanyId) params.company_id = selectedCompanyId;
     return params;
-  }, [page, debouncedSearch, departmentFilter, employmentTypeFilter, statusFilter, locationFilter, selectedCompanyId]);
+  }, [page, debouncedSearch, departmentFilter, employmentTypeFilter, statusFilter, locationFilter, roleFilter, selectedCompanyId]);
 
   const {
     data: stats,
@@ -272,6 +281,8 @@ export const WorkforceHubPage: React.FC = () => {
     setEmploymentTypeFilter('ALL');
     setStatusFilter('ALL');
     setLocationFilter('');
+    setRoleFilter('ALL');
+    setActiveKpiCard('employee');
     setPage(1);
   };
 
@@ -316,6 +327,108 @@ export const WorkforceHubPage: React.FC = () => {
     setIsAddOpen(true);
   };
 
+  const handleDeleteEmployee = async (emp: EmployeeItem) => {
+    if (!canManage) {
+      toast.error('Only Super Admin and HR Admin can manage workforce personnel.', 'Permission Denied');
+      return;
+    }
+
+    const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.email || 'this employee';
+    const confirmed = window.confirm(`Are you sure you want to delete ${fullName}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingId(emp.id);
+    try {
+      await deleteEmployee(emp.id).unwrap();
+      toast.success(`${fullName} has been removed successfully.`, 'Employee Deleted');
+    } catch (err: any) {
+      const isForbidden = err?.status === 403 || err?.statusCode === 403;
+      if (isForbidden) {
+        toast.error('Only Super Admin and HR Admin can manage workforce personnel.', 'Permission Denied');
+      } else {
+        toast.error(
+          err?.data?.message || err?.message || 'Failed to delete employee. Please try again.',
+          'Error Deleting Employee'
+        );
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Sync activeKpiCard with current tab, role filter, or search
+  useEffect(() => {
+    if (activeTab === 'departments') {
+      setActiveKpiCard('department');
+    } else if (activeTab === 'orgchart') {
+      setActiveKpiCard('orgchart');
+    } else if (activeTab === 'directory') {
+      if (roleFilter === 'MANAGER') {
+        setActiveKpiCard('manager');
+      } else if (roleFilter === 'IT_ADMIN') {
+        setActiveKpiCard('it_admin');
+      } else if (roleFilter === 'EXECUTIVE') {
+        setActiveKpiCard('executive');
+      } else {
+        const q = searchQuery.toLowerCase();
+        if (q.includes('manager') || q.includes('lead')) {
+          setActiveKpiCard('manager');
+        } else if (q.includes('it') || q.includes('devops')) {
+          setActiveKpiCard('it_admin');
+        } else if (q.includes('director') || q.includes('executive')) {
+          setActiveKpiCard('executive');
+        } else {
+          setActiveKpiCard('employee');
+        }
+      }
+    }
+  }, [activeTab, roleFilter, searchQuery]);
+
+  const handleKpiCardClick = (cardId: WorkforceKpiCardId) => {
+    setActiveKpiCard(cardId);
+    switch (cardId) {
+      case 'employee':
+        setActiveTab('directory');
+        setRoleFilter('ALL');
+        setSearchQuery('');
+        setDepartmentFilter('');
+        setEmploymentTypeFilter('ALL');
+        setStatusFilter('ALL');
+        setLocationFilter('');
+        setPage(1);
+        break;
+
+      case 'manager':
+        setActiveTab('directory');
+        setRoleFilter('MANAGER');
+        setSearchQuery('');
+        setPage(1);
+        break;
+
+      case 'it_admin':
+        setActiveTab('directory');
+        setRoleFilter('IT_ADMIN');
+        setSearchQuery('');
+        setPage(1);
+        break;
+
+      case 'executive':
+        setActiveTab('directory');
+        setRoleFilter('EXECUTIVE');
+        setSearchQuery('');
+        setPage(1);
+        break;
+
+      case 'department':
+        setActiveTab('departments');
+        break;
+
+      case 'orgchart':
+        setActiveTab('orgchart');
+        break;
+    }
+  };
+
   const tabs = [
     { id: 'directory' as const, label: 'Employee Directory', icon: LayoutList },
     { id: 'orgchart' as const, label: 'Org Chart', icon: Network },
@@ -334,7 +447,14 @@ export const WorkforceHubPage: React.FC = () => {
       )}
 
         {/* KPI tiles */}
-        <WorkforceKpiCards stats={stats} isLoading={statsLoading} />
+        <WorkforceKpiCards
+          stats={stats}
+          departmentsCount={departments.length}
+          totalEmployees={total}
+          activeCard={activeKpiCard}
+          onCardClick={handleKpiCardClick}
+          isLoading={statsLoading && employeesLoading}
+        />
 
         {/* Tabs */}
         <div className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 rounded-2xl w-fit max-w-full overflow-x-auto">
@@ -345,7 +465,12 @@ export const WorkforceHubPage: React.FC = () => {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.id === 'directory') setActiveKpiCard('employee');
+                  if (tab.id === 'departments') setActiveKpiCard('department');
+                  if (tab.id === 'orgchart') setActiveKpiCard('orgchart');
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                   active
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
@@ -435,6 +560,13 @@ export const WorkforceHubPage: React.FC = () => {
                   employees={employees}
                   isLoading={employeesLoading}
                   onEdit={handleEdit}
+                  onDelete={handleDeleteEmployee}
+                  isDeletingId={deletingId}
+                  selectedRole={roleFilter}
+                  onRoleChange={(role) => {
+                    setRoleFilter(role);
+                    setPage(1);
+                  }}
                   onStatusChange={(emp) => setStatusTarget(emp)}
                   onView={(emp) => setProfileTarget(emp)}
                   onInvite={handleInvite}

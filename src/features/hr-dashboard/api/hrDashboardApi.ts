@@ -13,6 +13,8 @@ import type {
   PayrollDashboardSummary,
   PayrollRunSummary,
   Announcement,
+  CreateAnnouncementPayload,
+  UpdateAnnouncementPayload,
   AuditLogEntry,
   UpcomingEvent,
   TimelineEvent,
@@ -28,6 +30,18 @@ import type {
 const transformResponse = <T>(response: any): T => {
   const data = response?.data !== undefined && typeof response.data === 'object' && response.data !== null ? response.data : response;
   return data as T;
+};
+
+/**
+ * Normalizes backend announcement response envelopes safely to Announcement[].
+ * Guarantees an array is always returned; never returns fake or mock data.
+ */
+export const normalizeAnnouncementsResponse = (response: any): Announcement[] => {
+  const unwrapped = response?.data !== undefined ? response.data : response;
+  if (Array.isArray(unwrapped)) return unwrapped as Announcement[];
+  if (Array.isArray(unwrapped?.announcements)) return unwrapped.announcements as Announcement[];
+  if (Array.isArray(unwrapped?.items)) return unwrapped.items as Announcement[];
+  return [];
 };
 
 export const hrDashboardApi = createApi({
@@ -176,19 +190,19 @@ export const hrDashboardApi = createApi({
     /**
      * Fetches recent announcements.
      */
-    getAnnouncements: builder.query<Announcement[], { limit?: number; type?: string; audience?: string }>({
+    getAnnouncements: builder.query<Announcement[], { limit?: number; type?: string; audience?: string } | void>({
       query: (params) => ({
         url: '/hr-admin/announcements',
-        params: { limit: params?.limit || 10, type: params?.type, audience: params?.audience },
+        params: params ? { limit: params.limit || 20, type: params.type, audience: params.audience } : { limit: 20 },
       }),
-      transformResponse: (response: any) => transformResponse<Announcement[]>(response),
+      transformResponse: (response: any) => normalizeAnnouncementsResponse(response),
       providesTags: ['Announcements'],
     }),
 
     /**
      * Creates a new announcement.
      */
-    createAnnouncement: builder.mutation<Announcement, Partial<Announcement>>({
+    createAnnouncement: builder.mutation<Announcement, CreateAnnouncementPayload | Partial<Announcement>>({
       query: (body) => ({
         url: '/hr-admin/announcements',
         method: 'POST',
@@ -200,7 +214,7 @@ export const hrDashboardApi = createApi({
     /**
      * Updates an announcement.
      */
-    updateAnnouncement: builder.mutation<Announcement, { id: string; data: Partial<Announcement> }>({
+    updateAnnouncement: builder.mutation<Announcement, { id: string; data: UpdateAnnouncementPayload | Partial<Announcement> }>({
       query: ({ id, data }) => ({
         url: `/hr-admin/announcements/${id}`,
         method: 'PATCH',

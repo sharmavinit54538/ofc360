@@ -12,6 +12,8 @@ const PHONE_REGEX = /^\+?[0-9][0-9\s\-]{8,14}$/;
 export const employmentTypeEnum = z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN']);
 export const genderEnum = z.enum(['MALE', 'FEMALE', 'OTHER']);
 export const workModeEnum = z.enum(['OFFICE', 'REMOTE', 'HYBRID']);
+export const workforceRoleEnum = z.enum(['EMPLOYEE', 'MANAGER', 'IT_ADMIN', 'EXECUTIVE']);
+export type WorkforceRole = z.infer<typeof workforceRoleEnum>;
 export const employeeStatusActionEnum = z.enum([
   'ACTIVE',
   'INACTIVE',
@@ -54,6 +56,7 @@ export const createEmployeeSchema = z.object({
   employmentType: employmentTypeEnum,
   workLocation: z.string().min(2, 'Work location is required').max(120, 'Work location cannot exceed 120 characters'),
   workMode: workModeEnum,
+  role: workforceRoleEnum.optional().default('EMPLOYEE'),
 });
 
 export type CreateEmployeeFormData = z.infer<typeof createEmployeeSchema>;

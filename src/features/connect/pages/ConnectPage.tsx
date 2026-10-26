@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   MessageSquare,
@@ -29,9 +29,18 @@ import {
   Mic,
   MicOff,
   PhoneOff,
+  Pin,
+  Trash2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
+import { SkeletonCard } from '@/shared/ui/Skeleton';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { cn } from '@/shared/lib/utils';
 import {
   useGetColleaguesQuery,
@@ -40,6 +49,18 @@ import {
   useGetConnectMessagesQuery,
   useSendConnectMessageMutation,
 } from '../api/connectApi';
+import {
+  useGetAnnouncementsQuery,
+  useDeleteAnnouncementMutation,
+  usePublishAnnouncementMutation,
+  useArchiveAnnouncementMutation,
+  type AnnouncementResponse,
+  type AnnouncementPriority,
+  type AnnouncementStatus,
+  AnnouncementModal,
+  AnnouncementFeedCard,
+} from '@/features/announcements';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import { useConnectWebSocket } from '../hooks/useConnectWebSocket';
 import type {
   Colleague,
@@ -105,9 +126,21 @@ const CONNECT_MODULES: ConnectModuleCard[] = [
 export const ConnectPage: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const validTools: ConnectToolId[] = ['chat', 'call', 'meet', 'slack', 'announcement', 'helpdesk'];
+  const initialToolParam = (searchParams.get('tool') || searchParams.get('tab')) as ConnectToolId | null;
 
   // Active KPI Module Tool
-  const [activeTool, setActiveTool] = useState<ConnectToolId>('chat');
+  const [activeTool, setActiveTool] = useState<ConnectToolId>(
+    initialToolParam && validTools.includes(initialToolParam) ? initialToolParam : 'chat'
+  );
+
+  useEffect(() => {
+    const toolParam = (searchParams.get('tool') || searchParams.get('tab')) as ConnectToolId | null;
+    if (toolParam && validTools.includes(toolParam)) {
+      setActiveTool(toolParam);
+    }
+  }, [searchParams]);
 
   // =========================================================================
   // CHAT TOOL STATES
@@ -276,34 +309,120 @@ export const ConnectPage: React.FC = () => {
   };
 
   // =========================================================================
-  // ANNOUNCEMENTS & HELPDESK DATA
+  // ANNOUNCEMENTS DATA & MUTATIONS (Real RTK Query Integration)
   // =========================================================================
-  const announcements = [
-    {
-      id: 'ann-1',
-      title: 'Diwali & Festival Bonus Disbursal Timeline 2026',
-      author: 'HR Operations',
-      time: '2 hours ago',
-      priority: 'HIGH',
-      content: 'All festive allowances and bonus statements are credited. View payslips in Payroll portal.',
-    },
-    {
-      id: 'ann-2',
-      title: 'New Hybrid Workplace Guidelines & Desk Booking Policy',
-      author: 'Operations Leadership',
-      time: 'Yesterday',
-      priority: 'GENERAL',
-      content: 'Effective next week, team leads can schedule in-office collaborative work sessions using OFC360 Desk Planner.',
-    },
-    {
-      id: 'ann-3',
-      title: 'Annual Executive Health Checkup & Family Insurance Enrollment',
-      author: 'Benefits Desk',
-      time: '3 days ago',
-      priority: 'GENERAL',
-      content: 'Enrollment window is open until end of month. Comprehensive coverage includes OPD and dental add-ons.',
-    },
-  ];
+  const { hasAnyRole } = useRBAC();
+  const canManageAnnouncements = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN']);
+
+  const [announcementSearch, setAnnouncementSearch] = useState('');
+  const [announcementPriority, setAnnouncementPriority] = useState<AnnouncementPriority | ''>('');
+  const [announcementStatus, setAnnouncementStatus] = useState<AnnouncementStatus | ''>('');
+  const [announcementDept, setAnnouncementDept] = useState('');
+  const [announcementBranch, setAnnouncementBranch] = useState('');
+  const [announcementPage, setAnnouncementPage] = useState(1);
+  const announcementLimit = 20;
+
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [announcementToEdit, setAnnouncementToEdit] = useState<AnnouncementResponse | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const queryParams = useMemo(() => ({
+    search: announcementSearch.trim() || undefined,
+    priority: (announcementPriority || undefined) as AnnouncementPriority | undefined,
+    status: (announcementStatus || undefined) as AnnouncementStatus | undefined,
+    department: announcementDept.trim() || undefined,
+    branch: announcementBranch.trim() || undefined,
+    page: announcementPage,
+    limit: announcementLimit,
+  }), [announcementSearch, announcementPriority, announcementStatus, announcementDept, announcementBranch, announcementPage, announcementLimit]);
+
+  const {
+    data: announcementsData,
+    isLoading: isAnnouncementsLoading,
+    isFetching: isAnnouncementsFetching,
+    isError: isAnnouncementsError,
+    error: announcementsError,
+    refetch: refetchAnnouncements,
+  } = useGetAnnouncementsQuery(queryParams);
+
+  const announcements = announcementsData?.data ?? [];
+  const announcementsTotal = announcementsData?.total ?? announcements.length;
+  const announcementsTotalPages = announcementsData?.total_pages ?? Math.max(1, Math.ceil(announcementsTotal / announcementLimit));
+
+  const [deleteAnnouncement] = useDeleteAnnouncementMutation();
+  const [publishAnnouncement] = usePublishAnnouncementMutation();
+  const [archiveAnnouncement] = useArchiveAnnouncementMutation();
+
+  const handleEditAnnouncement = (ann: AnnouncementResponse) => {
+    setAnnouncementToEdit(ann);
+    setIsAnnouncementModalOpen(true);
+  };
+
+  const handleOpenCreateModal = () => {
+    setAnnouncementToEdit(null);
+    setIsAnnouncementModalOpen(true);
+  };
+
+  const handleDeleteAnnouncement = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+    setActionLoadingId(id);
+    try {
+      await deleteAnnouncement(id).unwrap();
+      toast.success('Announcement removed from broadcast feed.', 'Deleted');
+    } catch (err: any) {
+      const msg = err?.data?.detail || err?.data?.message || 'Failed to delete announcement';
+      if (err?.status === 403 || String(msg).toLowerCase().includes('department')) {
+        toast.error('Only Super Admin, HR Admin, and IT Admin can manage announcements.', 'Permission Denied');
+      } else {
+        toast.error(msg, 'Error');
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handlePublishAnnouncement = async (id: string) => {
+    setActionLoadingId(id);
+    try {
+      await publishAnnouncement(id).unwrap();
+      toast.success('Announcement published successfully to company feed.', 'Published');
+    } catch (err: any) {
+      const msg = err?.data?.detail || err?.data?.message || 'Failed to publish announcement';
+      if (err?.status === 403 || String(msg).toLowerCase().includes('department')) {
+        toast.error('Only Super Admin, HR Admin, and IT Admin can manage announcements.', 'Permission Denied');
+      } else {
+        toast.error(msg, 'Error');
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleArchiveAnnouncement = async (id: string) => {
+    setActionLoadingId(id);
+    try {
+      await archiveAnnouncement(id).unwrap();
+      toast.success('Announcement archived.', 'Archived');
+    } catch (err: any) {
+      const msg = err?.data?.detail || err?.data?.message || 'Failed to archive announcement';
+      if (err?.status === 403 || String(msg).toLowerCase().includes('department')) {
+        toast.error('Only Super Admin, HR Admin, and IT Admin can manage announcements.', 'Permission Denied');
+      } else {
+        toast.error(msg, 'Error');
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setAnnouncementSearch('');
+    setAnnouncementPriority('');
+    setAnnouncementStatus('');
+    setAnnouncementDept('');
+    setAnnouncementBranch('');
+    setAnnouncementPage(1);
+  };
 
   const helpdeskTickets = [
     {
@@ -904,39 +1023,216 @@ export const ConnectPage: React.FC = () => {
           MODULE 5: ANNOUNCEMENT VIEW (Broadcast & Bulletin Board)
          ========================================================================= */}
       {activeTool === 'announcement' && (
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
+        <div className="p-4 sm:p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">Organization Broadcasts & Announcements</h3>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Official company news, policy updates, and holiday circulars</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Organization Broadcasts & Announcements</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold border border-rose-200 dark:border-rose-900">
+                  {announcementsTotal}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Official company news, policy updates, and circulars</p>
             </div>
-            <Button
-              size="sm"
-              onClick={() => toast.success('New announcement drafted for company-wide broadcast.', 'Draft Created')}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs flex items-center gap-1.5"
-            >
-              <Megaphone className="w-4 h-4" />
-              <span>Post Announcement</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchAnnouncements()}
+                className="text-xs rounded-xl"
+                disabled={isAnnouncementsFetching}
+                aria-label="Refresh announcements"
+              >
+                <RefreshCw className={cn("w-3.5 h-3.5", isAnnouncementsFetching && "animate-spin")} />
+                <span className="hidden sm:inline">Refresh</span>
+              </Button>
+              {canManageAnnouncements && (
+                <Button
+                  size="sm"
+                  onClick={handleOpenCreateModal}
+                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
+                >
+                  <Megaphone className="w-4 h-4" />
+                  <span>Post Announcement</span>
+                </Button>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {announcements.map((item) => (
-              <div key={item.id} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200">
-                      {item.priority}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{item.title}</h4>
-                  </div>
-                  <span className="text-[11px] text-gray-400">{item.time}</span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-zinc-300 leading-relaxed">{item.content}</p>
-                <div className="text-[10px] text-gray-400">Published by {item.author}</div>
-              </div>
-            ))}
+          {/* Search & Filter Bar */}
+          <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/80 dark:border-zinc-800">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={announcementSearch}
+                onChange={(e) => {
+                  setAnnouncementSearch(e.target.value);
+                  setAnnouncementPage(1);
+                }}
+                placeholder="Search announcements..."
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+              />
+            </div>
+
+            {/* Priority Filter */}
+            <select
+              value={announcementPriority}
+              onChange={(e) => {
+                setAnnouncementPriority(e.target.value as AnnouncementPriority | '');
+                setAnnouncementPage(1);
+              }}
+              aria-label="Filter by priority"
+              className="px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+            >
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={announcementStatus}
+              onChange={(e) => {
+                setAnnouncementStatus(e.target.value as AnnouncementStatus | '');
+                setAnnouncementPage(1);
+              }}
+              aria-label="Filter by status"
+              className="px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="DRAFT">Draft</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+
+            {/* Department Filter */}
+            <input
+              type="text"
+              value={announcementDept}
+              onChange={(e) => {
+                setAnnouncementDept(e.target.value);
+                setAnnouncementPage(1);
+              }}
+              placeholder="Filter Dept..."
+              className="w-28 sm:w-32 px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+            />
+
+            {/* Branch Filter */}
+            <input
+              type="text"
+              value={announcementBranch}
+              onChange={(e) => {
+                setAnnouncementBranch(e.target.value);
+                setAnnouncementPage(1);
+              }}
+              placeholder="Filter Branch..."
+              className="w-28 sm:w-32 px-3 py-1.5 rounded-xl text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+            />
+
+            {/* Reset Filters */}
+            {(announcementSearch || announcementPriority || announcementStatus || announcementDept || announcementBranch) && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="p-1.5 text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors flex items-center gap-1 shrink-0"
+                title="Reset filters"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
           </div>
+
+          {/* Loading Skeleton State */}
+          {isAnnouncementsLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {!isAnnouncementsLoading && isAnnouncementsError && (
+            <ErrorDisplay
+              error={announcementsError}
+              onRetry={refetchAnnouncements}
+              className="py-8"
+            />
+          )}
+
+          {/* Empty State */}
+          {!isAnnouncementsLoading && !isAnnouncementsError && announcements.length === 0 && (
+            <EmptyState
+              icon={<Megaphone className="w-6 h-6 text-rose-500" />}
+              title="No Announcements Found"
+              description={
+                announcementSearch || announcementPriority || announcementStatus || announcementDept || announcementBranch
+                  ? 'No announcements match the selected filter criteria.'
+                  : 'Official company broadcasts, policy updates, and circulars will appear here once published.'
+              }
+              action={
+                canManageAnnouncements
+                  ? {
+                      label: 'Post First Announcement',
+                      onClick: handleOpenCreateModal,
+                    }
+                  : undefined
+              }
+            />
+          )}
+
+          {/* Live Data List */}
+          {!isAnnouncementsLoading && !isAnnouncementsError && announcements.length > 0 && (
+            <div className="space-y-4">
+              {announcements.map((item) => (
+                <AnnouncementFeedCard
+                  key={item.id}
+                  announcement={item}
+                  onEdit={handleEditAnnouncement}
+                  onDelete={handleDeleteAnnouncement}
+                  onPublish={handlePublishAnnouncement}
+                  onArchive={handleArchiveAnnouncement}
+                  isActionLoading={actionLoadingId === item.id}
+                />
+              ))}
+
+              {/* Pagination Controls */}
+              {announcementsTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-zinc-800 text-xs">
+                  <span className="text-gray-500 dark:text-zinc-400">
+                    Page {announcementPage} of {announcementsTotalPages} ({announcementsTotal} total)
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAnnouncementPage((p) => Math.max(1, p - 1))}
+                      disabled={announcementPage <= 1}
+                      className="rounded-xl text-xs h-8 px-3 flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span>Previous</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAnnouncementPage((p) => Math.min(announcementsTotalPages, p + 1))}
+                      disabled={announcementPage >= announcementsTotalPages}
+                      className="rounded-xl text-xs h-8 px-3 flex items-center gap-1"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -990,6 +1286,19 @@ export const ConnectPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Corporate Announcement Creation and Edit Modal */}
+      <AnnouncementModal
+        isOpen={isAnnouncementModalOpen}
+        onClose={() => {
+          setIsAnnouncementModalOpen(false);
+          setAnnouncementToEdit(null);
+        }}
+        announcementToEdit={announcementToEdit}
+        onSuccess={() => {
+          refetchAnnouncements();
+        }}
+      />
     </div>
   );
 };

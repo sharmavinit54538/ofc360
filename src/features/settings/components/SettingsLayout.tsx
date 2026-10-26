@@ -22,16 +22,13 @@ import {
   RotateCcw,
   HelpCircle,
   Settings as SettingsIcon,
-  ArrowLeft,
 } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
 import { cn } from '@/shared/lib/utils';
-import { Badge } from '@/shared/ui/Badge';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
-import { useGetCompanySettingsQuery } from '@/features/settings/api/settingsApi';
 import type { SettingCategory, SettingsSection } from '@/features/settings/types/settings.types';
 
 // ==========================================
@@ -462,15 +459,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
   // Get user permissions
   const userPermissions = useMemo(() => user?.permissions || [], [user?.permissions]);
 
-  const filteredSections = useMemo(() => {
-    return SETTINGS_SECTIONS.filter((section) => {
-      if (section.requiredPermissions.length === 0) return true;
-      return section.requiredPermissions.some((perm) => userPermissions.includes(perm));
-    });
-  }, [userPermissions]);
-
-  const isOverview = location.pathname === '/settings' || location.pathname === '/settings/';
-
   // Determine current section from URL
   const currentSectionFromUrl = useMemo(() => {
     const path = location.pathname.replace('/settings/', '').replace('/settings', '');
@@ -484,10 +472,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
       setActiveSection(currentSectionFromUrl);
     }
   }, [currentSectionFromUrl, activeSection]);
-
-  // Check for API loading
-  const { isLoading: companyLoading } = useGetCompanySettingsQuery();
-  const isLoading = companyLoading;
 
   const markDirty = useCallback((section: SettingCategory) => {
     setDirtySections((prev) => (prev.includes(section) ? prev : [...prev, section]));

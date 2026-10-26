@@ -24,9 +24,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
-import { SkeletonStatCard, SkeletonTimelineItem, SkeletonListItem } from '@/shared/ui/Skeleton';
+import { SkeletonStatCard, SkeletonTimelineItem, SkeletonListItem, SkeletonCard } from '@/shared/ui/Skeleton';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { useToast } from '@/shared/ui/Toast';
+import {
+  AnnouncementModal,
+  useGetInternalDashboardFeedQuery,
+} from '@/features/announcements';
 import {
   useGetDashboardSummaryQuery,
   useGetEmployeeSummaryQuery,
@@ -35,14 +40,12 @@ import {
   useGetPayrollDashboardQuery,
   useGetUpcomingEventsQuery,
   useGetTimelineFeedQuery,
-  useCreateAnnouncementMutation,
   useApproveLeaveMutation,
   useRejectLeaveMutation,
 } from '@/features/hr-dashboard/api/hrDashboardApi';
 import type {
   UpcomingEvent,
   TimelineEvent,
-  Announcement,
   LeaveRequestSummary,
 } from '@/features/hr-dashboard/types/hrDashboard.types';
 
@@ -502,126 +505,7 @@ const TimelineFeed: React.FC<{
   );
 };
 
-const AnnouncementDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: Partial<Announcement>) => Promise<void>;
-  loading: boolean;
-}> = ({ isOpen, onClose, onSubmit, loading }) => {
-  const [formData, setFormData] = useState<Partial<Announcement>>({
-    title: '',
-    content: '',
-    type: 'INFO',
-    priority: 'MEDIUM',
-    targetAudience: 'ALL',
-    isPinned: false,
-  });
 
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(formData);
-    onClose();
-    setFormData({ title: '', content: '', type: 'INFO', priority: 'MEDIUM', targetAudience: 'ALL', isPinned: false });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-in zoom-in-95">
-        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between shrink-0">
-          <h3 className="text-lg font-bold text-foreground">Post Announcement</h3>
-          <button type="button" onClick={onClose} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Title *</label>
-            <input
-              type="text"
-              value={formData.title || ''}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground placeholder:text-muted-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
-              placeholder="Announcement title"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Content *</label>
-            <textarea
-              value={formData.content || ''}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground placeholder:text-muted-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors resize-none"
-              placeholder="Write your announcement..."
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
-              <select
-                value={formData.type || 'INFO'}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as Announcement['type'] })}
-                className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
-              >
-                <option value="INFO">Information</option>
-                <option value="WARNING">Warning</option>
-                <option value="URGENT">Urgent</option>
-                <option value="POLICY">Policy Update</option>
-                <option value="EVENT">Event</option>
-                <option value="CELEBRATION">Celebration</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Priority</label>
-              <select
-                value={formData.priority || 'MEDIUM'}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as Announcement['priority'] })}
-                className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="CRITICAL">Critical</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Target Audience</label>
-            <select
-              value={formData.targetAudience || 'ALL'}
-              onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value as Announcement['targetAudience'] })}
-              className="w-full px-3 py-2 rounded-xl bg-input border border-border text-foreground focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
-            >
-              <option value="ALL">All Employees</option>
-              <option value="DEPARTMENT">Specific Department</option>
-              <option value="ROLE">Specific Role</option>
-              <option value="SPECIFIC">Specific Employees</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="pinned"
-              checked={formData.isPinned || false}
-              onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
-              className="w-4 h-4 rounded border-border text-brand-500 focus:ring-brand-500"
-            />
-            <label htmlFor="pinned" className="text-sm text-muted-foreground">Pin to top of feed</label>
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" variant="primary" isLoading={loading} disabled={!formData.title || !formData.content || loading}>
-              Post Announcement
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 export interface OverviewViewProps {
   onSelectTab?: (tabId: string) => void;
@@ -691,21 +575,25 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
     refetch: refetchTimeline,
   } = useGetTimelineFeedQuery({ limit: 50, daysBack: 14 }, { pollingInterval: 120000 });
 
+  // Unified Internal Dashboard Feed (Pinned & Recent Announcements)
+  const {
+    data: internalFeed,
+    isLoading: internalFeedLoading,
+    isFetching: internalFeedFetching,
+    error: internalFeedError,
+    refetch: refetchInternalFeed,
+  } = useGetInternalDashboardFeedQuery();
+
+  const pinnedAnnouncements = internalFeed?.pinned_announcements || [];
+  const recentAnnouncements = internalFeed?.recent_announcements || [];
+  const allDashboardAnnouncements = [
+    ...pinnedAnnouncements,
+    ...recentAnnouncements.filter((r) => !pinnedAnnouncements.some((p) => p.id === r.id)),
+  ];
+
   // Mutations
-  const [createAnnouncement] = useCreateAnnouncementMutation();
   const [approveLeave] = useApproveLeaveMutation();
   const [rejectLeave] = useRejectLeaveMutation();
-
-  const handleCreateAnnouncement = async (data: Partial<Announcement>) => {
-    try {
-      await createAnnouncement(data).unwrap();
-      toast.success('Announcement posted successfully', 'Posted');
-      refetchSummary();
-      refetchTimeline();
-    } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to post announcement', 'Error');
-    }
-  };
 
   const handleApproveLeave = async (leaveId: string) => {
     setApproveLoadingId(leaveId);
@@ -954,6 +842,117 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
         </div>
       </div>
 
+      {/* Company Announcements & Broadcasts Widget */}
+      <div className="p-5 rounded-2xl bg-card border border-border/70 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+              <Megaphone className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span>Company Broadcasts & Circulars</span>
+                {pinnedAnnouncements.length > 0 && (
+                  <Badge variant="warning" size="sm">
+                    {pinnedAnnouncements.length} Pinned
+                  </Badge>
+                )}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Official internal broadcasts, leadership circulars, and policy updates
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchInternalFeed()}
+              disabled={internalFeedFetching}
+              className="text-xs rounded-xl"
+            >
+              <RefreshCw className={cn("w-3.5 h-3.5", internalFeedFetching && "animate-spin")} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setAnnouncementDialogOpen(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Post Announcement</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Loading skeleton */}
+        {internalFeedLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        )}
+
+        {/* Error */}
+        {!internalFeedLoading && internalFeedError && (
+          <ErrorDisplay error={internalFeedError} onRetry={refetchInternalFeed} compact className="py-3" />
+        )}
+
+        {/* Empty state */}
+        {!internalFeedLoading && !internalFeedError && allDashboardAnnouncements.length === 0 && (
+          <EmptyState
+            icon={<Megaphone className="w-6 h-6 text-rose-500" />}
+            title="No Active Announcements"
+            description="Company-wide announcements and policy circulars will appear here once published."
+            action={{
+              label: "Post First Announcement",
+              onClick: () => setAnnouncementDialogOpen(true),
+            }}
+          />
+        )}
+
+        {/* Cards */}
+        {!internalFeedLoading && !internalFeedError && allDashboardAnnouncements.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {allDashboardAnnouncements.slice(0, 6).map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  'p-4 rounded-xl border transition-all space-y-2',
+                  item.is_pinned
+                    ? 'border-rose-200 dark:border-rose-900/60 bg-rose-50/20 dark:bg-rose-950/10'
+                    : 'border-border/60 bg-muted/20'
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
+                      {item.priority || 'MEDIUM'}
+                    </span>
+                    {item.is_pinned && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 flex items-center gap-0.5">
+                        <Pin className="w-2.5 h-2.5 rotate-45" />
+                        <span>Pinned</span>
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    {item.publish_date ? new Date(item.publish_date).toLocaleDateString() : 'Recently'}
+                  </span>
+                </div>
+                <h4 className="text-xs sm:text-sm font-bold text-foreground line-clamp-1">
+                  {item.title}
+                </h4>
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Bottom Section: HR Command Center + Payroll + Events */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: HR Command Center - Timeline Feed */}
@@ -1107,12 +1106,15 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
         </div>
       </div>
 
-      {/* Announcement Dialog */}
-      <AnnouncementDialog
+      {/* Announcement Modal */}
+      <AnnouncementModal
         isOpen={announcementDialogOpen}
         onClose={() => setAnnouncementDialogOpen(false)}
-        onSubmit={handleCreateAnnouncement}
-        loading={false}
+        onSuccess={() => {
+          refetchInternalFeed();
+          refetchTimeline();
+          refetchSummary();
+        }}
       />
     </div>
   );

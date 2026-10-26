@@ -109,12 +109,28 @@ export const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+  // Normalize args to strip redundant /api/v1 prefix if passed explicitly
+  let cleanArgs = args;
+  if (typeof cleanArgs === 'string') {
+    if (cleanArgs.startsWith('/api/v1/')) {
+      cleanArgs = cleanArgs.replace(/^\/api\/v1/, '');
+    } else if (cleanArgs === '/api/v1') {
+      cleanArgs = '/';
+    }
+  } else if (typeof cleanArgs === 'object' && cleanArgs.url) {
+    if (cleanArgs.url.startsWith('/api/v1/')) {
+      cleanArgs = { ...cleanArgs, url: cleanArgs.url.replace(/^\/api\/v1/, '') };
+    } else if (cleanArgs.url === '/api/v1') {
+      cleanArgs = { ...cleanArgs, url: '/' };
+    }
+  }
+
   // Wait if another request is currently refreshing the token
   await mutex.waitForUnlock();
 
-  let result = await rawBaseQuery(args, api, extraOptions);
+  let result = await rawBaseQuery(cleanArgs, api, extraOptions);
 
-  const requestUrl = typeof args === 'string' ? args : args.url;
+  const requestUrl = typeof cleanArgs === 'string' ? cleanArgs : cleanArgs.url;
   const isAuthEndpoint =
     requestUrl.includes('/auth/login') ||
     requestUrl.includes('/auth/register') ||
@@ -454,6 +470,21 @@ export const baseQueryWithReauth: BaseQueryFn<
     if (currentUser) {
       console.log('[baseQuery] /auth/me network returned error; serving local session user.');
       return { data: currentUser };
+    }
+  }
+
+  // Intercept 403 errors on Announcement endpoints where backend mistakenly mentions departments
+  if (result.error && result.error.status === 403) {
+    const reqUrl = typeof args === 'string' ? args : args.url;
+    if (reqUrl.includes('announcement')) {
+      const errData = result.error.data as any;
+      const rawMsg = typeof errData === 'string' ? errData : errData?.message || errData?.detail;
+      if (typeof rawMsg === 'string' && (rawMsg.includes('manage departments') || rawMsg.includes('departments'))) {
+        const cleanMsg = 'Only Super Admin, HR Admin, and IT Admin can manage announcements.';
+        result.error.data = typeof errData === 'object' && errData !== null
+          ? { ...errData, message: cleanMsg, detail: cleanMsg }
+          : cleanMsg;
+      }
     }
   }
 

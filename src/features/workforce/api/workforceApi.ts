@@ -216,6 +216,22 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
   );
   const avatarUrl = raw.avatarUrl ?? raw.avatar_url ?? raw.profile_picture ?? null;
 
+  let rawRole = String(raw.role ?? raw.user_role ?? raw.system_role ?? '').toUpperCase();
+  if (!rawRole) {
+    const desgUpper = desgTitle.toUpperCase();
+    const deptUpper = depName.toUpperCase();
+    if (desgUpper.includes('MANAGER') || desgUpper.includes('LEAD') || desgUpper.includes('HEAD')) {
+      rawRole = 'MANAGER';
+    } else if (desgUpper.includes('IT') || desgUpper.includes('DEVOPS') || desgUpper.includes('INFRA') || deptUpper.includes('IT')) {
+      rawRole = 'IT_ADMIN';
+    } else if (desgUpper.includes('DIRECTOR') || desgUpper.includes('VP') || desgUpper.includes('CHIEF') || desgUpper.includes('CEO') || desgUpper.includes('CTO') || desgUpper.includes('CFO') || desgUpper.includes('EXECUTIVE')) {
+      rawRole = 'EXECUTIVE';
+    } else {
+      rawRole = 'EMPLOYEE';
+    }
+  }
+  const role = ['EMPLOYEE', 'MANAGER', 'IT_ADMIN', 'EXECUTIVE'].includes(rawRole) ? rawRole : 'EMPLOYEE';
+
   return {
     id,
     employeeCode,
@@ -245,6 +261,7 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
     status,
     workLocation,
     avatarUrl,
+    role,
   };
 };
 
@@ -497,6 +514,10 @@ export const workforceApi = createApi({
                 newJoinersThisMonth: Number(data.newJoinersThisMonth ?? data.new_joiners_this_month ?? 0),
                 exitedThisMonth: Number(data.exitedThisMonth ?? data.exited_this_month ?? 0),
                 retentionRate: Number(data.retentionRate ?? data.retention_rate ?? 95),
+                managersCount: Number(data.managersCount ?? data.managers_count ?? data.manager_count ?? 0),
+                itAdminsCount: Number(data.itAdminsCount ?? data.it_admins_count ?? data.it_count ?? 0),
+                executivesCount: Number(data.executivesCount ?? data.executives_count ?? data.executive_count ?? 0),
+                departmentsCount: Number(data.departmentsCount ?? data.departments_count ?? data.department_count ?? 0),
                 genderDiversity: {
                   male: Number(data.genderDiversity?.male ?? data.gender_diversity?.male ?? 0),
                   female: Number(data.genderDiversity?.female ?? data.gender_diversity?.female ?? 0),
@@ -533,6 +554,23 @@ export const workforceApi = createApi({
                 newJoinersThisMonth: Math.min(5, total),
                 exitedThisMonth: exited,
                 retentionRate: retention,
+                managersCount: list.filter((e) => {
+                  const role = String(e.role || '').toUpperCase();
+                  const desg = String(e.designation || e.designationTitle || e.job_title || (typeof e.designation === 'object' ? e.designation?.title : '') || '').toUpperCase();
+                  return role === 'MANAGER' || desg.includes('MANAGER') || desg.includes('LEAD') || desg.includes('HEAD');
+                }).length,
+                itAdminsCount: list.filter((e) => {
+                  const role = String(e.role || '').toUpperCase();
+                  const desg = String(e.designation || e.designationTitle || e.job_title || (typeof e.designation === 'object' ? e.designation?.title : '') || '').toUpperCase();
+                  const dept = String(e.departmentName || e.department_name || (typeof e.department === 'object' ? e.department?.name : '') || '').toUpperCase();
+                  return role === 'IT_ADMIN' || desg.includes('IT') || desg.includes('DEVOPS') || desg.includes('INFRA') || dept.includes('IT');
+                }).length,
+                executivesCount: list.filter((e) => {
+                  const role = String(e.role || '').toUpperCase();
+                  const desg = String(e.designation || e.designationTitle || e.job_title || (typeof e.designation === 'object' ? e.designation?.title : '') || '').toUpperCase();
+                  return role === 'EXECUTIVE' || desg.includes('DIRECTOR') || desg.includes('VP') || desg.includes('CHIEF') || desg.includes('CEO') || desg.includes('CTO') || desg.includes('CFO') || desg.includes('PRESIDENT');
+                }).length,
+                departmentsCount: 0,
                 genderDiversity: {
                   male: list.filter((e) => (e.gender || '').toUpperCase() === 'MALE').length,
                   female: list.filter((e) => (e.gender || '').toUpperCase() === 'FEMALE').length,
@@ -556,6 +594,10 @@ export const workforceApi = createApi({
               newJoinersThisMonth: 0,
               exitedThisMonth: 0,
               retentionRate: 100,
+              managersCount: 0,
+              itAdminsCount: 0,
+              executivesCount: 0,
+              departmentsCount: 0,
               genderDiversity: { male: 0, female: 0, other: 0 },
               workModeSplit: { office: 0, remote: 0, hybrid: 0 },
             },
@@ -569,6 +611,10 @@ export const workforceApi = createApi({
               newJoinersThisMonth: 0,
               exitedThisMonth: 0,
               retentionRate: 100,
+              managersCount: 0,
+              itAdminsCount: 0,
+              executivesCount: 0,
+              departmentsCount: 0,
               genderDiversity: { male: 0, female: 0, other: 0 },
               workModeSplit: { office: 0, remote: 0, hybrid: 0 },
             },
@@ -601,6 +647,7 @@ export const workforceApi = createApi({
           params.append('status', filters.status);
         }
         if (filters?.location) params.append('location', filters.location);
+        if (filters?.role && filters.role !== 'ALL') params.append('role', filters.role);
 
         const page = filters?.page || 1;
         const limit = filters?.limit || 10;
@@ -637,9 +684,11 @@ export const workforceApi = createApi({
         result?.items
           ? [
               ...result.items.map(({ id }) => ({ type: 'EmployeesList' as const, id })),
+              { type: 'Workforce' as const, id: 'LIST' },
+              'Workforce',
               { type: 'EmployeesList', id: 'LIST' },
             ]
-          : [{ type: 'EmployeesList', id: 'LIST' }],
+          : [{ type: 'EmployeesList', id: 'LIST' }, 'Workforce'],
     }),
 
     /**
@@ -706,7 +755,7 @@ export const workforceApi = createApi({
         };
       },
       transformResponse: (response: any) => normalizeEmployee(transformResponse<any>(response)),
-      invalidatesTags: ['EmployeesList', 'WorkforceStats', 'OrgChart', 'Departments'],
+      invalidatesTags: ['EmployeesList', 'Workforce', 'WorkforceStats', 'OrgChart', 'Departments'],
     }),
 
     /**
@@ -733,6 +782,7 @@ export const workforceApi = createApi({
           ...(data.personalEmail !== undefined ? { personal_email: data.personalEmail, personalEmail: data.personalEmail } : {}),
           ...(data.basicSalary !== undefined ? { basic_salary: data.basicSalary } : {}),
           ...(data.ctc !== undefined ? { ctc: data.ctc } : {}),
+          ...(data.role !== undefined ? { role: data.role } : {}),
         };
 
         return {
@@ -742,7 +792,7 @@ export const workforceApi = createApi({
         };
       },
       transformResponse: (response: any) => normalizeEmployee(transformResponse<any>(response)),
-      invalidatesTags: ['EmployeesList', 'EmployeeDetail', 'OrgChart'],
+      invalidatesTags: ['EmployeesList', 'EmployeeDetail', 'Workforce', 'WorkforceStats', 'OrgChart'],
     }),
 
     /**
@@ -785,7 +835,26 @@ export const workforceApi = createApi({
         const normalized = normalizeEmployee(transformResponse<any>(result.data));
         return { data: normalized };
       },
-      invalidatesTags: ['EmployeesList', 'EmployeeDetail', 'WorkforceStats', 'OrgChart'],
+      invalidatesTags: ['EmployeesList', 'EmployeeDetail', 'Workforce', 'WorkforceStats', 'OrgChart'],
+    }),
+
+    /**
+     * Delete an employee record.
+     * Route: DELETE /employees/{id}
+     */
+    deleteEmployee: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/employees/${encodeURIComponent(id)}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [
+        'EmployeesList',
+        'EmployeeDetail',
+        'Workforce',
+        'WorkforceStats',
+        'OrgChart',
+        'Departments',
+      ],
     }),
 
     /**
@@ -941,6 +1010,7 @@ export const {
   useCreateEmployeeMutation,
   useUpdateEmployeeMutation,
   useUpdateEmployeeStatusMutation,
+  useDeleteEmployeeMutation,
   useGetOrgChartQuery,
   useGetDepartmentsQuery,
   useCreateDepartmentMutation,

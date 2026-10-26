@@ -45,3 +45,6 @@ export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } fro
 
 export { GeminiIcon } from './GeminiIcon';
 export type { GeminiIconProps } from './GeminiIcon';
+
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';

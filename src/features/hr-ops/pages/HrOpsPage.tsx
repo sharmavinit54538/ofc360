@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -35,6 +36,7 @@ import { HrOpsCommandQueue } from '../components/HrOpsCommandQueue';
 
 export const HrOpsPage: React.FC = () => {
   const toast = useToast();
+  const navigate = useNavigate();
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,7 +153,7 @@ export const HrOpsPage: React.FC = () => {
 
       {/* Operational Quick Actions */}
       <HrOpsQuickActions
-        onAnnouncementClick={() => toast.info('Announcement broadcast portal accessible under Settings / Notifications.')}
+        onAnnouncementClick={() => navigate('/dashboard/connect?tool=announcement')}
         onVerifyDocumentClick={() => toast.info('Identity verification portal accessible under Settings / Documents.')}
       />
 

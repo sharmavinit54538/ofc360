@@ -4,50 +4,36 @@
  * event toggles, and user preference management.
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import React, { useCallback, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bell,
   Mail,
   Smartphone,
-  MessageSquare,
   Wifi,
   Globe,
-  ToggleLeft,
-  ToggleRight,
   Save,
   RotateCcw,
   Loader2,
   AlertCircle,
-  CheckCircle2,
   Info,
-  Eye,
-  EyeOff,
   Volume2,
-  VolumeX,
   Moon,
-  Sun,
-  Clock,
   ChevronDown,
-  ChevronUp,
-  Plus,
-  Trash2,
   TestTube,
   Zap,
 } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/Select';
 import { Switch } from '@/shared/ui/Switch';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/shared/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Separator } from '@/shared/ui/Separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/Tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/Tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/Accordion';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
@@ -56,23 +42,16 @@ import { useSettingsContext } from './SettingsLayout';
 import {
   useGetNotificationsSettingsQuery,
   useUpdateNotificationsSettingsMutation,
-  useGetUserNotificationPreferencesQuery,
-  useBulkUpdateUserNotificationPreferencesMutation,
 } from '../api/settingsApi';
 import {
   updateNotificationsSettingsSchema,
-  notificationChannelConfigSchema,
-  notificationEventConfigSchema,
-  defaultNotificationPreferencesSchema,
   type NotificationsSettingsFormData,
 } from '../schemas/settings.schemas';
 import type {
-  NotificationsSettings,
   NotificationChannelConfig,
   NotificationEventConfig,
   NotificationEvent,
   NotificationChannel,
-  UserNotificationPreference,
 } from '../types/settings.types';
 import { TIMEZONES } from '../types/settings.types';
 
@@ -216,8 +195,6 @@ const EventAccordionItem: React.FC<{
   isActive: boolean;
   onActiveChange: (event: NotificationEvent, active: boolean) => void;
 }> = ({ event, channels, onChannelChange, recipients, onRecipientsChange, isActive, onActiveChange }) => {
-  const [expanded, setExpanded] = useState(false);
-
   const enabledChannels = Object.entries(channels).filter(([, enabled]) => enabled).length;
   const totalChannels = Object.keys(channels).length;
 
@@ -244,7 +221,7 @@ const EventAccordionItem: React.FC<{
           <Badge variant="outline" size="sm" className="hidden sm:inline-flex">
             {recipients.join(', ')}
           </Badge>
-          <ChevronDown className={cn('w-4 h-4 text-neutral-400 transition-transform', expanded && 'rotate-180')} />
+          <ChevronDown className="w-4 h-4 text-neutral-400 transition-transform" />
         </div>
       </AccordionTrigger>
       <AccordionContent className="pb-4">
@@ -292,9 +269,11 @@ const EventAccordionItem: React.FC<{
                   type="checkbox"
                   checked={recipients.includes(role as any)}
                   onChange={(e) => {
-                    const newRecipients = e.target.checked
-                      ? [...recipients, role]
-                      : recipients.filter((r) => r !== role);
+                    const newRecipients = (
+                      e.target.checked
+                        ? [...recipients, role]
+                        : recipients.filter((r) => r !== role)
+                    ) as NotificationEventConfig['recipients'];
                     onRecipientsChange(event.event, newRecipients);
                   }}
                   className="w-3.5 h-3.5 rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500"
@@ -341,17 +320,15 @@ export const NotificationsSection: React.FC = () => {
     mode: 'onChange',
   });
 
-  const { register, control, handleSubmit, setValue, watch, reset, formState: { errors, isDirty, isSubmitting, isValid } } = form;
+  const { control, handleSubmit, setValue, watch, reset, formState: { isDirty, isSubmitting, isValid } } = form;
 
-  const watchedChannels = watch('channels');
-  const watchedEvents = watch('events');
-  const watchedPreferences = watch('defaultPreferences');
+  const watchedChannels = watch('channels') || [];
+  const watchedEvents = watch('events') || [];
+  const watchedPreferences = watch('defaultPreferences') || {};
 
   // API hooks
   const { data: notificationsSettings, isLoading, error: fetchError, refetch } = useGetNotificationsSettingsQuery();
   const [updateNotificationsSettings] = useUpdateNotificationsSettingsMutation();
-  const { data: userPreferences } = useGetUserNotificationPreferencesQuery();
-  const [bulkUpdatePreferences] = useBulkUpdateUserNotificationPreferencesMutation();
 
   // Load settings into form
   useEffect(() => {
@@ -401,11 +378,6 @@ export const NotificationsSection: React.FC = () => {
       e.event === event ? { ...e, isActive: active } : e
     ));
   }, [watchedEvents, setValue]);
-
-  // Preference change handlers
-  const handlePreferenceChange = useCallback((field: string, value: any) => {
-    setValue(`defaultPreferences.${field}`, value);
-  }, [setValue]);
 
   // Handle form submit
   const onSubmit = useCallback(async (data: NotificationsSettingsFormData) => {
@@ -522,8 +494,8 @@ export const NotificationsSection: React.FC = () => {
                         name={`channels.${watchedChannels.findIndex((c) => c.channel === channelConfig.channel)}.provider`}
                         control={control}
                         rules={{ required: false }}
-                        render={({ field }) => (
-                          <FormField label="Provider" error={field.error}>
+                        render={({ field, fieldState }) => (
+                          <FormField label="Provider" error={fieldState.error?.message}>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select provider" />
@@ -563,8 +535,8 @@ export const NotificationsSection: React.FC = () => {
                       <Controller
                         name={`channels.${watchedChannels.findIndex((c) => c.channel === channelConfig.channel)}.config`}
                         control={control}
-                        render={({ field }) => (
-                          <FormField label="API Key / Secret" error={field.error} hint="Stored encrypted">
+                        render={({ field, fieldState }) => (
+                          <FormField label="API Key / Secret" error={fieldState.error?.message} hint="Stored encrypted">
                             <Input
                               {...field}
                               type="password"
@@ -580,8 +552,8 @@ export const NotificationsSection: React.FC = () => {
                       <Controller
                         name={`channels.${watchedChannels.findIndex((c) => c.channel === channelConfig.channel)}.config`}
                         control={control}
-                        render={({ field }) => (
-                          <FormField label="Webhook URL" error={field.error} className="ml-11">
+                        render={({ field, fieldState }) => (
+                          <FormField label="Webhook URL" error={fieldState.error?.message} className="ml-11">
                             <Input
                               {...field}
                               placeholder="https://your-webhook-url.com/endpoint"
@@ -678,8 +650,8 @@ export const NotificationsSection: React.FC = () => {
                     name="defaultPreferences.quietHoursStart"
                     control={control}
                     rules={{ pattern: { value: /^([01]\d|2[0-3]):([0-5]\d)$/, message: 'Invalid time format' } }}
-                    render={({ field }) => (
-                      <FormField label="Quiet Hours Start" error={field.error}>
+                    render={({ field, fieldState }) => (
+                      <FormField label="Quiet Hours Start" error={fieldState.error?.message}>
                         <Input {...field} type="time" disabled={!watchedPreferences.quietHoursEnabled} />
                       </FormField>
                     )}
@@ -688,8 +660,8 @@ export const NotificationsSection: React.FC = () => {
                     name="defaultPreferences.quietHoursEnd"
                     control={control}
                     rules={{ pattern: { value: /^([01]\d|2[0-3]):([0-5]\d)$/, message: 'Invalid time format' } }}
-                    render={({ field }) => (
-                      <FormField label="Quiet Hours End" error={field.error}>
+                    render={({ field, fieldState }) => (
+                      <FormField label="Quiet Hours End" error={fieldState.error?.message}>
                         <Input {...field} type="time" disabled={!watchedPreferences.quietHoursEnabled} />
                       </FormField>
                     )}
@@ -697,8 +669,8 @@ export const NotificationsSection: React.FC = () => {
                   <Controller
                     name="defaultPreferences.timezone"
                     control={control}
-                    render={({ field }) => (
-                      <FormField label="Timezone" error={field.error}>
+                    render={({ field, fieldState }) => (
+                      <FormField label="Timezone" error={fieldState.error?.message}>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timezone" />
@@ -745,8 +717,8 @@ export const NotificationsSection: React.FC = () => {
                   <Controller
                     name="defaultPreferences.digestFrequency"
                     control={control}
-                    render={({ field }) => (
-                      <FormField label="Digest Frequency" error={field.error}>
+                    render={({ field, fieldState }) => (
+                      <FormField label="Digest Frequency" error={fieldState.error?.message}>
                         <Select onValueChange={field.onChange} value={field.value} disabled={!watchedPreferences.digestEnabled}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select frequency" />
@@ -763,8 +735,8 @@ export const NotificationsSection: React.FC = () => {
                     name="defaultPreferences.digestTime"
                     control={control}
                     rules={{ pattern: { value: /^([01]\d|2[0-3]):([0-5]\d)$/, message: 'Invalid time format' } }}
-                    render={({ field }) => (
-                      <FormField label="Digest Time" error={field.error}>
+                    render={({ field, fieldState }) => (
+                      <FormField label="Digest Time" error={fieldState.error?.message}>
                         <Input {...field} type="time" disabled={!watchedPreferences.digestEnabled} />
                       </FormField>
                     )}
@@ -871,7 +843,7 @@ const FormField: React.FC<{
   className?: string;
   disabled?: boolean;
 }> = ({ label, error, hint, children, className, disabled }) => (
-  <div className={cn('space-y-1.5', className)}>
+  <div className={cn('space-y-1.5', disabled && 'opacity-60 pointer-events-none', className)}>
     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Label>
     <div>{children}</div>
     {error && (

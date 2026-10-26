@@ -5,6 +5,7 @@ import { X, UserPlus, Pencil } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { useToast } from '@/shared/ui/Toast';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import {
   useCreateEmployeeMutation,
   useUpdateEmployeeMutation,
@@ -42,12 +43,15 @@ const EMPTY_FORM: CreateEmployeeFormData = {
   reportingManagerId: '',
   employmentType: 'FULL_TIME',
   workLocation: '',
+  role: 'EMPLOYEE',
   workMode: 'OFFICE',
 };
 
 export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, isOpen, onClose }) => {
   const toast = useToast();
   const isEditMode = Boolean(employee);
+  const { hasAnyRole } = useRBAC();
+  const canManage = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN']);
 
   const [createEmployee, { isLoading: isCreating }] = useCreateEmployeeMutation();
   const [updateEmployee, { isLoading: isUpdating }] = useUpdateEmployeeMutation();
@@ -91,6 +95,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
         reportingManagerId: employee.reportingManager?.id || '',
         employmentType: employee.employmentType,
         workLocation: employee.workLocation || '',
+        role: (employee.role as any) || 'EMPLOYEE',
         workMode: 'OFFICE',
       });
     } else {
@@ -110,6 +115,10 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
   if (!isOpen) return null;
 
   const onSubmit = async (data: CreateEmployeeFormData) => {
+    if (!canManage) {
+      toast.error('Only Super Admin and HR Admin can manage workforce personnel.', 'Permission Denied');
+      return;
+    }
     try {
       const payload = {
         ...data,
@@ -126,7 +135,12 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
       }
       onClose();
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to save the employee record.', 'Save Error');
+      const msg = err?.data?.detail || err?.data?.message || 'Failed to save the employee record.';
+      if (err?.status === 403 || String(msg).toLowerCase().includes('permission') || String(msg).toLowerCase().includes('authorized')) {
+        toast.error('Only Super Admin and HR Admin can manage workforce personnel.', 'Permission Denied');
+      } else {
+        toast.error(msg, 'Save Error');
+      }
     }
   };
 
@@ -289,7 +303,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input
               label="Work Location"
               placeholder="e.g. Jaipur HQ"
@@ -306,6 +320,18 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
                 <option value="HYBRID">Hybrid</option>
               </select>
               {errors.workMode?.message && <p className="text-xs text-rose-500">{errors.workMode.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="emp-role" className="text-xs font-semibold text-gray-900 dark:text-[#ececec]">
+                Access Role Tier
+              </label>
+              <select id="emp-role" className={SELECT_CLASSES} {...register('role')}>
+                <option value="EMPLOYEE">Employee (Standard Personnel)</option>
+                <option value="MANAGER">Manager (Team Lead / Approver)</option>
+                <option value="IT_ADMIN">IT Admin (Systems & Infrastructure)</option>
+                <option value="EXECUTIVE">Executive (Leadership & Director)</option>
+              </select>
+              {errors.role?.message && <p className="text-xs text-rose-500">{errors.role.message}</p>}
             </div>
           </div>
 

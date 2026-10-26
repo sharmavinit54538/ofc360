@@ -113,18 +113,41 @@ export interface Announcement {
   content: string;
   type: 'INFO' | 'WARNING' | 'URGENT' | 'POLICY' | 'EVENT' | 'CELEBRATION';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  targetAudience: 'ALL' | 'DEPARTMENT' | 'ROLE' | 'SPECIFIC';
+  targetAudience?: 'ALL' | 'DEPARTMENT' | 'ROLE' | 'SPECIFIC';
   targetIds?: string[];
-  authorId: string;
-  authorName: string;
+  authorId?: string;
+  authorName?: string;
   authorAvatar?: string;
-  authorRole: string;
-  publishedAt: string;
+  authorRole?: string;
+  publishedAt?: string;
+  createdAt?: string;
   expiresAt?: string;
-  isPinned: boolean;
-  readCount: number;
-  totalRecipients: number;
+  isPinned?: boolean;
+  readCount?: number;
+  totalRecipients?: number;
   attachments?: AnnouncementAttachment[];
+}
+
+export interface CreateAnnouncementPayload {
+  title: string;
+  content: string;
+  type?: 'INFO' | 'WARNING' | 'URGENT' | 'POLICY' | 'EVENT' | 'CELEBRATION';
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  targetAudience?: 'ALL' | 'DEPARTMENT' | 'ROLE' | 'SPECIFIC';
+  targetIds?: string[];
+  expiresAt?: string;
+  isPinned?: boolean;
+}
+
+export interface UpdateAnnouncementPayload {
+  title?: string;
+  content?: string;
+  type?: 'INFO' | 'WARNING' | 'URGENT' | 'POLICY' | 'EVENT' | 'CELEBRATION';
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  targetAudience?: 'ALL' | 'DEPARTMENT' | 'ROLE' | 'SPECIFIC';
+  targetIds?: string[];
+  expiresAt?: string;
+  isPinned?: boolean;
 }
 
 export interface AnnouncementAttachment {

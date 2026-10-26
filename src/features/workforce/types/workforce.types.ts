@@ -33,6 +33,7 @@ export type EmployeeStatusAction =
 
 export type GenderType = 'MALE' | 'FEMALE' | 'OTHER';
 export type WorkMode = 'OFFICE' | 'REMOTE' | 'HYBRID';
+export type WorkforceRole = 'EMPLOYEE' | 'MANAGER' | 'IT_ADMIN' | 'EXECUTIVE';
 
 /**
  * Organization-wide aggregate workforce KPI metrics.
@@ -44,6 +45,10 @@ export interface WorkforceStats {
   newJoinersThisMonth: number;
   exitedThisMonth: number;
   retentionRate: number;
+  managersCount?: number;
+  itAdminsCount?: number;
+  executivesCount?: number;
+  departmentsCount?: number;
   genderDiversity: {
     male: number;
     female: number;
@@ -108,6 +113,7 @@ export interface EmployeeItem {
   status: EmployeeStatus;
   workLocation: string;
   avatarUrl?: string | null;
+  role?: WorkforceRole | string;
 }
 
 /**
@@ -123,6 +129,7 @@ export interface WorkforceFilterParams {
   status?: string;
   location?: string;
   company_id?: string;
+  role?: string;
 }
 
 /**
@@ -224,6 +231,7 @@ export interface OrgChartNode {
   designation: string;
   department: string;
   avatarUrl?: string | null;
+  role?: WorkforceRole | string;
   subordinates: OrgChartNode[];
   children?: OrgChartNode[];
   managerId?: string | null;
