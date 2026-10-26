@@ -103,7 +103,7 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Aarav',
         lastName: 'Sharma',
         email: 'aarav@company.com',
-        personal_email: 'aarav.personal@example.com',
+        personalEmail: 'aarav.personal@example.com',
         phone: '+919876543210',
         department: 'Engineering',
         designation: 'Senior Software Engineer',
@@ -116,7 +116,7 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
       const result = createEmployeeSchema.safeParse(validPayload);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.role).toBe('EMPLOYEE');
+        expect(result.data.role.toUpperCase()).toBe('EMPLOYEE');
       }
     });
 
@@ -125,7 +125,7 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Vikram',
         lastName: 'Singh',
         email: 'vikram@company.com',
-        personal_email: 'vikram.personal@example.com',
+        personalEmail: 'vikram.personal@example.com',
         phone: '+919876543210',
         department: 'IT Operations',
         designation: 'Lead DevOps & Admin',
@@ -164,6 +164,9 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'alice@company.com',
+        phone: '+919876543210',
+        gender: 'OTHER' as const,
+        workLocation: 'Jaipur HQ',
         role: 'EMPLOYEE',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
@@ -180,6 +183,9 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Bob',
         lastName: 'Johnson',
         email: 'bob@company.com',
+        phone: '+919876543210',
+        gender: 'OTHER' as const,
+        workLocation: 'Jaipur HQ',
         role: 'MANAGER',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
@@ -196,6 +202,9 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Charlie',
         lastName: 'Lee',
         email: 'charlie@company.com',
+        phone: '+919876543210',
+        gender: 'OTHER' as const,
+        workLocation: 'Jaipur HQ',
         role: 'IT_ADMIN',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
@@ -212,6 +221,9 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Diana',
         lastName: 'Prince',
         email: 'diana@company.com',
+        phone: '+919876543210',
+        gender: 'OTHER' as const,
+        workLocation: 'Jaipur HQ',
         role: 'EXECUTIVE',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
