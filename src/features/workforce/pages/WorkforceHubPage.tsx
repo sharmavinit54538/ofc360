@@ -230,6 +230,9 @@ export const WorkforceHubPage: React.FC = () => {
     refetch: refetchEmployees,
   } = useGetEmployeesQuery(queryParams);
 
+  // Pre-fetch employee pool to support full manager name resolution across pages and role filters
+  const { data: allEmployeesPool } = useGetEmployeesQuery({ limit: 500 });
+
   const {
     data: departments = [],
     refetch: refetchDepartments,
@@ -558,6 +561,7 @@ export const WorkforceHubPage: React.FC = () => {
 
                 <EmployeeDirectoryTable
                   employees={employees}
+                  allEmployees={allEmployeesPool?.items}
                   isLoading={employeesLoading}
                   onEdit={handleEdit}
                   onDelete={handleDeleteEmployee}

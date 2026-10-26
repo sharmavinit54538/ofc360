@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { Building2, Plus, Edit2, MapPin, Hash } from 'lucide-react';
+import { Building2, Plus, Pencil, MapPin } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
-import { SkeletonListItem } from '@/shared/ui/Skeleton';
-import { useGetEmployeesQuery } from '../api/workforceApi';
+import { SkeletonTableRow } from '@/shared/ui/Skeleton';
+import { useGetEmployeesQuery, isUuid } from '../api/workforceApi';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import { DepartmentModal } from './DepartmentModal';
 import type { DepartmentItem, EmployeeItem, DepartmentStatus } from '../types/workforce.types';
 
-interface DepartmentBreakdownCardProps {
+export interface DepartmentBreakdownCardProps {
   departments: DepartmentItem[];
   isLoading: boolean;
   employees?: EmployeeItem[];
@@ -18,22 +19,32 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
   isLoading,
   employees,
 }) => {
+  const { hasAnyRole } = useRBAC();
+  const canManage = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN']);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<DepartmentItem | null>(null);
+
+  // Fetch employees pool to resolve department manager names and fallbacks
+  const { data: empQueryData } = useGetEmployeesQuery({ limit: 500 });
+  const activeEmployeeList = employees ?? empQueryData?.items ?? [];
+
+  // Map employee ID / employeeCode to full name for resolving manager ID to display name
+  const managerLookupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const emp of activeEmployeeList) {
+      const name = emp.fullName?.trim() || `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+      if (emp.id && name) map.set(String(emp.id).trim(), name);
+      if (emp.employeeCode && name) map.set(String(emp.employeeCode).trim(), name);
+    }
+    return map;
+  }, [activeEmployeeList]);
 
   // Check if all departments returned 0 headcount from backend
   const allZeroHeadcount = useMemo(
     () => departments.length > 0 && departments.every((d) => (d.headcount ?? d.totalEmployees ?? d.employeeCount ?? 0) === 0),
     [departments]
   );
-
-  // Fetch employees as fallback if all departments returned 0 and no employees prop was provided
-  const { data: empQueryData } = useGetEmployeesQuery(
-    { limit: 500 },
-    { skip: !allZeroHeadcount || Boolean(employees && employees.length > 0) }
-  );
-
-  const activeEmployeeList = employees ?? empQueryData?.items ?? [];
 
   // Compute map of department counts if backend reported 0 across all
   const fallbackCounts = useMemo(() => {
@@ -91,34 +102,83 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
     }
   };
 
+  const getDeptManagerName = (dept: DepartmentItem): string => {
+    const rawDept = dept as any;
+    const mgrId =
+      dept.manager_id ||
+      dept.managerId ||
+      dept.head_id ||
+      dept.headId ||
+      rawDept.headOfDepartment?.id;
+
+    const rawName = dept.managerName || dept.headName || rawDept.headOfDepartment?.name;
+
+    // If a human-readable name is already populated and not a raw UUID or ID, use it
+    if (
+      rawName &&
+      rawName !== 'Unassigned' &&
+      !isUuid(rawName) &&
+      (!mgrId || rawName.trim() !== String(mgrId).trim())
+    ) {
+      return rawName;
+    }
+
+    if (mgrId) {
+      const matched = managerLookupMap.get(String(mgrId).trim());
+      if (matched) return matched;
+    }
+
+    return 'Not assigned';
+  };
+
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
-        <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+      <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-xs">
+        {/* Header Bar */}
+        <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#171717]">
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-[#ececec] flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-600" />
-              Department Breakdown
+              <Building2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Department Directory
             </h2>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-              {activeCount} active units • {totalStaff} total staff across departments
+              {activeCount} active {activeCount === 1 ? 'unit' : 'units'} • {totalStaff} total staff across departments
             </p>
           </div>
-          <Button
-            size="sm"
-            onClick={handleOpenCreateModal}
-            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Add Department
-          </Button>
+          {canManage && (
+            <Button
+              size="sm"
+              onClick={handleOpenCreateModal}
+              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 self-start sm:self-auto rounded-xl shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Add Department
+            </Button>
+          )}
         </div>
 
+        {/* Content Table or Empty/Loading State */}
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <SkeletonListItem key={i} />
-            ))}
+          <div className="overflow-x-auto min-w-0">
+            <table className="w-full min-w-[840px] text-left text-xs md:text-sm">
+              <thead className="bg-gray-50 dark:bg-zinc-800/60 text-gray-600 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-gray-200 dark:border-zinc-800">
+                <tr>
+                  <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">Department</th>
+                  <th className="px-4 py-3">Manager</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Staff / Capacity</th>
+                  <th className="px-4 py-3">Budget</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <SkeletonTableRow key={i} columns={8} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : departments.length === 0 ? (
           <div className="p-12 text-center">
@@ -131,105 +191,151 @@ export const DepartmentBreakdownCard: React.FC<DepartmentBreakdownCardProps> = (
             <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
               Create your first department to start organizing the workforce into units.
             </p>
+            {canManage && (
+              <Button
+                size="sm"
+                onClick={handleOpenCreateModal}
+                className="mt-4 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Add Department
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-            {departments.map((dept) => {
-              const count = getDeptHeadcount(dept);
-              const capacity = dept.employee_capacity ?? dept.employeeCapacity ?? 100;
-              const share = maxHeadcount > 0 ? Math.min(100, Math.max(0, Math.round((count / maxHeadcount) * 100))) : 0;
-              const safeShare = Number.isNaN(share) ? 0 : share;
-              const orgShare = totalStaff > 0 ? Math.min(100, Math.max(0, Math.round((count / totalStaff) * 100))) : 0;
-              const safeOrgShare = Number.isNaN(orgShare) ? 0 : orgShare;
-              const status = dept.status || (dept.isActive ? 'ACTIVE' : 'INACTIVE');
+          <div className="overflow-x-auto min-w-0">
+            <table className="w-full min-w-[840px] text-left text-xs md:text-sm">
+              <thead className="bg-gray-50 dark:bg-zinc-800/60 text-gray-600 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-gray-200 dark:border-zinc-800">
+                <tr>
+                  <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">Department</th>
+                  <th className="px-4 py-3">Manager</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Staff / Capacity</th>
+                  <th className="px-4 py-3">Budget</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
+                {departments.map((dept) => {
+                  const count = getDeptHeadcount(dept);
+                  const capacity = dept.employee_capacity ?? dept.employeeCapacity ?? 100;
+                  const share = maxHeadcount > 0 ? Math.min(100, Math.max(0, Math.round((count / maxHeadcount) * 100))) : 0;
+                  const safeShare = Number.isNaN(share) ? 0 : share;
+                  const orgShare = totalStaff > 0 ? Math.min(100, Math.max(0, Math.round((count / totalStaff) * 100))) : 0;
+                  const safeOrgShare = Number.isNaN(orgShare) ? 0 : orgShare;
+                  const status = dept.status || (dept.isActive ? 'ACTIVE' : 'INACTIVE');
+                  const deptName = dept.department_name || dept.departmentName || dept.name || 'Unnamed Department';
+                  const deptCode = dept.department_code || dept.departmentCode || dept.code || '—';
+                  const managerDisplay = getDeptManagerName(dept);
 
-              return (
-                <div
-                  key={dept.id}
-                  className="px-4 md:px-6 py-4 hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-[#ececec] truncate">
-                          {dept.department_name || dept.departmentName || dept.name}
+                  return (
+                    <tr
+                      key={dept.id}
+                      className="hover:bg-gray-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+                    >
+                      {/* Code */}
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono text-xs text-gray-600 dark:text-zinc-400 font-medium">
+                          {deptCode}
                         </span>
-                        <span className="font-mono text-[10px] text-gray-500 dark:text-zinc-400 uppercase font-bold">
-                          {dept.department_code || dept.departmentCode || dept.code}
-                        </span>
+                      </td>
+
+                      {/* Department Icon + Name + Cost Center / Subtitle */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
+                            <Building2 className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-900 dark:text-[#ececec] truncate">
+                              {deptName}
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">
+                              {dept.cost_center
+                                ? `Cost Center: ${dept.cost_center}`
+                                : dept.description
+                                ? dept.description
+                                : 'Core Unit'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Manager */}
+                      <td className="px-4 py-3.5 text-gray-700 dark:text-zinc-300 whitespace-nowrap">
+                        {managerDisplay}
+                      </td>
+
+                      {/* Location */}
+                      <td className="px-4 py-3.5 text-gray-700 dark:text-zinc-300 whitespace-nowrap">
+                        {dept.location ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400 dark:text-zinc-500 shrink-0" />
+                            <span>{dept.location}</span>
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+
+                      {/* Staff / Capacity + Org Utilization */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900 dark:text-[#ececec]">
+                            {count} <span className="text-gray-400 dark:text-zinc-500 font-normal">/ {capacity}</span>
+                          </span>
+                          <span className="text-[11px] font-medium text-gray-500 dark:text-zinc-400">
+                            ({safeOrgShare}% org)
+                          </span>
+                        </div>
+                        <div className="w-24 h-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden mt-1.5">
+                          <div
+                            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                            style={{ width: `${safeShare}%` }}
+                          />
+                        </div>
+                      </td>
+
+                      {/* Budget */}
+                      <td className="px-4 py-3.5 font-mono text-xs text-gray-700 dark:text-zinc-300 whitespace-nowrap">
+                        {dept.budget !== undefined && dept.budget > 0
+                          ? `₹${dept.budget.toLocaleString('en-IN')}`
+                          : '—'}
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <Badge
                           variant={getStatusBadgeVariant(dept.status, dept.isActive)}
                           size="sm"
-                          className="font-semibold text-[10px]"
+                          className="font-semibold text-[11px]"
                         >
                           {status}
                         </Badge>
-                        {dept.budget !== undefined && dept.budget > 0 && (
-                          <span className="font-mono text-[10px] text-gray-500 dark:text-zinc-400">
-                            • Budget: ₹{dept.budget.toLocaleString('en-IN')}
-                          </span>
-                        )}
-                        {dept.cost_center && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] text-gray-500 dark:text-zinc-400 font-mono">
-                            <Hash className="w-2.5 h-2.5" />
-                            {dept.cost_center}
-                          </span>
-                        )}
-                      </div>
+                      </td>
 
-                      <div className="flex items-center gap-3 mt-1 flex-wrap text-[11px] text-gray-500 dark:text-zinc-400">
-                        <span>
-                          {dept.managerName && dept.managerName !== 'Unassigned'
-                            ? `Manager: ${dept.managerName}`
-                            : dept.headOfDepartment
-                            ? `Manager: ${dept.headOfDepartment.name}`
-                            : 'Manager not assigned'}
-                        </span>
-                        {dept.location && (
-                          <span className="inline-flex items-center gap-1 text-gray-500 dark:text-zinc-400">
-                            <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
-                            {dept.location}
-                          </span>
+                      {/* Actions */}
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(dept)}
+                            title={`Edit ${deptName}`}
+                            aria-label={`Edit ${deptName}`}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors inline-flex items-center gap-1.5"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline text-xs font-medium text-gray-600 dark:text-zinc-300">Edit</span>
+                          </button>
                         )}
-                        {capacity > 0 && (
-                          <span className="text-gray-400 dark:text-zinc-500">
-                            Capacity: {count}/{capacity}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-sm font-bold text-gray-900 dark:text-[#ececec] whitespace-nowrap">
-                        {count} <span className="text-xs font-medium text-gray-400">staff</span>
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenEditModal(dept)}
-                        className="text-xs px-2.5 py-1 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800"
-                        title={`Edit ${dept.name || 'department'}`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5 mr-1 text-gray-500" />
-                        Edit
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mt-2.5 flex items-center gap-3">
-                    <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                        style={{ width: `${safeShare}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] font-semibold text-gray-500 dark:text-zinc-400 whitespace-nowrap">
-                      {safeOrgShare}% of org
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

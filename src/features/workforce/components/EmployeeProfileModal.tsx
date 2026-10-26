@@ -2,7 +2,7 @@ import React from 'react';
 import { X, User, Mail, Phone, MapPin, CalendarDays, Briefcase, Building2 } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
-import { useGetEmployeeByIdQuery } from '../api/workforceApi';
+import { useGetEmployeeByIdQuery, useGetEmployeesQuery } from '../api/workforceApi';
 import type { EmployeeItem } from '../types/workforce.types';
 
 interface EmployeeProfileModalProps {
@@ -62,6 +62,8 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
     skip: !isOpen || !employee,
   });
 
+  const { data: managerPool } = useGetEmployeesQuery({ limit: 100 }, { skip: !isOpen });
+
   if (!isOpen || !employee) return null;
 
   const info = detail || employee;
@@ -69,6 +71,23 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
     label: info.status || 'Unknown',
     variant: 'slate' as BadgeVariant,
   };
+
+  const isUuid = (val?: string | null): boolean => {
+    if (!val || typeof val !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim());
+  };
+
+  const existingMgrName = info.reportingManager?.name || info.reportingManagerName;
+  const mgrId = info.reportingManager?.id || info.reportingManagerId;
+  let managerDisplayName = '—';
+  if (existingMgrName && !isUuid(existingMgrName) && (!mgrId || existingMgrName.trim() !== String(mgrId).trim())) {
+    managerDisplayName = existingMgrName;
+  } else if (mgrId) {
+    const matched = managerPool?.items?.find((m) => m.id === mgrId || m.employeeCode === mgrId);
+    if (matched) {
+      managerDisplayName = matched.fullName || `${matched.firstName} ${matched.lastName}`.trim();
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in-50">
@@ -143,7 +162,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
               <DetailRow icon={Phone} label="Phone" value={info.phone} />
               <DetailRow icon={Building2} label="Department" value={info.department?.name} />
               <DetailRow icon={Briefcase} label="Designation" value={info.designation?.title} />
-              <DetailRow icon={User} label="Reporting Manager" value={info.reportingManager?.name} />
+              <DetailRow icon={User} label="Reporting Manager" value={managerDisplayName} />
               <DetailRow icon={MapPin} label="Work Location" value={info.workLocation} />
               <DetailRow icon={CalendarDays} label="Joining Date" value={formatDate(info.joiningDate)} />
               <DetailRow icon={User} label="Gender" value={info.gender} />

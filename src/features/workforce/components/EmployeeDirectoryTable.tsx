@@ -28,6 +28,7 @@ import type { EmployeeItem } from '../types/workforce.types';
 
 export interface EmployeeDirectoryTableProps {
   employees: EmployeeItem[];
+  allEmployees?: EmployeeItem[];
   isLoading: boolean;
   onEdit: (employee: EmployeeItem) => void;
   onDelete?: (employee: EmployeeItem) => void;
@@ -112,6 +113,7 @@ const formatJoiningDate = (dateStr: string): string => {
 
 export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
   employees,
+  allEmployees,
   isLoading,
   onEdit,
   onDelete,
@@ -134,6 +136,75 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
   const handleRoleTabSelect = (roleId: string) => {
     setInternalRoleFilter(roleId);
     onRoleChange?.(roleId);
+  };
+
+  // Helper to detect if a value is a raw UUID string
+  const isUuid = (val?: string | null): boolean => {
+    if (!val || typeof val !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim());
+  };
+
+  // Build employee lookup map (id -> fullName, employeeCode -> fullName)
+  const employeeLookupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const pool = allEmployees && allEmployees.length > 0 ? allEmployees : employees;
+
+    const registerEmp = (emp: EmployeeItem) => {
+      const name =
+        emp.fullName?.trim() ||
+        [emp.firstName, emp.lastName].filter(Boolean).join(' ').trim();
+      if (!name) return;
+
+      if (emp.id) map.set(String(emp.id).trim(), name);
+      if (emp.employeeCode) map.set(String(emp.employeeCode).trim(), name);
+      const raw = emp as any;
+      if (raw._id) map.set(String(raw._id).trim(), name);
+      if (raw.employee_id) map.set(String(raw.employee_id).trim(), name);
+    };
+
+    for (const emp of pool) registerEmp(emp);
+    for (const emp of employees) registerEmp(emp);
+
+    return map;
+  }, [employees, allEmployees]);
+
+  // Resolves the manager's human-readable name or fallback '—'
+  const getManagerDisplayName = (emp: EmployeeItem): string => {
+    const rawEmp = emp as any;
+    const managerId =
+      emp.reportingManager?.id ||
+      emp.reportingManagerId ||
+      rawEmp.manager_id ||
+      rawEmp.managerId ||
+      rawEmp.reporting_manager_id;
+
+    const existingName = emp.reportingManager?.name || emp.reportingManagerName;
+
+    // 1. If existingName is already a valid human name (not empty, not UUID, not the managerId), use it
+    if (
+      existingName &&
+      typeof existingName === 'string' &&
+      existingName.trim() !== '' &&
+      existingName !== '—' &&
+      !isUuid(existingName) &&
+      (!managerId || existingName.trim() !== String(managerId).trim())
+    ) {
+      return existingName;
+    }
+
+    // 2. If no manager assigned, return fallback
+    if (!managerId) {
+      return '—';
+    }
+
+    // 3. Match manager ID against employee lookup map
+    const matched = employeeLookupMap.get(String(managerId).trim());
+    if (matched) {
+      return matched;
+    }
+
+    // 4. If employee has no manager or ID doesn't match, display '—' (never display raw UUID)
+    return '—';
   };
 
   // Close the open dropdown when clicking anywhere outside of it
@@ -313,7 +384,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
 
                         {/* Reporting Manager */}
                         <td className="px-4 py-3.5 text-gray-700 dark:text-zinc-300 whitespace-nowrap">
-                          {emp.reportingManager?.name || '—'}
+                          {getManagerDisplayName(emp)}
                         </td>
 
                         {/* Employment Type */}
@@ -355,8 +426,8 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                                 type="button"
                                 onClick={() => onDelete(emp)}
                                 disabled={isDeletingId === emp.id}
-                                title={`Delete ${emp.firstName} ${emp.lastName}`}
-                                aria-label={`Delete ${emp.firstName} ${emp.lastName}`}
+                                title={isDeletingId === emp.id ? `Deleting ${emp.firstName} ${emp.lastName}...` : `Delete ${emp.firstName} ${emp.lastName}`}
+                                aria-label={isDeletingId === emp.id ? `Deleting ${emp.firstName} ${emp.lastName}...` : `Delete ${emp.firstName} ${emp.lastName}`}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50"
                               >
                                 {isDeletingId === emp.id ? (

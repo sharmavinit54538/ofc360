@@ -88,6 +88,14 @@ const transformResponse = <T>(response: any): T => {
 };
 
 /**
+ * Checks whether a string is a valid UUID representation.
+ */
+export const isUuid = (val?: string | null): boolean => {
+  if (!val || typeof val !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim());
+};
+
+/**
  * Bi-directional snake_case <-> camelCase Mapper
  * Normalizes raw backend response objects into fully typed EmployeeItem records.
  */
@@ -197,26 +205,57 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
   );
 
   // Reporting manager normalization
-  const reportingManagerId =
+  const rawMgrObj =
+    (typeof raw.reporting_manager === 'object' && raw.reporting_manager) ||
+    (typeof raw.reportingManager === 'object' && raw.reportingManager) ||
+    (typeof raw.manager === 'object' && raw.manager) ||
+    null;
+
+  const rawMgrId =
     raw.reportingManagerId ??
     raw.reporting_manager_id ??
     raw.manager_id ??
-    raw.reportingManager?.id ??
+    raw.managerId ??
+    rawMgrObj?.id ??
+    rawMgrObj?._id ??
+    rawMgrObj?.employee_id ??
     null;
-  const reportingManagerName =
+
+  const reportingManagerId = rawMgrId ? String(rawMgrId).trim() : null;
+
+  let rawMgrName: string | null =
     raw.reportingManagerName ??
     raw.reporting_manager_name ??
     raw.manager_name ??
-    raw.reportingManager?.name ??
+    raw.managerName ??
+    rawMgrObj?.full_name ??
+    rawMgrObj?.fullName ??
+    rawMgrObj?.name ??
     null;
 
-  const reportingManager =
-    reportingManagerName || reportingManagerId
-      ? {
-          id: String(reportingManagerId || ''),
-          name: String(reportingManagerName || reportingManagerId || 'Manager'),
-        }
-      : undefined;
+  if (!rawMgrName && rawMgrObj) {
+    const fName = rawMgrObj.first_name ?? rawMgrObj.firstName;
+    const lName = rawMgrObj.last_name ?? rawMgrObj.lastName;
+    const combined = [fName, lName].filter(Boolean).join(' ').trim();
+    if (combined) rawMgrName = combined;
+  }
+
+  // If the extracted manager name is a UUID or matches the manager ID, it's not a real name
+  if (rawMgrName) {
+    rawMgrName = String(rawMgrName).trim();
+    if (isUuid(rawMgrName) || (reportingManagerId && rawMgrName === reportingManagerId)) {
+      rawMgrName = null;
+    }
+  }
+
+  const reportingManagerName = rawMgrName || null;
+
+  const reportingManager = reportingManagerId
+    ? {
+        id: reportingManagerId,
+        name: reportingManagerName || '',
+      }
+    : undefined;
 
   const workLocation = String(
     raw.workLocation ?? raw.work_location ?? raw.location ?? raw.city ?? 'Jaipur HQ'
@@ -270,6 +309,63 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
     avatarUrl,
     role,
   };
+};
+
+/**
+ * Resolves and populates reporting manager names for a list of employees
+ * by cross-referencing manager IDs with employee records in the list / pool.
+ */
+export const populateManagerNames = (
+  employees: EmployeeItem[],
+  externalPool: EmployeeItem[] = []
+): void => {
+  const map = new Map<string, string>();
+
+  const register = (emp: EmployeeItem) => {
+    const name =
+      emp.fullName?.trim() ||
+      [emp.firstName, emp.lastName].filter(Boolean).join(' ').trim();
+    if (!name) return;
+    if (emp.id) map.set(String(emp.id).trim(), name);
+    if (emp.employeeCode) map.set(String(emp.employeeCode).trim(), name);
+    const raw = emp as any;
+    if (raw._id) map.set(String(raw._id).trim(), name);
+    if (raw.employee_id) map.set(String(raw.employee_id).trim(), name);
+  };
+
+  for (const emp of externalPool) register(emp);
+  for (const emp of employees) register(emp);
+
+  for (const emp of employees) {
+    const mgrId = emp.reportingManagerId || emp.reportingManager?.id;
+    const currentName = emp.reportingManager?.name || emp.reportingManagerName;
+
+    if (mgrId) {
+      const isMissingOrInvalid =
+        !currentName ||
+        currentName.trim() === '' ||
+        currentName === '—' ||
+        isUuid(currentName) ||
+        currentName === mgrId;
+
+      if (isMissingOrInvalid) {
+        const resolvedName = map.get(String(mgrId).trim());
+        if (resolvedName) {
+          emp.reportingManagerName = resolvedName;
+          emp.reportingManager = {
+            id: String(mgrId).trim(),
+            name: resolvedName,
+          };
+        } else {
+          // If manager ID doesn't match, keep empty so fallback '—' is displayed, never raw UUID
+          emp.reportingManagerName = null;
+          if (emp.reportingManager) {
+            emp.reportingManager.name = '';
+          }
+        }
+      }
+    }
+  }
 };
 
 /**
@@ -1214,11 +1310,13 @@ export const workforceApi = createApi({
 
         if (Array.isArray(data)) {
           const items = data.map(normalizeEmployee);
+          populateManagerNames(items);
           return { items, total: items.length, page: 1, limit: items.length };
         }
 
         const rawItems = data?.items || data?.employees || data?.data || [];
         const items = Array.isArray(rawItems) ? rawItems.map(normalizeEmployee) : [];
+        populateManagerNames(items);
         const total = Number(data?.total ?? data?.count ?? data?.total_count ?? items.length);
         const page = Number(data?.page ?? 1);
         const limit = Number(data?.limit ?? data?.size ?? 10);

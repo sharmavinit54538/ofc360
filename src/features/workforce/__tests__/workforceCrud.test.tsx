@@ -66,6 +66,8 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Jane',
         lastName: 'Doe',
         email: 'jane.doe@example.com',
+        personalEmail: 'jane.personal@example.com',
+        phone: '+919876543210',
         role: 'MANAGER',
         employeeCode: 'EMP-001',
         employmentType: 'FULL_TIME',
@@ -101,6 +103,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Aarav',
         lastName: 'Sharma',
         email: 'aarav@company.com',
+        personal_email: 'aarav.personal@example.com',
+        phone: '+919876543210',
+        department: 'Engineering',
+        designation: 'Senior Software Engineer',
         employmentType: 'FULL_TIME' as const,
         departmentId: 'dept_it',
         designationId: 'desig_dev',
@@ -119,6 +125,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         firstName: 'Vikram',
         lastName: 'Singh',
         email: 'vikram@company.com',
+        personal_email: 'vikram.personal@example.com',
+        phone: '+919876543210',
+        department: 'IT Operations',
+        designation: 'Lead DevOps & Admin',
         role: 'IT_ADMIN' as const,
         employmentType: 'FULL_TIME' as const,
         departmentId: 'dept_it',
@@ -157,9 +167,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         role: 'EMPLOYEE',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
+        department: { id: 'dept_eng', name: 'Engineering' },
         departmentId: 'dept_eng',
         departmentName: 'Engineering',
-        designationId: 'desig_dev',
+        designation: { id: 'desig_dev', title: 'Software Engineer' },
         designationTitle: 'Software Engineer',
         joiningDate: '2024-01-15',
       },
@@ -172,9 +183,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         role: 'MANAGER',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
+        department: { id: 'dept_eng', name: 'Engineering' },
         departmentId: 'dept_eng',
         departmentName: 'Engineering',
-        designationId: 'desig_mgr',
+        designation: { id: 'desig_mgr', title: 'Engineering Manager' },
         designationTitle: 'Engineering Manager',
         joiningDate: '2023-05-10',
       },
@@ -187,9 +199,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         role: 'IT_ADMIN',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
+        department: { id: 'dept_it', name: 'IT Operations' },
         departmentId: 'dept_it',
         departmentName: 'IT Operations',
-        designationId: 'desig_it',
+        designation: { id: 'desig_it', title: 'Lead DevOps & Admin' },
         designationTitle: 'Lead DevOps & Admin',
         joiningDate: '2023-09-01',
       },
@@ -202,9 +215,10 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         role: 'EXECUTIVE',
         employmentType: 'FULL_TIME',
         status: 'ACTIVE',
+        department: { id: 'dept_corp', name: 'Executive Office' },
         departmentId: 'dept_corp',
         departmentName: 'Executive Office',
-        designationId: 'desig_dir',
+        designation: { id: 'desig_dir', title: 'VP of Technology' },
         designationTitle: 'VP of Technology',
         joiningDate: '2022-03-20',
       },
@@ -241,9 +255,9 @@ describe('Workforce Role-Based CRUD & RTK Query Endpoints', () => {
         />
       );
 
-      // Verify role labels rendered in the table rows
-      expect(screen.getByText('Employee')).toBeDefined();
-      expect(screen.getByText('Manager')).toBeDefined();
+      // Verify role labels rendered in the table rows (getAllByText since 'Employee' is in header and badge)
+      expect(screen.getAllByText('Employee').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Manager').length).toBeGreaterThan(0);
       expect(screen.getByText('IT Admin')).toBeDefined();
       expect(screen.getByText('Executive')).toBeDefined();
     });
