@@ -19,6 +19,7 @@ import type {
   UpdateEmployeeStatusPayload,
   DepartmentItem,
   DepartmentFormPayload,
+  DepartmentStatus,
   DesignationItem,
   DesignationQueryParams,
   OrgChartNode,
@@ -114,8 +115,14 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
     };
   }
 
-  const id = String(raw.id ?? raw.employee_id ?? raw._id ?? '');
-  const employeeCode = String(raw.employeeCode ?? raw.employee_code ?? raw.emp_code ?? 'N/A');
+  const id = String(raw.id ?? raw._id ?? raw.employee_id ?? '');
+  const employeeCode = String(
+    raw.employeeCode ??
+      raw.employee_code ??
+      raw.emp_code ??
+      raw.employee_id ??
+      'N/A'
+  );
   const firstName = String(raw.firstName ?? raw.first_name ?? '');
   const lastName = String(raw.lastName ?? raw.last_name ?? '');
   const fullName = String(
@@ -124,8 +131,8 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
       ([firstName, lastName].filter(Boolean).join(' ') || raw.name || 'Unknown')
   );
 
-  const email = String(raw.email ?? raw.work_email ?? '');
-  const personalEmail = raw.personalEmail ?? raw.personal_email ?? undefined;
+  const email = String(raw.company_email ?? raw.email ?? raw.work_email ?? raw.personal_email ?? raw.personalEmail ?? '');
+  const personalEmail = raw.personal_email ?? raw.personalEmail ?? undefined;
   const phone = String(raw.phone ?? raw.phone_number ?? raw.mobile ?? '');
 
   // Department normalization
@@ -266,33 +273,423 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
 };
 
 /**
- * Maps outgoing frontend employee payloads to FastAPI snake_case.
+ * Maps outgoing employee payloads to FastAPI EmployeeCreate snake_case schema.
+ * Backend contract (FastAPI EmployeeCreate):
+ * - REQUIRED: first_name, last_name (1-100 chars), personal_email (valid email), phone (10-15 chars),
+ *   department (string name, 1-100), designation (string name, 1-100), joining_date (YYYY-MM-DD)
+ * - OPTIONAL: employee_id, company_email, employment_type (FULL_TIME | PART_TIME | CONTRACT | INTERN, default FULL_TIME),
+ *   role (super_admin | hr_admin | manager | employee | executive | it_admin, case-insensitive, default employee),
+ *   reporting_manager_id (UUID), work_location, gender (MALE | FEMALE | OTHER), date_of_birth, alternate_phone,
+ *   blood_group, marital_status, team, branch, shift, probation_period_months (0-36), employee_capacity (0-500),
+ *   cost_center_id, salary fields (ctc, basic_salary, hra, bonus, pf, esi, professional_tax),
+ *   and nested lists (addresses, documents, education, experience, skills, emergency_contacts, bank_accounts).
+ * - Omit optional keys when empty; never send "" for UUID/date fields.
+ * - Unknown keys are ignored silently; remove all duplicated camelCase/snake_case aliases.
  */
-export const toEmployeePayload = (data: any) => ({
-  first_name: data.firstName ?? data.first_name,
-  last_name: data.lastName ?? data.last_name,
-  email: data.email?.trim(),
-  phone: data.phone ?? data.phone_number ?? null,
-  department_id: data.departmentId ?? data.department_id ?? null,
-  designation: data.designation ?? data.designationId ?? null,
-  employment_type: data.employmentType ?? data.employment_type ?? "FULL_TIME",
-  date_of_joining: data.joiningDate ?? data.date_of_joining ?? null,
-  reporting_manager_id: data.reportingManagerId ?? data.reporting_manager_id ?? null,
-  role: data.role ?? "EMPLOYEE",
-  ...(data.status ? { status: data.status } : {}),
-  ...(data.gender ? { gender: data.gender } : {}),
-  ...(data.workLocation ?? data.work_location ? { work_location: data.workLocation ?? data.work_location } : {}),
-  ...(data.employeeCode ?? data.employee_code ? { employee_code: data.employeeCode ?? data.employee_code } : {}),
-  ...(data.personalEmail ?? data.personal_email ? { personal_email: data.personalEmail ?? data.personal_email } : {}),
-});
+export const toEmployeePayload = (data: any): Record<string, any> => {
+  if (!data || typeof data !== 'object') return {};
+
+  const payload: Record<string, any> = {};
+
+  // 1. REQUIRED: first_name (1-100)
+  const firstName = (data.first_name ?? data.firstName)?.trim();
+  if (firstName) {
+    payload.first_name = firstName;
+  }
+
+  // 2. REQUIRED: last_name (1-100)
+  const lastName = (data.last_name ?? data.lastName)?.trim();
+  if (lastName) {
+    payload.last_name = lastName;
+  }
+
+  // 3. REQUIRED: personal_email (valid email)
+  const personalEmail = (data.personal_email ?? data.personalEmail)?.trim();
+  if (personalEmail) {
+    payload.personal_email = personalEmail;
+  }
+
+  // 4. REQUIRED: phone (10-15 chars)
+  const phone = (data.phone ?? data.phone_number)?.trim();
+  if (phone) {
+    payload.phone = phone;
+  }
+
+  // 5. REQUIRED: department (string name, 1-100, never UUID / ID)
+  const deptName = (
+    data.department_name ??
+    data.departmentName ??
+    (typeof data.department === 'string' ? data.department : data.department?.name)
+  )?.trim();
+  if (deptName) {
+    payload.department = deptName;
+  } else if (typeof data.departmentId === 'string' && !data.departmentId.startsWith('dept_') && data.departmentId.trim()) {
+    payload.department = data.departmentId.trim();
+  }
+
+  // 6. REQUIRED: designation (string name, 1-100, never desg_ ID)
+  const desgName = (
+    data.designationTitle ??
+    data.designation_title ??
+    (typeof data.designation === 'string' && !data.designation.startsWith('desg_')
+      ? data.designation
+      : data.designation?.title)
+  )?.trim();
+  if (desgName) {
+    payload.designation = desgName;
+  } else if (typeof data.designation === 'string' && data.designation.trim()) {
+    payload.designation = data.designation.trim();
+  } else if (typeof data.designationId === 'string' && !data.designationId.startsWith('desg_') && data.designationId.trim()) {
+    payload.designation = data.designationId.trim();
+  }
+
+  // 7. REQUIRED: joining_date (YYYY-MM-DD)
+  const joiningDate = (data.joining_date ?? data.joiningDate ?? data.date_of_joining)?.trim();
+  if (joiningDate) {
+    payload.joining_date = joiningDate.slice(0, 10);
+  }
+
+  // 8. OPTIONAL: employee_id (mapped from employeeCode / employee_id)
+  const employeeId = (data.employee_id ?? data.employeeCode ?? data.employee_code)?.trim();
+  if (employeeId) {
+    payload.employee_id = employeeId;
+  }
+
+  // 9. OPTIONAL: company_email (mapped from official email / company_email)
+  const companyEmail = (data.company_email ?? data.email ?? data.work_email)?.trim();
+  if (companyEmail) {
+    payload.company_email = companyEmail;
+  }
+
+  // 10. OPTIONAL: employment_type (FULL_TIME | PART_TIME | CONTRACT | INTERN, default: FULL_TIME)
+  const empType = (data.employment_type ?? data.employmentType ?? 'FULL_TIME').toString().trim().toUpperCase();
+  if (['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN'].includes(empType)) {
+    payload.employment_type = empType;
+  } else {
+    payload.employment_type = 'FULL_TIME';
+  }
+
+  // 11. OPTIONAL: role (super_admin | hr_admin | manager | employee | executive | it_admin, case-insensitive, default: employee)
+  const rawRole = (data.role ?? 'employee').toString().trim().toLowerCase();
+  const validRoles = ['super_admin', 'hr_admin', 'manager', 'employee', 'executive', 'it_admin'];
+  payload.role = validRoles.includes(rawRole) ? rawRole : 'employee';
+
+  // 12. OPTIONAL: reporting_manager_id (UUID; omit when empty; never send "")
+  const reportingManagerId = (data.reporting_manager_id ?? data.reportingManagerId ?? data.manager_id)?.trim();
+  if (reportingManagerId) {
+    payload.reporting_manager_id = reportingManagerId;
+  }
+
+  // 13. OPTIONAL: work_location (mapped from workLocation / work_location)
+  const workLocation = (data.work_location ?? data.workLocation)?.trim();
+  if (workLocation) {
+    payload.work_location = workLocation;
+  }
+
+  // 14. OPTIONAL: gender (MALE | FEMALE | OTHER)
+  const rawGender = (data.gender)?.toString().trim().toUpperCase();
+  if (rawGender && ['MALE', 'FEMALE', 'OTHER'].includes(rawGender)) {
+    payload.gender = rawGender;
+  }
+
+  // 15. OPTIONAL: date_of_birth (YYYY-MM-DD; omit when empty; never send "")
+  const dob = (data.date_of_birth ?? data.dateOfBirth)?.trim();
+  if (dob) {
+    payload.date_of_birth = dob.slice(0, 10);
+  }
+
+  // 16. OPTIONAL strings (omit when empty)
+  const altPhone = (data.alternate_phone ?? data.alternatePhone)?.trim();
+  if (altPhone) payload.alternate_phone = altPhone;
+
+  const bloodGroup = (data.blood_group ?? data.bloodGroup)?.trim();
+  if (bloodGroup) payload.blood_group = bloodGroup;
+
+  const maritalStatus = (data.marital_status ?? data.maritalStatus)?.trim();
+  if (maritalStatus) payload.marital_status = maritalStatus;
+
+  const team = (data.team)?.trim();
+  if (team) payload.team = team;
+
+  const branch = (data.branch)?.trim();
+  if (branch) payload.branch = branch;
+
+  const shift = (data.shift)?.trim();
+  if (shift) payload.shift = shift;
+
+  const costCenterId = (data.cost_center_id ?? data.costCenterId)?.trim();
+  if (costCenterId) payload.cost_center_id = costCenterId;
+
+  // 17. OPTIONAL numbers
+  if (data.probation_period_months !== undefined && data.probation_period_months !== '' && data.probation_period_months !== null) {
+    const p = Number(data.probation_period_months);
+    if (!Number.isNaN(p)) payload.probation_period_months = p;
+  }
+
+  if (data.employee_capacity !== undefined && data.employee_capacity !== '' && data.employee_capacity !== null) {
+    const c = Number(data.employee_capacity);
+    if (!Number.isNaN(c)) payload.employee_capacity = c;
+  }
+
+  // 18. Salary fields
+  if (data.ctc !== undefined && data.ctc !== '' && data.ctc !== null) {
+    const ctc = Number(data.ctc);
+    if (!Number.isNaN(ctc)) payload.ctc = ctc;
+  }
+  if (data.basic_salary !== undefined && data.basic_salary !== '' && data.basic_salary !== null) {
+    const b = Number(data.basic_salary);
+    if (!Number.isNaN(b)) payload.basic_salary = b;
+  } else if (data.basicSalary !== undefined && data.basicSalary !== '' && data.basicSalary !== null) {
+    const b = Number(data.basicSalary);
+    if (!Number.isNaN(b)) payload.basic_salary = b;
+  }
+  if (data.hra !== undefined && data.hra !== '' && data.hra !== null) {
+    const h = Number(data.hra);
+    if (!Number.isNaN(h)) payload.hra = h;
+  }
+  if (data.bonus !== undefined && data.bonus !== '' && data.bonus !== null) {
+    const b = Number(data.bonus);
+    if (!Number.isNaN(b)) payload.bonus = b;
+  }
+  if (data.pf !== undefined && data.pf !== '' && data.pf !== null) {
+    const pf = Number(data.pf);
+    if (!Number.isNaN(pf)) payload.pf = pf;
+  }
+  if (data.esi !== undefined && data.esi !== '' && data.esi !== null) {
+    const esi = Number(data.esi);
+    if (!Number.isNaN(esi)) payload.esi = esi;
+  }
+  if (data.professional_tax !== undefined && data.professional_tax !== '' && data.professional_tax !== null) {
+    const pt = Number(data.professional_tax);
+    if (!Number.isNaN(pt)) payload.professional_tax = pt;
+  }
+
+  return payload;
+};
+
+export interface ParsedEmployeeApiError {
+  fieldErrors: Record<string, string>;
+  generalMessage: string;
+  statusCode?: number;
+}
+
+/**
+ * Maps FastAPI Employee API errors to human-readable field errors and alerts:
+ * - 422: field-level messages (FastAPI detail[].loc / msg, or errors[] in response wrapper)
+ * - 409: duplicate email / employee ID
+ * - 403: permission denied (Super Admin / HR Admin only)
+ * - 400: show backend message
+ */
+export const parseEmployeeApiError = (err: any): ParsedEmployeeApiError => {
+  const status = Number(err?.status ?? err?.data?.status ?? err?.statusCode ?? 0);
+  const data = err?.data ?? err;
+  const result: ParsedEmployeeApiError = {
+    fieldErrors: {},
+    generalMessage: '',
+    statusCode: status || undefined,
+  };
+
+  if (status === 409) {
+    const rawMsg = String(data?.detail || data?.message || '');
+    const isEmail = rawMsg.toLowerCase().includes('email');
+    const isCode = rawMsg.toLowerCase().includes('code') || rawMsg.toLowerCase().includes('employee_id');
+
+    const msg = isEmail
+      ? 'An employee with this email already exists'
+      : isCode
+      ? 'An employee with this employee ID already exists'
+      : (data?.message || data?.detail || 'Employee record already exists (duplicate email or employee code)');
+
+    result.generalMessage = msg;
+    if (isEmail) {
+      result.fieldErrors['personalEmail'] = msg;
+      result.fieldErrors['email'] = msg;
+    }
+    if (isCode) {
+      result.fieldErrors['employeeCode'] = msg;
+    }
+    return result;
+  }
+
+  if (status === 403) {
+    result.generalMessage = 'Only Super Admin and HR Admin can manage workforce personnel';
+    return result;
+  }
+
+  if (status === 400) {
+    result.generalMessage = String(data?.message || data?.detail || 'Invalid request parameters');
+    return result;
+  }
+
+  if (status === 422) {
+    result.generalMessage = String(data?.message || 'Please correct the validation errors below');
+
+    const rawDetail = data?.detail;
+    if (Array.isArray(rawDetail)) {
+      rawDetail.forEach((item: any) => {
+        let fieldName = '';
+        if (Array.isArray(item.loc) && item.loc.length > 0) {
+          fieldName = String(item.loc[item.loc.length - 1]);
+        } else if (item.field) {
+          fieldName = String(item.field);
+        }
+        const msg = String(item.msg || item.message || 'Invalid value');
+        if (fieldName) {
+          result.fieldErrors[fieldName] = msg;
+          if (fieldName === 'first_name') result.fieldErrors['firstName'] = msg;
+          if (fieldName === 'last_name') result.fieldErrors['lastName'] = msg;
+          if (fieldName === 'personal_email') result.fieldErrors['personalEmail'] = msg;
+          if (fieldName === 'company_email') result.fieldErrors['email'] = msg;
+          if (fieldName === 'phone') result.fieldErrors['phone'] = msg;
+          if (fieldName === 'department') result.fieldErrors['departmentId'] = msg;
+          if (fieldName === 'designation') result.fieldErrors['designationId'] = msg;
+          if (fieldName === 'joining_date') result.fieldErrors['joiningDate'] = msg;
+          if (fieldName === 'reporting_manager_id') result.fieldErrors['reportingManagerId'] = msg;
+          if (fieldName === 'work_location') result.fieldErrors['workLocation'] = msg;
+          if (fieldName === 'employee_id') result.fieldErrors['employeeCode'] = msg;
+          if (fieldName === 'employment_type') result.fieldErrors['employmentType'] = msg;
+        }
+      });
+    } else if (typeof rawDetail === 'string') {
+      result.generalMessage = rawDetail;
+    }
+
+    const rawErrors = data?.errors;
+    if (Array.isArray(rawErrors)) {
+      rawErrors.forEach((item: any) => {
+        let fieldName = '';
+        if (item.field) {
+          fieldName = String(item.field);
+        } else if (Array.isArray(item.loc) && item.loc.length > 0) {
+          fieldName = String(item.loc[item.loc.length - 1]);
+        }
+        const msg = String(item.message || item.msg || 'Invalid value');
+        if (fieldName) {
+          result.fieldErrors[fieldName] = msg;
+          if (fieldName === 'first_name') result.fieldErrors['firstName'] = msg;
+          if (fieldName === 'last_name') result.fieldErrors['lastName'] = msg;
+          if (fieldName === 'personal_email') result.fieldErrors['personalEmail'] = msg;
+          if (fieldName === 'company_email') result.fieldErrors['email'] = msg;
+          if (fieldName === 'phone') result.fieldErrors['phone'] = msg;
+          if (fieldName === 'department') result.fieldErrors['departmentId'] = msg;
+          if (fieldName === 'designation') result.fieldErrors['designationId'] = msg;
+          if (fieldName === 'joining_date') result.fieldErrors['joiningDate'] = msg;
+          if (fieldName === 'reporting_manager_id') result.fieldErrors['reportingManagerId'] = msg;
+        }
+      });
+    }
+
+    return result;
+  }
+
+  result.generalMessage = String(
+    data?.message || data?.detail || err?.message || err?.error || 'An unexpected error occurred while saving the employee'
+  );
+  return result;
+};
+
+/**
+ * Normalizes a single department object from live backend shapes.
+ * Handles { success, message, data, errors } wrapper and flat objects.
+ */
+export const normalizeDepartment = (dept: any): DepartmentItem => {
+  const d = dept?.data !== undefined && typeof dept.data === 'object' && dept.data !== null ? dept.data : dept;
+
+  if (!d || typeof d !== 'object') {
+    return {
+      id: `dept_${Date.now()}`,
+      name: 'Department',
+      departmentName: 'Department',
+      department_name: 'Department',
+      code: 'DEPT',
+      departmentCode: 'DEPT',
+      department_code: 'DEPT',
+      description: '',
+      location: '',
+      headcount: 0,
+      employeeCount: 0,
+      totalEmployees: 0,
+      percentage: 0,
+      budget: 0,
+      employeeCapacity: 100,
+      employee_capacity: 100,
+      status: 'ACTIVE',
+      isActive: true,
+    };
+  }
+
+  const name = d.department_name ?? d.departmentName ?? d.name ?? 'Unnamed Department';
+  const code = d.department_code ?? d.departmentCode ?? d.code ?? (name ? name.slice(0, 4).toUpperCase() : 'DEPT');
+  const count = Number(d.employee_count ?? d.headcount ?? d.employees_count ?? d.count ?? 0);
+
+  const rawStatus = d.status ?? (d.is_active === false ? 'INACTIVE' : 'ACTIVE');
+  const statusStr = String(rawStatus || 'ACTIVE').toUpperCase();
+  const status: DepartmentStatus = ['ACTIVE', 'INACTIVE', 'HIRING', 'GROWING'].includes(statusStr)
+    ? (statusStr as DepartmentStatus)
+    : 'ACTIVE';
+  const isActive = status === 'ACTIVE' || d.is_active === true || d.isActive === true;
+
+  const managerId = d.manager_id ?? d.managerId ?? d.head_id ?? d.headId ?? (typeof d.manager === 'object' ? d.manager?.id : null) ?? null;
+  const managerName = d.manager_name ?? d.managerName ?? d.head_name ?? d.headName ?? (typeof d.manager === 'object' ? (d.manager?.full_name ?? d.manager?.name) : null) ?? (typeof d.head === 'object' ? (d.head?.full_name ?? d.head?.name) : null) ?? 'Unassigned';
+
+  const parentDeptId = d.parent_department_id ?? d.parentDepartmentId ?? (typeof d.parent_department === 'object' ? d.parent_department?.id : null) ?? null;
+  const branchId = d.branch_id ?? d.branchId ?? (typeof d.branch === 'object' ? d.branch?.id : null) ?? null;
+  const costCenter = String(d.cost_center ?? d.costCenter ?? '');
+  const extensionNumber = String(d.extension_number ?? d.extensionNumber ?? '');
+  const budget = Number(d.budget ?? 0);
+  const employeeCapacity = d.employee_capacity !== undefined ? Number(d.employee_capacity) : (d.employeeCapacity !== undefined ? Number(d.employeeCapacity) : 100);
+
+  return {
+    id: String(d.id ?? d.department_id ?? ''),
+    name,
+    departmentName: name,
+    department_name: name,
+    code,
+    departmentCode: code,
+    department_code: code,
+    description: d.description ?? '',
+    location: d.location ?? '',
+    managerId,
+    manager_id: managerId,
+    headId: managerId,
+    headName: managerName,
+    managerName,
+    parentDepartmentId: parentDeptId,
+    parent_department_id: parentDeptId,
+    branchId,
+    branch_id: branchId,
+    costCenter,
+    cost_center: costCenter,
+    budget,
+    extensionNumber,
+    extension_number: extensionNumber,
+    employeeCapacity,
+    employee_capacity: employeeCapacity,
+    status,
+    isActive,
+    is_active: isActive,
+    headcount: count,
+    employeeCount: count,
+    totalEmployees: count,
+    percentage: d.percentage !== undefined && !Number.isNaN(Number(d.percentage)) ? Number(d.percentage) : 0,
+    headOfDepartment: managerId || (managerName && managerName !== 'Unassigned')
+      ? {
+          id: String(managerId || ''),
+          name: String(managerName || 'Manager'),
+        }
+      : undefined,
+  };
+};
 
 /**
  * Normalizes incoming departments array or paginated response.
  */
 export const normalizeDepartments = (res: any): DepartmentItem[] => {
-  const rawList = Array.isArray(res)
-    ? res
-    : res?.items ?? res?.data ?? res?.departments ?? res?.results ?? [];
+  const unwrapped = res?.data !== undefined ? res.data : res;
+  const rawList = Array.isArray(unwrapped)
+    ? unwrapped
+    : unwrapped?.items ?? unwrapped?.departments ?? unwrapped?.results ?? [];
+
   const totalHeadcount = rawList.reduce(
     (sum: number, d: any) =>
       sum + Number(d.employee_count ?? d.headcount ?? d.employees_count ?? d.count ?? 0),
@@ -300,76 +697,224 @@ export const normalizeDepartments = (res: any): DepartmentItem[] => {
   );
 
   return rawList.map((d: any): DepartmentItem => {
-    const count = Number(d.employee_count ?? d.headcount ?? d.employees_count ?? d.count ?? 0);
-    const percentage =
-      d.percentage !== undefined && !Number.isNaN(Number(d.percentage))
-        ? Number(d.percentage)
-        : totalHeadcount > 0
-        ? Math.round((count / totalHeadcount) * 100)
-        : 0;
-
-    const name = d.name ?? d.departmentName ?? d.department_name ?? 'Unnamed Department';
-    const code = d.code ?? d.department_code ?? (name ? name.slice(0, 4).toUpperCase() : 'DEPT');
-
-    return {
-      id: String(d.id ?? d.department_id ?? ''),
-      name,
-      departmentName: name,
-      code,
-      description: d.description ?? '',
-      headId: d.headId ?? d.head_id ?? d.manager_id ?? null,
-      headName: d.headName ?? d.head_name ?? d.manager_name ?? d.head?.full_name ?? 'Unassigned',
-      headcount: count,
-      employeeCount: count,
-      totalEmployees: count,
-      percentage,
-      budget: Number(d.budget ?? 0),
-      extensionNumber: d.extensionNumber ?? d.extension_number ?? '',
-      isActive: d.isActive ?? d.is_active ?? true,
-      headOfDepartment: d.headOfDepartment
-        ? {
-            id: String(d.headOfDepartment.id || ''),
-            name: String(d.headOfDepartment.name || ''),
-          }
-        : d.headName || d.head_name || d.manager_name || d.head_of_department_name
-        ? {
-            id: String(d.headId || d.head_id || d.manager_id || ''),
-            name: String(d.headName || d.head_name || d.manager_name || d.head_of_department_name || ''),
-          }
-        : undefined,
-    };
+    const item = normalizeDepartment(d);
+    if (d.percentage !== undefined && !Number.isNaN(Number(d.percentage))) {
+      item.percentage = Number(d.percentage);
+    } else {
+      item.percentage = totalHeadcount > 0 ? Math.round((item.totalEmployees / totalHeadcount) * 100) : 0;
+    }
+    return item;
   });
 };
 
 /**
  * Maps outgoing department forms to FastAPI snake_case payloads.
+ * Final payload (omit any key whose value is empty; never send null):
+ * {
+ *   "department_name": string, REQUIRED, 1-100 chars
+ *   "description": string, REQUIRED, 1-1000 chars
+ *   "location": string, REQUIRED, 1-100 chars
+ *   "manager_id": UUID (user with MANAGER role),
+ *   "parent_department_id": UUID,
+ *   "branch_id": UUID,
+ *   "cost_center": string, max 50,
+ *   "budget": number (default 0),
+ *   "extension_number": string, max 50,
+ *   "employee_capacity": integer >= 0 (default 100),
+ *   "status": "ACTIVE" | "INACTIVE" | "HIRING" | "GROWING" (default "ACTIVE")
+ * }
+ *
+ * Rules:
+ * 1. Rename: name -> department_name, head_id -> manager_id, is_active -> status.
+ * 2. Remove `code` from create/update payload (code is generated by the server and returned in response).
+ * 3. Omit any key whose value is empty; never send null.
  */
-export const toDepartmentPayload = (data: any) => ({
-  name: (data.name ?? data.departmentName)?.trim(),
-  code: (data.code ?? (data.name ? data.name.slice(0, 4).toUpperCase() : 'DEPT'))?.toUpperCase(),
-  description: data.description?.trim() || null,
-  head_id: data.headId || data.head_id || null,
-  budget: data.budget !== undefined && data.budget !== '' ? Number(data.budget) : null,
-  extension_number: data.extensionNumber?.trim() || data.extension_number?.trim() || null,
-  is_active: data.isActive ?? data.is_active ?? true,
-});
+export const toDepartmentPayload = (data: any, options: { isCreate?: boolean } = {}) => {
+  if (!data || typeof data !== 'object') return {};
+
+  const payload: Record<string, any> = {};
+
+  // 1. Rename name -> department_name (REQUIRED, 1-100 chars)
+  const deptName = (data.department_name ?? data.departmentName ?? data.name)?.trim();
+  if (deptName) {
+    payload.department_name = deptName;
+  }
+
+  // 2. description (REQUIRED, 1-1000 chars)
+  const desc = data.description?.trim();
+  if (desc) {
+    payload.description = desc;
+  }
+
+  // 3. location (REQUIRED, 1-100 chars)
+  const loc = (data.location ?? data.workLocation)?.trim();
+  if (loc) {
+    payload.location = loc;
+  }
+
+  // 4. Rename head_id -> manager_id (UUID)
+  const managerId = (data.manager_id ?? data.managerId ?? data.head_id ?? data.headId)?.trim();
+  if (managerId) {
+    payload.manager_id = managerId;
+  }
+
+  // 5. parent_department_id (UUID)
+  const parentDeptId = (data.parent_department_id ?? data.parentDepartmentId)?.trim();
+  if (parentDeptId) {
+    payload.parent_department_id = parentDeptId;
+  }
+
+  // 6. branch_id (UUID)
+  const branchId = (data.branch_id ?? data.branchId)?.trim();
+  if (branchId) {
+    payload.branch_id = branchId;
+  }
+
+  // 7. cost_center (string, max 50)
+  const costCenter = (data.cost_center ?? data.costCenter)?.trim();
+  if (costCenter) {
+    payload.cost_center = costCenter;
+  }
+
+  // 8. budget (number, default 0)
+  if (data.budget !== undefined && data.budget !== '' && data.budget !== null) {
+    const b = Number(data.budget);
+    if (!Number.isNaN(b)) {
+      payload.budget = b;
+    }
+  } else if (options.isCreate) {
+    payload.budget = 0;
+  }
+
+  // 9. extension_number (string, max 50)
+  const ext = (data.extension_number ?? data.extensionNumber)?.trim();
+  if (ext) {
+    payload.extension_number = ext;
+  }
+
+  // 10. employee_capacity (integer >= 0, default 100)
+  const rawCap = data.employee_capacity ?? data.employeeCapacity;
+  if (rawCap !== undefined && rawCap !== '' && rawCap !== null) {
+    const cap = Number(rawCap);
+    if (!Number.isNaN(cap)) {
+      payload.employee_capacity = Math.max(0, Math.floor(cap));
+    }
+  } else if (options.isCreate) {
+    payload.employee_capacity = 100;
+  }
+
+  // 11. Rename is_active -> status ("ACTIVE" | "INACTIVE" | "HIRING" | "GROWING", default "ACTIVE")
+  const rawStatus = data.status ?? (data.isActive !== undefined ? (data.isActive ? 'ACTIVE' : 'INACTIVE') : (data.is_active !== undefined ? (data.is_active ? 'ACTIVE' : 'INACTIVE') : undefined));
+  if (rawStatus && typeof rawStatus === 'string' && rawStatus.trim()) {
+    const s = rawStatus.trim().toUpperCase();
+    if (['ACTIVE', 'INACTIVE', 'HIRING', 'GROWING'].includes(s)) {
+      payload.status = s;
+    }
+  } else if (options.isCreate) {
+    payload.status = 'ACTIVE';
+  }
+
+  // Remove `code` from create payload; omit empty keys; never send null
+  return payload;
+};
+
+export interface ParsedDepartmentApiError {
+  fieldErrors: Record<string, string>;
+  generalMessage: string;
+  statusCode?: number;
+}
 
 /**
- * Normalizes single department object from live backend shapes.
+ * Maps FastAPI / OFC360 Department API errors to human-readable field errors and alerts:
+ * - 422: field-level messages (FastAPI detail[].loc / msg, or errors[] in response wrapper)
+ * - 409: "Department name already exists"
+ * - 403: "Only Super Admin, HR Admin and IT Admin can manage departments"
+ * - 400: show the message
  */
-export const normalizeDepartment = (dept: any): DepartmentItem => {
-  return normalizeDepartments([dept])[0] || {
-    id: `dept_${Date.now()}`,
-    name: 'Department',
-    departmentName: 'Department',
-    code: 'DEPT',
-    headcount: 0,
-    employeeCount: 0,
-    totalEmployees: 0,
-    percentage: 0,
-    budget: 0,
-    isActive: true,
+export const parseDepartmentApiError = (err: any): ParsedDepartmentApiError => {
+  const status = Number(err?.status ?? err?.data?.status ?? err?.statusCode ?? 0);
+  const data = err?.data ?? err;
+  const result: ParsedDepartmentApiError = {
+    fieldErrors: {},
+    generalMessage: '',
+    statusCode: status || undefined,
   };
+
+  if (status === 409) {
+    const msg = 'Department name already exists';
+    result.generalMessage = msg;
+    result.fieldErrors['department_name'] = msg;
+    result.fieldErrors['name'] = msg;
+    return result;
+  }
+
+  if (status === 403) {
+    result.generalMessage = 'Only Super Admin, HR Admin and IT Admin can manage departments';
+    return result;
+  }
+
+  if (status === 400) {
+    result.generalMessage = String(data?.message || data?.detail || 'Invalid request parameters');
+    return result;
+  }
+
+  if (status === 422) {
+    result.generalMessage = String(data?.message || 'Please correct the validation errors below');
+
+    // 1. FastAPI detail array: [{ loc: ['body', 'location'], msg: 'Field required' }]
+    const rawDetail = data?.detail;
+    if (Array.isArray(rawDetail)) {
+      rawDetail.forEach((item: any) => {
+        let fieldName = '';
+        if (Array.isArray(item.loc) && item.loc.length > 0) {
+          fieldName = String(item.loc[item.loc.length - 1]);
+        } else if (item.field) {
+          fieldName = String(item.field);
+        }
+        const msg = String(item.msg || item.message || 'Invalid value');
+        if (fieldName) {
+          result.fieldErrors[fieldName] = msg;
+          // Alias mappings
+          if (fieldName === 'department_name') result.fieldErrors['name'] = msg;
+          if (fieldName === 'manager_id') result.fieldErrors['managerId'] = msg;
+          if (fieldName === 'parent_department_id') result.fieldErrors['parentDepartmentId'] = msg;
+          if (fieldName === 'branch_id') result.fieldErrors['branchId'] = msg;
+          if (fieldName === 'cost_center') result.fieldErrors['costCenter'] = msg;
+          if (fieldName === 'employee_capacity') result.fieldErrors['employeeCapacity'] = msg;
+          if (fieldName === 'extension_number') result.fieldErrors['extensionNumber'] = msg;
+        }
+      });
+    } else if (typeof rawDetail === 'string') {
+      result.generalMessage = rawDetail;
+    }
+
+    // 2. Response wrapper errors array: { errors: [{ field: 'location', message: '...' }] }
+    const rawErrors = data?.errors;
+    if (Array.isArray(rawErrors)) {
+      rawErrors.forEach((item: any) => {
+        let fieldName = '';
+        if (item.field) {
+          fieldName = String(item.field);
+        } else if (Array.isArray(item.loc) && item.loc.length > 0) {
+          fieldName = String(item.loc[item.loc.length - 1]);
+        }
+        const msg = String(item.message || item.msg || 'Invalid value');
+        if (fieldName) {
+          result.fieldErrors[fieldName] = msg;
+          if (fieldName === 'department_name') result.fieldErrors['name'] = msg;
+          if (fieldName === 'manager_id') result.fieldErrors['managerId'] = msg;
+        }
+      });
+    }
+
+    return result;
+  }
+
+  // Fallback for unexpected or network errors
+  result.generalMessage = String(
+    data?.message || data?.detail || err?.message || err?.error || 'An unexpected error occurred while saving the department'
+  );
+  return result;
 };
 
 /**
@@ -704,93 +1249,28 @@ export const workforceApi = createApi({
     /**
      * Create a new employee record.
      * Route: POST /employees
-     * Maps strictly to FastAPI Pydantic EmployeeCreate snake_case schema while maintaining camelCase.
+     * Adheres to FastAPI EmployeeCreate schema sending ONE clean snake_case payload.
      */
     createEmployee: builder.mutation<EmployeeItem, CreateEmployeePayload>({
-      query: (payload) => {
-        const compId = getSelectedCompanyId();
-        const body: Record<string, any> = {
-          // FastAPI Pydantic snake_case fields
-          first_name: payload.firstName,
-          last_name: payload.lastName,
-          email: payload.email,
-          phone: payload.phone,
-          phone_number: payload.phone,
-          department_id: payload.departmentId,
-          designation: payload.designationId,
-          designation_id: payload.designationId,
-          employment_type: payload.employmentType,
-          date_of_joining: payload.joiningDate,
-          joining_date: payload.joiningDate,
-          reporting_manager_id: payload.reportingManagerId || null,
-          manager_id: payload.reportingManagerId || null,
-          gender: payload.gender,
-          work_location: payload.workLocation,
-          work_mode: payload.workMode,
-          employee_code: payload.employeeCode,
-          personal_email: payload.personalEmail || null,
-          role: payload.role || 'EMPLOYEE',
-          ...(payload.basicSalary !== undefined ? { basic_salary: payload.basicSalary } : {}),
-          ...(payload.ctc !== undefined ? { ctc: payload.ctc } : {}),
-          ...(compId ? { company_id: compId } : {}),
-
-          // camelCase mirrors
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          departmentId: payload.departmentId,
-          designationId: payload.designationId,
-          employmentType: payload.employmentType,
-          joiningDate: payload.joiningDate,
-          reportingManagerId: payload.reportingManagerId || null,
-          workLocation: payload.workLocation,
-          workMode: payload.workMode,
-          employeeCode: payload.employeeCode,
-          personalEmail: payload.personalEmail || null,
-        };
-
-        return {
-          url: '/employees',
-          method: 'POST',
-          body,
-        };
-      },
+      query: (payload) => ({
+        url: '/employees',
+        method: 'POST',
+        body: toEmployeePayload(payload),
+      }),
       transformResponse: (response: any) => normalizeEmployee(transformResponse<any>(response)),
       invalidatesTags: ['EmployeesList', 'Workforce', 'WorkforceStats', 'OrgChart', 'Departments'],
     }),
 
     /**
      * Update an existing employee record.
-     * Route: PUT /employees/{id} or PATCH /employees/{id}
+     * Route: PUT /employees/{id}
      */
     updateEmployee: builder.mutation<EmployeeItem, { id: string; data: UpdateEmployeePayload }>({
-      query: ({ id, data }) => {
-        const body: Record<string, any> = {
-          // snake_case
-          ...(data.firstName !== undefined ? { first_name: data.firstName, firstName: data.firstName } : {}),
-          ...(data.lastName !== undefined ? { last_name: data.lastName, lastName: data.lastName } : {}),
-          ...(data.email !== undefined ? { email: data.email } : {}),
-          ...(data.phone !== undefined ? { phone: data.phone, phone_number: data.phone } : {}),
-          ...(data.departmentId !== undefined ? { department_id: data.departmentId, departmentId: data.departmentId } : {}),
-          ...(data.designationId !== undefined ? { designation_id: data.designationId, designation: data.designationId, designationId: data.designationId } : {}),
-          ...(data.employmentType !== undefined ? { employment_type: data.employmentType, employmentType: data.employmentType } : {}),
-          ...(data.joiningDate !== undefined ? { date_of_joining: data.joiningDate, joining_date: data.joiningDate, joiningDate: data.joiningDate } : {}),
-          ...(data.reportingManagerId !== undefined ? { reporting_manager_id: data.reportingManagerId, manager_id: data.reportingManagerId, reportingManagerId: data.reportingManagerId } : {}),
-          ...(data.gender !== undefined ? { gender: data.gender } : {}),
-          ...(data.workLocation !== undefined ? { work_location: data.workLocation, workLocation: data.workLocation } : {}),
-          ...(data.workMode !== undefined ? { work_mode: data.workMode, workMode: data.workMode } : {}),
-          ...(data.employeeCode !== undefined ? { employee_code: data.employeeCode, employeeCode: data.employeeCode } : {}),
-          ...(data.personalEmail !== undefined ? { personal_email: data.personalEmail, personalEmail: data.personalEmail } : {}),
-          ...(data.basicSalary !== undefined ? { basic_salary: data.basicSalary } : {}),
-          ...(data.ctc !== undefined ? { ctc: data.ctc } : {}),
-          ...(data.role !== undefined ? { role: data.role } : {}),
-        };
-
-        return {
-          url: `/employees/${encodeURIComponent(id)}`,
-          method: 'PUT',
-          body,
-        };
-      },
+      query: ({ id, data }) => ({
+        url: `/employees/${encodeURIComponent(id)}`,
+        method: 'PUT',
+        body: toEmployeePayload(data),
+      }),
       transformResponse: (response: any) => normalizeEmployee(transformResponse<any>(response)),
       invalidatesTags: ['EmployeesList', 'EmployeeDetail', 'Workforce', 'WorkforceStats', 'OrgChart'],
     }),
@@ -898,7 +1378,7 @@ export const workforceApi = createApi({
 
     /**
      * Retrieve all configured departments.
-     * Route: /departments (FastAPI endpoint)
+     * Route: GET /api/v1/departments
      */
     getDepartments: builder.query<DepartmentItem[], void>({
       query: () => {
@@ -906,49 +1386,43 @@ export const workforceApi = createApi({
         return `/departments${compId ? `?company_id=${compId}` : ''}`;
       },
       transformResponse: (response: any): DepartmentItem[] => {
-        return normalizeDepartments(transformResponse<any>(response));
+        return normalizeDepartments(response);
       },
       providesTags: ['Departments', 'Workforce', 'Employees'],
     }),
 
     /**
      * Create a new department / cost center.
-     * Route: POST /departments
+     * Route: POST /api/v1/departments
+     * Response shape: { success, message, data, errors }
      */
     createDepartment: builder.mutation<DepartmentItem, DepartmentFormPayload>({
-      query: (payload) => {
-        const compId = getSelectedCompanyId();
-        return {
-          url: '/departments',
-          method: 'POST',
-          body: {
-            ...toDepartmentPayload(payload),
-            ...(compId ? { company_id: compId } : {}),
-          },
-        };
-      },
+      query: (payload) => ({
+        url: '/departments',
+        method: 'POST',
+        body: toDepartmentPayload(payload, { isCreate: true }),
+      }),
       transformResponse: (response: any) => {
-        const item = transformResponse<any>(response);
-        return normalizeDepartments([item])[0] || normalizeDepartment(item);
+        return normalizeDepartment(response);
       },
-      invalidatesTags: ['Departments', 'Workforce', 'Employees'],
+      invalidatesTags: ['Departments', 'Workforce', 'Employees', 'WorkforceStats'],
     }),
 
     /**
      * Update an existing department.
-     * Route: PATCH /departments/{id}
+     * Route: PUT /api/v1/departments/{id}
+     * Response shape: { success, message, data, errors }
      */
     updateDepartment: builder.mutation<DepartmentItem, { id: string; data: Partial<DepartmentFormPayload> }>({
       query: ({ id, data }) => ({
         url: `/departments/${encodeURIComponent(id)}`,
-        method: 'PATCH',
-        body: toDepartmentPayload(data),
+        method: 'PUT',
+        body: toDepartmentPayload(data, { isCreate: false }),
       }),
       transformResponse: (response: any) => {
-        const item = transformResponse<any>(response);
-        return normalizeDepartments([item])[0] || normalizeDepartment(item);
+        return normalizeDepartment(response);
       },
-      invalidatesTags: ['Departments', 'Workforce', 'Employees'],
+      invalidatesTags: ['Departments', 'Workforce', 'Employees', 'WorkforceStats'],
     }),
 
     /**

@@ -146,23 +146,53 @@ export interface EmployeeListResponse {
  * Payload for creating a new employee record.
  */
 export interface CreateEmployeePayload {
-  employeeCode?: string;
   firstName: string;
   lastName: string;
-  email: string;
-  personalEmail?: string;
+  personalEmail: string;
   phone: string;
-  gender: GenderType;
+  department?: string;
+  departmentId?: string;
+  designation?: string;
+  designationId?: string;
   joiningDate: string;
-  departmentId: string;
-  designationId: string;
+  email?: string;
+  personalEmail_deprecated?: string;
+  gender?: GenderType;
   reportingManagerId?: string;
-  employmentType: EmploymentType;
-  workLocation: string;
-  workMode: WorkMode;
+  employmentType?: EmploymentType;
+  workLocation?: string;
+  workMode?: WorkMode;
   role?: string;
   basicSalary?: number;
   ctc?: number;
+  employeeCode?: string;
+
+  // Backend FastAPI snake_case fields
+  first_name?: string;
+  last_name?: string;
+  personal_email?: string;
+  company_email?: string;
+  joining_date?: string;
+  employee_id?: string;
+  reporting_manager_id?: string;
+  work_location?: string;
+  employment_type?: string;
+  basic_salary?: number;
+  hra?: number;
+  bonus?: number;
+  pf?: number;
+  esi?: number;
+  professional_tax?: number;
+  date_of_birth?: string;
+  alternate_phone?: string;
+  blood_group?: string;
+  marital_status?: string;
+  team?: string;
+  branch?: string;
+  shift?: string;
+  probation_period_months?: number;
+  employee_capacity?: number;
+  cost_center_id?: string;
 }
 
 export type UpdateEmployeePayload = Partial<CreateEmployeePayload>;
@@ -176,36 +206,82 @@ export interface UpdateEmployeeStatusPayload {
   reason: string;
 }
 
+export type DepartmentStatus = 'ACTIVE' | 'INACTIVE' | 'HIRING' | 'GROWING';
+
 /**
- * A configured department / cost center.
+ * A configured department / cost center matching backend FastAPI schema.
  */
 export interface DepartmentItem {
   id: string;
   name: string;
   departmentName?: string;
+  department_name?: string;
   code: string;
+  departmentCode?: string;
+  department_code?: string;
   description?: string;
+  location?: string;
+  managerId?: string | null;
+  manager_id?: string | null;
+  managerName?: string;
   headId?: string | null;
+  head_id?: string | null;
   headName?: string;
   headOfDepartment?: ManagerRef;
+  parentDepartmentId?: string | null;
+  parent_department_id?: string | null;
+  branchId?: string | null;
+  branch_id?: string | null;
+  costCenter?: string;
+  cost_center?: string;
+  budget?: number;
+  extensionNumber?: string;
+  extension_number?: string;
+  employeeCapacity?: number;
+  employee_capacity?: number;
+  status?: DepartmentStatus;
+  isActive: boolean;
+  is_active?: boolean;
   totalEmployees: number;
   headcount?: number;
   employeeCount?: number;
   percentage?: number;
-  budget?: number;
-  extensionNumber?: string;
-  isActive: boolean;
 }
 
+/**
+ * Payload for Create/Edit Department: POST /api/v1/departments and PUT /api/v1/departments/{id}
+ */
 export interface DepartmentFormPayload {
-  name: string;
-  code: string;
-  description?: string;
-  headId?: string;
+  department_name: string;
+  description: string;
+  location: string;
+  manager_id?: string;
+  parent_department_id?: string;
+  branch_id?: string;
+  cost_center?: string;
   budget?: number;
+  extension_number?: string;
+  employee_capacity?: number;
+  status?: DepartmentStatus;
+
+  // Legacy & camelCase aliases for backward compatibility
+  name?: string;
+  departmentName?: string;
+  code?: string;
+  departmentCode?: string;
+  headId?: string;
+  head_id?: string;
+  managerId?: string;
+  parentDepartmentId?: string;
+  branchId?: string;
+  costCenter?: string;
   extensionNumber?: string;
+  employeeCapacity?: number;
   isActive?: boolean;
+  is_active?: boolean;
 }
+
+export type UpdateDepartmentPayload = Partial<DepartmentFormPayload>;
 
 /**
  * A standardized job designation / career band.

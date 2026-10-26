@@ -158,7 +158,7 @@ export const WorkforceHubPage: React.FC = () => {
   const effectiveRole = String(activeRole || role || user?.activeRole || 'HR_ADMIN').toUpperCase();
   const isSuperAdmin = effectiveRole === 'SUPER_ADMIN';
   const { hasAnyRole } = useRBAC();
-  const canManage = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN']);
+  const canManage = hasAnyRole(['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN']);
 
   const [activeTab, setActiveTab] = useState<'directory' | 'orgchart' | 'departments'>('directory');
   const [isAddOpen, setIsAddOpen] = useState(false);
