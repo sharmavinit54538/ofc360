@@ -7,25 +7,12 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  AlertCircle,
-  Building2,
   Calculator,
-  CheckCircle2,
   Coins,
-  FileSpreadsheet,
-  Globe2,
-  HelpCircle,
-  Info,
   MapPin,
-  RefreshCw,
   Save,
   Scale,
-  ShieldAlert,
   ShieldCheck,
-  Sliders,
-  Sparkles,
-  TrendingUp,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
@@ -75,7 +62,7 @@ export const StatutoryComplianceCenter: React.FC = () => {
   const [simHra, setSimHra] = useState(12000);
   const [simSpecial, setSimSpecial] = useState(8000);
   const [simPaidDays, setSimPaidDays] = useState(30);
-  const [simTotalDays, setSimTotalDays] = useState(30);
+  const simTotalDays = 30;
   const [simState, setSimState] = useState('MAHARASHTRA');
   const [simRegime, setSimRegime] = useState('NEW');
   const [simPfFullBasic, setSimPfFullBasic] = useState(false);
@@ -348,7 +335,7 @@ export const StatutoryComplianceCenter: React.FC = () => {
                   </div>
                 </div>
                 <Badge variant="outline" className="font-mono text-[10px] text-indigo-500 border-indigo-500/30">
-                  Deterministic Engine
+                  {isSimulating ? 'Simulating…' : 'Deterministic Engine'}
                 </Badge>
               </div>
             </CardHeader>
@@ -456,6 +443,42 @@ export const StatutoryComplianceCenter: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Old Regime Deductions (80C / 80D) */}
+              {simRegime === 'OLD' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-purple-500/[0.04] border border-purple-500/20 text-xs animate-in fade-in-50">
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <Label className="text-[11px] text-gray-500">Sec 80C Deductions (Max ₹1.5L)</Label>
+                      <span className="font-mono text-purple-600 dark:text-purple-400">₹{sim80C.toLocaleString('en-IN')}</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="5000"
+                      min="0"
+                      max="150000"
+                      value={sim80C}
+                      onChange={(e) => setSim80C(Math.min(150000, Math.max(0, parseInt(e.target.value) || 0)))}
+                      className="text-xs h-8 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <Label className="text-[11px] text-gray-500">Sec 80D Mediclaim (Max ₹1L)</Label>
+                      <span className="font-mono text-purple-600 dark:text-purple-400">₹{sim80D.toLocaleString('en-IN')}</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="2500"
+                      min="0"
+                      max="100000"
+                      value={sim80D}
+                      onChange={(e) => setSim80D(Math.min(100000, Math.max(0, parseInt(e.target.value) || 0)))}
+                      className="text-xs h-8 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Simulation Result KPI Cards */}
               {simResult && (

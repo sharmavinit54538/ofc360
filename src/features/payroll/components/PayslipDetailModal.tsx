@@ -8,15 +8,12 @@
 import React from 'react';
 import {
   BadgeCheck,
-  Building2,
   CalendarDays,
   CreditCard,
-  Download,
   Landmark,
   Printer,
   ReceiptText,
   Shield,
-  Wallet,
 } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';

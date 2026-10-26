@@ -7,12 +7,8 @@
 import React, { useState } from 'react';
 import {
   Calculator,
-  CheckCircle2,
   Code2,
-  DollarSign,
-  HelpCircle,
   Layers,
-  Percent,
   Plus,
   RefreshCw,
   Sparkles,
@@ -37,7 +33,6 @@ import {
 import type {
   CalculationMethod,
   PayComponentCreatePayload,
-  PayComponentItem,
   PayComponentType,
 } from '../types/payroll.types';
 

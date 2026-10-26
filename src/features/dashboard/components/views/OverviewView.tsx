@@ -21,7 +21,11 @@ import {
   Check,
   X,
   BarChart2,
+  RefreshCw,
+  Plus,
+  Pin,
 } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { SkeletonStatCard, SkeletonTimelineItem, SkeletonListItem, SkeletonCard } from '@/shared/ui/Skeleton';
@@ -207,24 +211,6 @@ const QuickActionButton: React.FC<{
     {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-500 dark:text-zinc-400" />}
     {!loading && <ArrowRight className="w-4 h-4 text-gray-500 dark:text-zinc-400" />}
   </Button>
-);
-
-const EmptyState: React.FC<{
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  action?: { label: string; onClick: () => void };
-}> = ({ icon, title, description, action }) => (
-  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-    <div className="p-3 rounded-full bg-muted/50 text-muted-foreground mb-4">{icon}</div>
-    <h4 className="font-medium text-foreground mb-1">{title}</h4>
-    <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
-    {action && (
-      <Button size="sm" variant="outline" onClick={action.onClick} className="mt-4" leftIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-        {action.label}
-      </Button>
-    )}
-  </div>
 );
 
 const AttendanceBreakdown: React.FC<{
@@ -908,6 +894,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectTab }) => {
             action={{
               label: "Post First Announcement",
               onClick: () => setAnnouncementDialogOpen(true),
+              icon: <ArrowRight className="w-3.5 h-3.5" />,
             }}
           />
         )}
