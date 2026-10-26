@@ -3,9 +3,9 @@ import { UserRole } from '@/features/auth/types/auth.types';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
+  variant?: 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role' | 'outline' | 'default' | 'indigo' | 'destructive';
   role?: UserRole;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
@@ -45,19 +45,25 @@ export const Badge: React.FC<BadgeProps> = ({
         colorStyles = 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/30';
         break;
       case 'danger':
+      case 'destructive':
         colorStyles = 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/30';
         break;
       case 'slate':
+      case 'default':
         colorStyles = 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border-gray-200 dark:border-zinc-700';
         break;
+      case 'outline':
+        colorStyles = 'bg-transparent text-gray-700 dark:text-zinc-300 border-gray-300 dark:border-zinc-700';
+        break;
       case 'brand':
+      case 'indigo':
       default:
         colorStyles = 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/30';
         break;
     }
   }
 
-  const sizeStyles = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
+  const sizeStyles = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : size === 'lg' ? 'px-3 py-1.5 text-xs' : 'px-2.5 py-1 text-xs';
 
   return (
     <span

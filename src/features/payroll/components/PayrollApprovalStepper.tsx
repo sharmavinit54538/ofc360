@@ -12,9 +12,7 @@
 
 import React, { useState } from 'react';
 import {
-  AlertCircle,
   AlertTriangle,
-  ArrowRight,
   Calculator,
   Check,
   CheckCircle2,
@@ -23,13 +21,10 @@ import {
   Clock,
   Coins,
   FileCheck2,
-  History,
   Lock,
   RefreshCw,
-  RotateCcw,
   ShieldCheck,
   Users,
-  XCircle,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -45,7 +40,7 @@ import {
   useGetPayrollRunEmployeesQuery,
   useUpdatePayrollRunStatusMutation,
 } from '../api/payrollApi';
-import type { PayrollRunItem, PayrollRunStatus } from '../types/payroll.types';
+import type { PayrollRunEmployeeItem, PayrollRunItem, PayrollRunStatus } from '../types/payroll.types';
 import { formatCurrency, formatPayrollMonth } from '../payroll.utils';
 
 interface PayrollApprovalStepperProps {
@@ -152,12 +147,17 @@ export const PayrollApprovalStepper: React.FC<PayrollApprovalStepperProps> = ({
 
   // Employee details query (when accordion open)
   const {
-    data: runEmployees = [],
+    data: runEmployeesData,
     isLoading: isLoadingEmployees,
     refetch: refetchEmployees,
-  } = useGetPayrollRunEmployeesQuery(run.id, {
-    skip: !showEmployees,
-  });
+  } = useGetPayrollRunEmployeesQuery(
+    { runId: run.id },
+    {
+      skip: !showEmployees,
+    }
+  );
+
+  const runEmployees: PayrollRunEmployeeItem[] = runEmployeesData?.items || [];
 
   const currentStageIndex = getStageIndex(run.status, run.is_locked);
   const grossAmount = run.grossAmount || (run.total_gross_paise ? run.total_gross_paise / 100 : run.total_gross || 0);
@@ -209,8 +209,8 @@ export const PayrollApprovalStepper: React.FC<PayrollApprovalStepperProps> = ({
   const handleDisburse = async () => {
     try {
       await updateStatus({
-        runId: run.id,
-        payload: {
+        id: run.id,
+        data: {
           status: 'PAID',
           transactionReference: `SAL-DISB-${Date.now().toString(36).toUpperCase()}`,
           notes: 'Bank Advice disbursed via ACH/NEFT batch',

@@ -6,8 +6,10 @@ export type ToastType = 'success' | 'error' | 'warning' | 'info';
 export interface ToastItem {
   id: string;
   title?: string;
-  message: string;
-  type: ToastType;
+  message?: string;
+  description?: string;
+  type?: ToastType;
+  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
   duration?: number;
 }
 
@@ -23,16 +25,23 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [toasts, setToasts] = useState<(ToastItem & { message: string; type: ToastType })[]>([]);
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const addToast = useCallback(
-    ({ title, message, type, duration = 4000 }: Omit<ToastItem, 'id'>) => {
+    ({ title, message, description, type, variant, duration = 4000 }: Omit<ToastItem, 'id'>) => {
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, title, message, type, duration }]);
+      const resolvedMessage = message || description || '';
+      let resolvedType: ToastType = type || 'info';
+      if (!type) {
+        if (variant === 'destructive') resolvedType = 'error';
+        else if (variant === 'default' || variant === 'success') resolvedType = 'success';
+        else if (variant === 'warning') resolvedType = 'warning';
+      }
+      setToasts((prev) => [...prev, { id, title, message: resolvedMessage, type: resolvedType, duration }]);
 
       if (duration > 0) {
         setTimeout(() => {

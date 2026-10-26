@@ -14,7 +14,8 @@ type RTKError = FetchBaseQueryError | SerializedError | null | undefined;
 type ErrorStatus = number | 'FETCH_ERROR' | 'CONNECTION_ERROR' | 'PARSING_ERROR' | 'TIMEOUT_ERROR' | 'CUSTOM_ERROR' | undefined;
 
 export interface ErrorDisplayProps {
-  error: RTKError;
+  error?: RTKError;
+  message?: string;
   onRetry?: () => void;
   title?: string;
   compact?: boolean;
@@ -23,16 +24,17 @@ export interface ErrorDisplayProps {
 
 export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   error,
+  message: propMessage,
   onRetry,
   title,
   compact = false,
   className = '',
 }) => {
-  if (!error) return null;
+  if (!error && !propMessage) return null;
 
-  const status = 'status' in error ? error.status : undefined;
-  const message = 'message' in error ? error.message : undefined;
-  const data = 'data' in error ? error.data : undefined;
+  const status = error && 'status' in error ? error.status : undefined;
+  const message = (error && 'message' in error ? error.message : undefined) || propMessage;
+  const data = error && 'data' in error ? error.data : undefined;
 
   const isAuthError = status === 401 || status === 403;
   const isServerError = status === 500 || status === 502 || status === 503 || status === 504;

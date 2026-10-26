@@ -43,6 +43,7 @@ import {
 } from '../api/payrollApi';
 import type {
   ChallanRecordPayload,
+  PayrollRunItem,
   StatutoryFilingCalendarItem,
   UanValidationItem,
 } from '../types/payroll.types';
