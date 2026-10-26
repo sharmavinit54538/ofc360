@@ -1,7 +1,7 @@
 /**
  * @file ChatAssistantPage.tsx
- * @description Enterprise AI Chat Assistant Page integrating thread history sidebar,
- * interactive message stream window, auto-scroll, scope switching, and input bar.
+ * @description Enterprise AI Chat Assistant Page with full-width interactive message stream window,
+ * auto-scroll, prompt actions, and clean input bar.
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,14 +13,12 @@ import {
   useCreateConversationMutation,
   useSendMessageMutation,
   useClearConversationHistoryMutation,
-  useDeleteConversationMutation,
 } from '../api/chatAssistantApi';
 import type {
   ChatMessage,
   ChatContextScope,
   ChatActionChip,
 } from '../types';
-import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
 import { ChatInputBar } from '../components/ChatInputBar';
 
@@ -30,24 +28,18 @@ export const ChatAssistantPage: React.FC = () => {
 
   // Selected thread & scope states
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
-  const [activeScope, setActiveScope] = useState<ChatContextScope>('GENERAL');
+  const activeScope: ChatContextScope = 'GENERAL';
 
   // Optimistic in-flight message state for instant UI responsiveness
   const [optimisticMessages, setOptimisticMessages] = useState<ChatMessage[]>([]);
 
   // RTK Query: Thread history
-  const {
-    data: conversations = [],
-    isLoading: isConversationsLoading,
-  } = useGetConversationsQuery();
+  const { data: conversations = [] } = useGetConversationsQuery();
 
   // Auto-select first conversation if none selected
   useEffect(() => {
     if (!activeId && conversations.length > 0) {
       setActiveId(conversations[0].id);
-      if (conversations[0].contextScope) {
-        setActiveScope(conversations[0].contextScope);
-      }
     }
   }, [conversations, activeId]);
 
@@ -63,7 +55,6 @@ export const ChatAssistantPage: React.FC = () => {
   const [createConversation] = useCreateConversationMutation();
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
   const [clearHistory] = useClearConversationHistoryMutation();
-  const [deleteConversation] = useDeleteConversationMutation();
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeId),
@@ -95,45 +86,21 @@ export const ChatAssistantPage: React.FC = () => {
     }
   }, [createConversation, activeScope, toast]);
 
-  // Handle Delete Conversation
-  const handleDeleteConversation = useCallback(
-    async (id: string) => {
-      try {
-        await deleteConversation(id).unwrap();
-        toast.info('Conversation removed from history.', 'Thread Deleted');
-        if (activeId === id) {
-          const remaining = conversations.filter((c) => c.id !== id);
-          setActiveId(remaining[0]?.id);
-          setOptimisticMessages([]);
-        }
-      } catch (err: any) {
-        toast.error(
-          err?.data?.message || 'Failed to delete conversation.',
-          'Error'
-        );
-      }
-    },
-    [deleteConversation, activeId, conversations, toast]
-  );
-
-  // Handle Clear Message History
+  // Handle Clear Conversation History
   const handleClearHistory = useCallback(async () => {
     if (!activeId) return;
     try {
       await clearHistory(activeId).unwrap();
       setOptimisticMessages([]);
-      toast.info('Conversation history cleared.', 'Chat Cleared');
-    } catch (err: any) {
-      toast.error(
-        err?.data?.message || 'Failed to clear conversation history.',
-        'Error'
-      );
+      toast.info('Conversation messages cleared.', 'History Cleared');
+    } catch {
+      setOptimisticMessages([]);
     }
   }, [activeId, clearHistory, toast]);
 
-  // Handle Send Message
+  // Handle Message Submission
   const handleSendMessage = useCallback(
-    async (prompt: string, scope: ChatContextScope) => {
+    async (prompt: string, scope: ChatContextScope = 'GENERAL') => {
       const tempUserId = `user_${Date.now()}`;
       const userMessage: ChatMessage = {
         id: tempUserId,
@@ -206,20 +173,7 @@ export const ChatAssistantPage: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-5rem)] min-h-[550px] flex rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
-      {/* Thread Navigation Sidebar */}
-      <ChatSidebar
-        conversations={conversations}
-        activeId={activeId}
-        onSelectConversation={(id) => {
-          setActiveId(id);
-          setOptimisticMessages([]);
-        }}
-        onNewChat={handleNewChat}
-        onDeleteConversation={handleDeleteConversation}
-        isLoading={isConversationsLoading}
-      />
-
-      {/* Main Conversation Area */}
+      {/* Main Conversation Area - Full Width */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <ChatWindow
           conversation={activeConversation}
@@ -230,6 +184,7 @@ export const ChatAssistantPage: React.FC = () => {
           onSelectPrompt={(p, s) => handleSendMessage(p, s || activeScope)}
           onActionClick={handleActionClick}
           onClearHistory={handleClearHistory}
+          onNewChat={handleNewChat}
           onRetryMessage={(msg) => handleSendMessage(msg.content, msg.contextScope || activeScope)}
         />
 
@@ -237,7 +192,6 @@ export const ChatAssistantPage: React.FC = () => {
           onSendMessage={handleSendMessage}
           isSending={isSending}
           activeScope={activeScope}
-          onScopeChange={setActiveScope}
         />
       </div>
     </div>

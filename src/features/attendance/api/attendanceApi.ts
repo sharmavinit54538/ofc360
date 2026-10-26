@@ -1371,7 +1371,7 @@ export const attendanceApi = createApi({
 
     /**
      * Retrieve official holidays.
-     * Route: GET /holidays -> fallback /calendar/holidays -> /attendance/holidays
+     * Route: GET /holidays -> fallback GET /calendar/holidays -> GET /attendance/holidays
      * Fallback to DEFAULT_HOLIDAYS on 404.
      */
     getHolidays: builder.query<HolidayItem[], { year?: number } | void>({
@@ -1389,21 +1389,34 @@ export const attendanceApi = createApi({
             result = await fetchWithBQ(`/attendance/holidays${qs}`);
           }
 
-          if (!result.error && result.data) {
+          if (result.error) {
+            if (result.error.status === 404) {
+              return { data: DEFAULT_HOLIDAYS };
+            }
+            return { error: result.error };
+          }
+
+          if (result.data) {
             const rawList = extractList((result.data as any)?.data ?? result.data);
             if (rawList.length > 0) {
-              const holidays: HolidayItem[] = rawList.map((h: any, idx: number) => ({
-                id: String(h.id ?? h.holiday_id ?? `h_${idx}`),
-                name: String(h.name ?? h.title ?? h.holiday_name ?? 'Holiday'),
-                date: String(h.date ?? h.holiday_date ?? '2026-01-01'),
-                day: String(
-                  h.day ??
-                    (h.date
-                      ? new Date(h.date).toLocaleDateString('en-US', { weekday: 'long' })
-                      : 'Monday')
-                ),
-                isOptional: Boolean(h.isOptional ?? h.is_optional ?? false),
-              }));
+              const holidays: HolidayItem[] = rawList.map((h: any, idx: number) => {
+                const dateStr = String(h.date ?? h.holiday_date ?? '');
+                const d = dateStr ? new Date(dateStr) : new Date();
+                const dayName = !Number.isNaN(d.getTime())
+                  ? d.toLocaleDateString('en-US', { weekday: 'long' })
+                  : String(h.day ?? 'Monday');
+                const isOpt = Boolean(h.isOptional ?? h.is_optional ?? h.optional ?? false);
+                const rawType = String(h.type ?? h.holiday_type ?? (isOpt ? 'OPTIONAL' : 'PUBLIC')).toUpperCase();
+                return {
+                  id: String(h.id ?? h.holiday_id ?? `h_${idx}`),
+                  name: String(h.name ?? h.title ?? h.holiday_name ?? 'Official Holiday'),
+                  date: dateStr || '2026-01-01',
+                  day: dayName,
+                  isOptional: isOpt,
+                  type: rawType,
+                  description: h.description ? String(h.description) : '',
+                };
+              });
               return { data: holidays };
             }
           }
@@ -1417,16 +1430,26 @@ export const attendanceApi = createApi({
     }),
 
     /**
-     * Create holiday.
-     * Route: POST /holidays -> fallback /attendance/holidays
+     * Create a new company holiday.
+     * Route: POST /holidays -> fallback POST /calendar/holidays -> POST /attendance/holidays
      */
-    createHoliday: builder.mutation<HolidayItem, { name: string; date: string; isOptional?: boolean }>({
+    createHoliday: builder.mutation<HolidayItem, CreateHolidayPayload>({
       async queryFn(payload, _queryApi, _extraOptions, fetchWithBQ) {
+        const d = payload.date ? new Date(payload.date) : new Date();
+        const dayName = !Number.isNaN(d.getTime())
+          ? d.toLocaleDateString('en-US', { weekday: 'long' })
+          : 'Monday';
+
         const body = {
           name: payload.name,
+          holiday_name: payload.name,
           date: payload.date,
+          holiday_date: payload.date,
           is_optional: payload.isOptional ?? false,
           isOptional: payload.isOptional ?? false,
+          holiday_type: payload.type || (payload.isOptional ? 'REGIONAL' : 'COMPANY_HOLIDAY'),
+          type: payload.type || (payload.isOptional ? 'OPTIONAL' : 'PUBLIC'),
+          description: payload.description ?? '',
         };
 
         let result = await fetchWithBQ({
@@ -1434,6 +1457,14 @@ export const attendanceApi = createApi({
           method: 'POST',
           body,
         });
+
+        if (result.error && (result.error.status === 404 || result.error.status === 405)) {
+          result = await fetchWithBQ({
+            url: '/calendar/holidays',
+            method: 'POST',
+            body,
+          });
+        }
 
         if (result.error && (result.error.status === 404 || result.error.status === 405)) {
           result = await fetchWithBQ({
@@ -1445,22 +1476,30 @@ export const attendanceApi = createApi({
 
         if (result.error) return { error: result.error };
 
-        return {
-          data: {
-            id: `h_${Date.now()}`,
-            name: payload.name,
-            date: payload.date,
-            day: new Date(payload.date).toLocaleDateString('en-US', { weekday: 'long' }),
-            isOptional: payload.isOptional ?? false,
-          },
+        const raw = (result.data as any)?.data ?? result.data;
+        const created: HolidayItem = {
+          id: String(raw?.id ?? raw?.holiday_id ?? `h_${Date.now()}`),
+          name: String(raw?.holiday_name ?? raw?.name ?? payload.name),
+          date: String(raw?.holiday_date ?? raw?.date ?? payload.date),
+          day: String(
+            raw?.day ??
+              (raw?.holiday_date || raw?.date
+                ? new Date(raw.holiday_date || raw.date).toLocaleDateString('en-US', { weekday: 'long' })
+                : dayName)
+          ),
+          isOptional: Boolean(payload.isOptional ?? raw?.isOptional ?? raw?.is_optional ?? false),
+          type: String(raw?.holiday_type ?? raw?.type ?? payload.type ?? (payload.isOptional ? 'OPTIONAL' : 'PUBLIC')),
+          description: String(raw?.description ?? payload.description ?? ''),
         };
+
+        return { data: created };
       },
       invalidatesTags: ['Holidays'],
     }),
 
     /**
-     * Delete holiday.
-     * Route: DELETE /holidays/{id} -> fallback /attendance/holidays/{id}
+     * Delete a holiday.
+     * Route: DELETE /holidays/{id} -> fallback DELETE /calendar/holidays/{id} -> DELETE /attendance/holidays/{id}
      */
     deleteHoliday: builder.mutation<{ success: boolean; id: string }, string>({
       async queryFn(id, _queryApi, _extraOptions, fetchWithBQ) {
@@ -1468,6 +1507,13 @@ export const attendanceApi = createApi({
           url: `/holidays/${encodeURIComponent(id)}`,
           method: 'DELETE',
         });
+
+        if (result.error && (result.error.status === 404 || result.error.status === 405)) {
+          result = await fetchWithBQ({
+            url: `/calendar/holidays/${encodeURIComponent(id)}`,
+            method: 'DELETE',
+          });
+        }
 
         if (result.error && (result.error.status === 404 || result.error.status === 405)) {
           result = await fetchWithBQ({
@@ -1664,136 +1710,6 @@ export const attendanceApi = createApi({
           },
         };
       },
-    }),
-
-    /**
-     * Retrieve official holidays for a specific year.
-     * Route: GET /holidays?year=${year} -> fallback GET /calendar/holidays
-     */
-    getHolidays: builder.query<HolidayItem[], { year?: number } | void>({
-      async queryFn(args, _queryApi, _extraOptions, fetchWithBQ) {
-        const year = args?.year || new Date().getFullYear();
-        let res = await fetchWithBQ(`/holidays?year=${year}`);
-        if (res.error) {
-          res = await fetchWithBQ(`/calendar/holidays?year=${year}`);
-        }
-        if (res.error) {
-          res = await fetchWithBQ('/holidays');
-        }
-        if (res.error) {
-          res = await fetchWithBQ('/calendar/holidays');
-        }
-
-        if (!res.error && res.data) {
-          const list = Array.isArray(res.data)
-            ? res.data
-            : (res.data as any)?.items ?? (res.data as any)?.data ?? (res.data as any)?.holidays ?? [];
-          if (list.length > 0) {
-            return {
-              data: list.map((h: any, idx: number) => {
-                const dateStr = h.date || h.holiday_date || '';
-                const d = dateStr ? new Date(dateStr) : new Date();
-                const dayName = !Number.isNaN(d.getTime())
-                  ? d.toLocaleDateString('en-US', { weekday: 'long' })
-                  : h.day || 'Monday';
-                const isOpt = Boolean(h.isOptional ?? h.is_optional ?? h.optional);
-                const rawType = String(h.type ?? (isOpt ? 'OPTIONAL' : 'PUBLIC')).toUpperCase();
-                return {
-                  id: String(h.id ?? h.holiday_id ?? `h-${idx}`),
-                  name: h.name ?? h.title ?? h.holiday_name ?? 'Official Holiday',
-                  date: dateStr,
-                  day: dayName,
-                  isOptional: isOpt,
-                  type: rawType,
-                  description: h.description ?? '',
-                };
-              }),
-            };
-          }
-        }
-
-        // Resilient default company & gazetted holidays for the year
-        const defaults: HolidayItem[] = [
-          { id: `h-${year}-01`, name: "New Year's Day", date: `${year}-01-01`, day: new Date(`${year}-01-01`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-02`, name: 'Republic Day', date: `${year}-01-26`, day: new Date(`${year}-01-26`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-03`, name: 'Maha Shivratri', date: `${year}-02-15`, day: new Date(`${year}-02-15`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'OPTIONAL', isOptional: true },
-          { id: `h-${year}-04`, name: 'Holi', date: `${year}-03-04`, day: new Date(`${year}-03-04`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-05`, name: 'Id-ul-Fitr', date: `${year}-03-21`, day: new Date(`${year}-03-21`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-06`, name: 'Good Friday', date: `${year}-04-03`, day: new Date(`${year}-04-03`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-07`, name: 'Dr. B.R. Ambedkar Jayanti', date: `${year}-04-14`, day: new Date(`${year}-04-14`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-08`, name: 'May Day (Labour Day)', date: `${year}-05-01`, day: new Date(`${year}-05-01`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'COMPANY', isOptional: false },
-          { id: `h-${year}-09`, name: 'Bakrid / Eid al-Adha', date: `${year}-05-28`, day: new Date(`${year}-05-28`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'OPTIONAL', isOptional: true },
-          { id: `h-${year}-10`, name: 'Independence Day', date: `${year}-08-15`, day: new Date(`${year}-08-15`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-11`, name: 'Raksha Bandhan', date: `${year}-08-28`, day: new Date(`${year}-08-28`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'OPTIONAL', isOptional: true },
-          { id: `h-${year}-12`, name: 'Janmashtami', date: `${year}-09-04`, day: new Date(`${year}-09-04`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'OPTIONAL', isOptional: true },
-          { id: `h-${year}-13`, name: 'Mahatma Gandhi Jayanti', date: `${year}-10-02`, day: new Date(`${year}-10-02`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-14`, name: 'Dussehra (Vijayadashami)', date: `${year}-10-20`, day: new Date(`${year}-10-20`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-15`, name: 'Diwali (Deepavali)', date: `${year}-11-08`, day: new Date(`${year}-11-08`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-16`, name: 'Govardhan Puja', date: `${year}-11-09`, day: new Date(`${year}-11-09`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'COMPANY', isOptional: false },
-          { id: `h-${year}-17`, name: 'Guru Nanak Jayanti', date: `${year}-11-24`, day: new Date(`${year}-11-24`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'OPTIONAL', isOptional: true },
-          { id: `h-${year}-18`, name: 'Christmas Day', date: `${year}-12-25`, day: new Date(`${year}-12-25`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'PUBLIC', isOptional: false },
-          { id: `h-${year}-19`, name: "New Year's Eve", date: `${year}-12-31`, day: new Date(`${year}-12-31`).toLocaleDateString('en-US', { weekday: 'long' }), type: 'COMPANY', isOptional: true },
-        ];
-
-        return { data: defaults };
-      },
-      providesTags: ['Holidays'],
-    }),
-
-    /**
-     * Create a new company holiday.
-     */
-    createHoliday: builder.mutation<HolidayItem, CreateHolidayPayload>({
-      async queryFn(payload, _queryApi, _extraOptions, fetchWithBQ) {
-        let res = await fetchWithBQ({
-          url: '/holidays',
-          method: 'POST',
-          body: payload,
-        });
-        if (res.error) {
-          res = await fetchWithBQ({
-            url: '/calendar/holidays',
-            method: 'POST',
-            body: payload,
-          });
-        }
-        if (res.error) {
-          const d = new Date(payload.date);
-          return {
-            data: {
-              id: `h-${Date.now()}`,
-              name: payload.name,
-              date: payload.date,
-              day: !Number.isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { weekday: 'long' }) : 'Monday',
-              isOptional: Boolean(payload.isOptional),
-              type: payload.type || (payload.isOptional ? 'OPTIONAL' : 'PUBLIC'),
-              description: payload.description,
-            },
-          };
-        }
-        return { data: (res.data as any)?.data ?? res.data };
-      },
-      invalidatesTags: ['Holidays'],
-    }),
-
-    /**
-     * Delete a holiday.
-     */
-    deleteHoliday: builder.mutation<{ success: boolean; id: string }, string>({
-      async queryFn(id, _queryApi, _extraOptions, fetchWithBQ) {
-        let res = await fetchWithBQ({
-          url: `/holidays/${encodeURIComponent(id)}`,
-          method: 'DELETE',
-        });
-        if (res.error) {
-          res = await fetchWithBQ({
-            url: `/calendar/holidays/${encodeURIComponent(id)}`,
-            method: 'DELETE',
-          });
-        }
-        return { data: { success: !res.error, id } };
-      },
-      invalidatesTags: ['Holidays'],
     }),
   }),
 });

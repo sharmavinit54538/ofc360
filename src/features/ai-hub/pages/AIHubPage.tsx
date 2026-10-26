@@ -3,188 +3,107 @@ import { useNavigate } from 'react-router-dom';
 import {
   Bot,
   Brain,
-  Sparkles,
   Video,
   LineChart,
   FileText,
   Target,
   CreditCard,
-  ArrowRight,
   Search,
   Activity,
-  Layers,
-  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 import { Button } from '@/shared/ui/Button';
-import { Badge } from '@/shared/ui/Badge';
 import { useToast } from '@/shared/ui/Toast';
 
 interface AIModuleCard {
   id: string;
   title: string;
-  category: 'conversational' | 'analytics' | 'automation' | 'intelligence';
-  description: string;
   icon: React.ComponentType<{ className?: string }>;
   path?: string;
-  actionText?: string;
-  tags: string[];
-  gradient: string;
   iconBg: string;
   iconColor: string;
-  badge?: string;
-  isLive?: boolean;
 }
 
 const AI_MODULES: AIModuleCard[] = [
   {
     id: 'chat-assistant',
     title: 'Gemini HR Copilot',
-    category: 'conversational',
-    description: 'Conversational AI assistant for policy inquiries, leave applications, payroll questions, and employee support.',
     icon: GeminiIcon,
     path: '/ai/chat-assistant',
-    actionText: 'Launch Chat Assistant',
-    tags: ['Gemini 1.5 Pro', 'Zero-Latency', 'RAG Context'],
-    gradient: 'from-indigo-600/15 via-purple-600/10 to-transparent',
-    iconBg: 'bg-indigo-500/15 dark:bg-indigo-500/25',
+    iconBg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
-    badge: 'LIVE NOW',
-    isLive: true,
   },
   {
     id: 'meeting-intelligence',
     title: 'Meeting Intelligence',
-    category: 'intelligence',
-    description: 'Automatic video meeting transcription, speaker diarization, sentiment tracking, and action items extraction.',
     icon: Video,
     path: '/ai/meeting-intelligence',
-    actionText: 'Open Meeting Room',
-    tags: ['Speech AI', 'Auto Minutes', 'Action Items'],
-    gradient: 'from-blue-600/15 via-cyan-500/10 to-transparent',
-    iconBg: 'bg-blue-500/15 dark:bg-blue-500/25',
+    iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
-    badge: 'LIVE NOW',
-    isLive: true,
   },
   {
     id: 'analytics-center',
-    title: 'Predictive Analytics Center',
-    category: 'analytics',
-    description: 'Workforce attrition risk modeling, headcount forecast projections, and organizational health metrics.',
+    title: 'Predictive Analytics',
     icon: LineChart,
     path: '/ai/analytics-center',
-    actionText: 'View Predictive Insights',
-    tags: ['Attrition Risk', 'Forecasting', 'Health Score'],
-    gradient: 'from-emerald-600/15 via-teal-500/10 to-transparent',
-    iconBg: 'bg-emerald-500/15 dark:bg-emerald-500/25',
+    iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
-    badge: 'LIVE NOW',
-    isLive: true,
   },
   {
     id: 'ai-recruiter',
-    title: 'AI Resume & Talent Matcher',
-    category: 'intelligence',
-    description: 'Semantic parsing of resumes, automated skills gap scoring against job descriptions, and candidate rank ordering.',
+    title: 'Resume & Talent Matcher',
     icon: Brain,
-    actionText: 'Screen Candidates',
-    tags: ['CV Parsing', 'Skill Scoring', 'Rank Ordering'],
-    gradient: 'from-violet-600/15 via-purple-500/10 to-transparent',
-    iconBg: 'bg-violet-500/15 dark:bg-violet-500/25',
+    iconBg: 'bg-violet-500/10 dark:bg-violet-500/20',
     iconColor: 'text-violet-600 dark:text-violet-400',
   },
   {
     id: 'workforce-planning',
-    title: 'Workforce Capacity Planner',
-    category: 'analytics',
-    description: 'Dynamic skills demand forecasting, department workload balance simulation, and hiring velocity models.',
+    title: 'Capacity Planner',
     icon: Target,
-    actionText: 'Simulate Capacity',
-    tags: ['Workload Balance', 'Skills Matrix', 'Headcount Plan'],
-    gradient: 'from-amber-600/15 via-orange-500/10 to-transparent',
-    iconBg: 'bg-amber-500/15 dark:bg-amber-500/25',
+    iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
     id: 'attendance-monitor',
-    title: 'Shift & Attendance AI Monitor',
-    category: 'automation',
-    description: 'Real-time shift anomaly detection, chronic late check-in pattern flags, and overtime burnout alerts.',
+    title: 'Shift AI Monitor',
     icon: Activity,
-    actionText: 'Inspect Anomalies',
-    tags: ['Anomaly Detection', 'Overtime Alerts', 'Burnout Flags'],
-    gradient: 'from-cyan-600/15 via-sky-500/10 to-transparent',
-    iconBg: 'bg-cyan-500/15 dark:bg-cyan-500/25',
+    iconBg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
     iconColor: 'text-cyan-600 dark:text-cyan-400',
   },
   {
     id: 'payroll-insights',
-    title: 'Payroll Anomaly & Audit Scanner',
-    category: 'automation',
-    description: 'Automated tax deduction variance audit, salary leakage detection, and statutory compliance cross-checks.',
+    title: 'Payroll Audit Scanner',
     icon: CreditCard,
-    actionText: 'Scan Payroll',
-    tags: ['Tax Leakage', 'Audit Scan', 'Statutory Checks'],
-    gradient: 'from-green-600/15 via-emerald-500/10 to-transparent',
-    iconBg: 'bg-green-500/15 dark:bg-green-500/25',
-    iconColor: 'text-green-600 dark:text-green-400',
+    iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   {
     id: 'document-generator',
-    title: 'Smart Legal & Policy Generator',
-    category: 'automation',
-    description: 'Generate legally compliant offer contracts, NDA addendums, and customized company policy briefs in seconds.',
+    title: 'Smart Legal Generator',
     icon: FileText,
-    actionText: 'Draft Document',
-    tags: ['Offer Letters', 'NDAs', 'Policy Briefs'],
-    gradient: 'from-rose-600/15 via-pink-500/10 to-transparent',
-    iconBg: 'bg-rose-500/15 dark:bg-rose-500/25',
+    iconBg: 'bg-rose-500/10 dark:bg-rose-500/20',
     iconColor: 'text-rose-600 dark:text-rose-400',
   },
   {
     id: 'ai-copilot',
-    title: 'Custom Workflow Autonomous Agents',
-    category: 'conversational',
-    description: 'Deploy multi-step autonomous background agents for employee onboarding tasks, reminder followups, and approvals.',
+    title: 'Autonomous Workflows',
     icon: Bot,
-    actionText: 'Manage Agents',
-    tags: ['Multi-Step', 'Background Tasks', 'Autonomous'],
-    gradient: 'from-fuchsia-600/15 via-purple-500/10 to-transparent',
-    iconBg: 'bg-fuchsia-500/15 dark:bg-fuchsia-500/25',
+    iconBg: 'bg-fuchsia-500/10 dark:bg-fuchsia-500/20',
     iconColor: 'text-fuchsia-600 dark:text-fuchsia-400',
   },
-];
-
-const CATEGORIES = [
-  { id: 'all', label: 'All AI Engines' },
-  { id: 'conversational', label: 'Conversational AI' },
-  { id: 'intelligence', label: 'Speech & Audio Intelligence' },
-  { id: 'analytics', label: 'Predictive Analytics' },
-  { id: 'automation', label: 'Autonomous Workflows' },
 ];
 
 export const AIHubPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const filteredModules = useMemo(() => {
-    return AI_MODULES.filter((m) => {
-      if (selectedCategory !== 'all' && m.category !== selectedCategory) {
-        return false;
-      }
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        m.title.toLowerCase().includes(q) ||
-        m.description.toLowerCase().includes(q) ||
-        m.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    });
-  }, [selectedCategory, searchQuery]);
+    if (!searchQuery.trim()) return AI_MODULES;
+    const q = searchQuery.toLowerCase();
+    return AI_MODULES.filter((m) => m.title.toLowerCase().includes(q));
+  }, [searchQuery]);
 
   const handleCardClick = (module: AIModuleCard) => {
     if (module.path) {
@@ -199,51 +118,10 @@ export const AIHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Quick Launch Buttons */}
-      <div className="flex items-center justify-end gap-2.5 flex-wrap">
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => navigate('/ai/chat-assistant')}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
-        >
-          <GeminiIcon className="w-4 h-4" />
-          <span>Chat Assistant</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate('/ai/meeting-intelligence')}
-          className="flex items-center gap-1.5"
-        >
-          <Video className="w-4 h-4" />
-          <span>Meeting AI</span>
-        </Button>
-      </div>
-
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                'px-3.5 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all duration-150',
-                selectedCategory === cat.id
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm font-semibold'
-                  : 'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 hover:text-slate-900 dark:hover:text-white'
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
+      {/* Top Bar with Search & Quick Launch Buttons */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative w-full lg:w-72 shrink-0">
+        <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -262,10 +140,32 @@ export const AIHubPage: React.FC = () => {
             </button>
           )}
         </div>
+
+        {/* Quick Launch Buttons */}
+        <div className="flex items-center justify-end gap-2.5 flex-wrap">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/ai/chat-assistant')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
+          >
+            <GeminiIcon className="w-4 h-4" />
+            <span>Chat Assistant</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/ai/meeting-intelligence')}
+            className="flex items-center gap-1.5"
+          >
+            <Video className="w-4 h-4" />
+            <span>Meeting AI</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Grid of AI Module Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Grid of AI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredModules.map((module) => {
           const Icon = module.icon;
 
@@ -274,10 +174,9 @@ export const AIHubPage: React.FC = () => {
               key={module.id}
               onClick={() => handleCardClick(module)}
               className={cn(
-                'group relative flex flex-col justify-between rounded-2xl p-6 cursor-pointer',
-                'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
-                'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-xl hover:-translate-y-0.5',
-                'transition-all duration-200 overflow-hidden'
+                'p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm',
+                'hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:-translate-y-0.5',
+                'transition-all duration-200 cursor-pointer group flex items-center justify-between gap-3'
               )}
               role="button"
               tabIndex={0}
@@ -288,64 +187,17 @@ export const AIHubPage: React.FC = () => {
                 }
               }}
             >
-              {/* Subtle top corner gradient */}
+              <span className="text-xs font-semibold uppercase text-gray-800 dark:text-zinc-200 tracking-wider group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {module.title}
+              </span>
               <div
                 className={cn(
-                  'absolute top-0 right-0 w-40 h-40 bg-gradient-to-br opacity-80 pointer-events-none rounded-bl-full transition-opacity group-hover:opacity-100',
-                  module.gradient
+                  'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105',
+                  module.iconBg,
+                  module.iconColor
                 )}
-              />
-
-              <div className="relative z-10 space-y-4">
-                {/* Icon & Live Badge */}
-                <div className="flex items-center justify-between">
-                  <div
-                    className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
-                      module.iconBg
-                    )}
-                  >
-                    <Icon className={cn('w-6 h-6', module.iconColor)} />
-                  </div>
-                  {module.badge && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {module.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* Title & Description */}
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {module.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                    {module.description}
-                  </p>
-                </div>
-
-                {/* Feature Tags */}
-                {module.tags && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {module.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Bottom Footer */}
-              <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                <span>{module.actionText || 'Open Tool'}</span>
-                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200">
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
+              >
+                <Icon className="w-4 h-4" />
               </div>
             </div>
           );
@@ -359,17 +211,14 @@ export const AIHubPage: React.FC = () => {
             No AI engines match &ldquo;{searchQuery}&rdquo;
           </h3>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Try searching for another keyword or select &quot;All AI Engines&quot;.
+            Try searching for another keyword.
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
+            onClick={() => setSearchQuery('')}
             className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
           >
-            Reset Filters
+            Reset Search
           </button>
         </div>
       )}

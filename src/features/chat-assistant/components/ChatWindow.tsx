@@ -5,14 +5,7 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import {
-  Bot,
-  Layers,
-  Calendar,
-  DollarSign,
-  FileText,
-  RotateCcw,
-} from 'lucide-react';
+import { Bot, RotateCcw, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import type {
   ConversationThread,
@@ -28,10 +21,11 @@ interface ChatWindowProps {
   messages: ChatMessage[];
   isLoadingMessages?: boolean;
   isSending?: boolean;
-  activeScope: ChatContextScope;
+  activeScope?: ChatContextScope;
   onSelectPrompt?: (prompt: string, scope?: ChatContextScope) => void;
   onActionClick?: (action: ChatActionChip) => void;
   onClearHistory?: () => void;
+  onNewChat?: () => void;
   onRetryMessage?: (message: ChatMessage) => void;
 }
 
@@ -40,10 +34,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   isLoadingMessages = false,
   isSending = false,
-  activeScope,
+  activeScope = 'GENERAL',
   onSelectPrompt,
   onActionClick,
   onClearHistory,
+  onNewChat,
   onRetryMessage,
 }) => {
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -52,40 +47,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isSending]);
-
-  const getScopeBadge = (scope?: ChatContextScope) => {
-    const s = scope || activeScope;
-    switch (s) {
-      case 'LEAVE':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-            <Calendar className="w-3 h-3" />
-            Leave Scope
-          </span>
-        );
-      case 'PAYROLL':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-            <DollarSign className="w-3 h-3" />
-            Payroll Scope
-          </span>
-        );
-      case 'POLICY':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-            <FileText className="w-3 h-3" />
-            Policy Scope
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700">
-            <Layers className="w-3 h-3 text-brand-500" />
-            General HR Scope
-          </span>
-        );
-    }
-  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#fcfcfd] dark:bg-[#121212] overflow-hidden">
@@ -97,7 +58,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-[#ececec] truncate max-w-xs sm:max-w-md">
-              {conversation?.title || 'New Conversation'}
+              {conversation?.title || 'Gemini HR Copilot'}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -109,7 +70,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {getScopeBadge(conversation?.contextScope)}
+          {onNewChat && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNewChat}
+              className="rounded-xl text-xs flex items-center gap-1 px-2.5 py-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Chat</span>
+            </Button>
+          )}
 
           {messages.length > 0 && onClearHistory && (
             <Button
