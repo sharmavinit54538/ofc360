@@ -172,7 +172,7 @@ export const ChatAssistantPage: React.FC = () => {
   );
 
   return (
-    <div className="h-[calc(100vh-5rem)] min-h-[550px] flex rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
+    <div className="h-[calc(100dvh-5.5rem)] sm:h-[calc(100vh-5rem)] sm:min-h-[550px] flex rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
       {/* Main Conversation Area - Full Width */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <ChatWindow

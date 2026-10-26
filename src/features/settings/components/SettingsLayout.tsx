@@ -547,7 +547,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ children }) => {
 
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <div className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
             <SettingsContext.Provider value={settingsContext}>
               <SectionErrorBoundary>

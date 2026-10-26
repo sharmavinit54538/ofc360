@@ -94,7 +94,7 @@ export const ShiftFormModal: React.FC<ShiftFormModalProps> = ({ shift, isOpen, o
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in-50">
       <div
-        className="w-full max-w-lg bg-white dark:bg-[#171717] rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95"
+        className="w-full max-w-lg bg-white dark:bg-[#171717] rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-in zoom-in-95"
         role="dialog"
         aria-modal="true"
         aria-labelledby="shift-form-headline"
@@ -122,7 +122,7 @@ export const ShiftFormModal: React.FC<ShiftFormModalProps> = ({ shift, isOpen, o
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Shift Name"

@@ -84,8 +84,8 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
         </div>
 
         {/* Date range + refresh */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 w-full sm:w-auto">
             <Calendar className="w-3.5 h-3.5 text-gray-400" />
             <input
               type="date"
@@ -141,7 +141,7 @@ export const AttendanceFilterBar: React.FC<AttendanceFilterBarProps> = ({
         </div>
 
         {/* Status pills */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {STATUS_OPTIONS.map((option) => (
             <button
               key={option.id}

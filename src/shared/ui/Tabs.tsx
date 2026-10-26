@@ -59,9 +59,10 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
         ref={ref}
         role="tablist"
         className={cn(
-          'inline-flex items-center justify-center rounded-xl bg-neutral-100 p-1 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400',
+          'inline-flex items-center justify-start sm:justify-center max-w-full overflow-x-auto no-scrollbar rounded-xl bg-neutral-100 p-1 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400',
           className
         )}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         {...props}
       >
         {children}

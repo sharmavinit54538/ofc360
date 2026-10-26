@@ -528,14 +528,14 @@ const AnnouncementDialog: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl overflow-hidden animate-in zoom-in-95">
-        <div className="p-6 border-b border-border flex items-center justify-between">
+      <div className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-in zoom-in-95">
+        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between shrink-0">
           <h3 className="text-lg font-bold text-foreground">Post Announcement</h3>
           <button type="button" onClick={onClose} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Title *</label>
             <input

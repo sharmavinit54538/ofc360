@@ -9,8 +9,8 @@ import {
 } from './components/dashboardTabs.data';
 
 describe('HR Admin Dashboard Navigation & Tab Structure', () => {
-  it('has exactly 10 sidebar sections after combining Talent and merging Attendance/Leave', () => {
-    expect(SIDEBAR_SECTIONS).toHaveLength(10);
+  it('has exactly 11 sidebar sections after combining Talent, merging Attendance/Leave, and adding Connect', () => {
+    expect(SIDEBAR_SECTIONS).toHaveLength(11);
     const sectionIds = SIDEBAR_SECTIONS.map((s) => s.id);
     expect(sectionIds).toEqual([
       'overview',
@@ -20,6 +20,7 @@ describe('HR Admin Dashboard Navigation & Tab Structure', () => {
       'payroll',
       'reports',
       'aihub',
+      'connect',
       'documents',
       'hrops',
       'settings',

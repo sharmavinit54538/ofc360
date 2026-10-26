@@ -1,27 +1,38 @@
 /**
  * @file ConnectPage.tsx
- * @description Enterprise 2-Pane Employee Chat & Directory (OFC360 Connect).
- * Left pane toggles between Active Chats & Colleague Directory.
- * Right pane provides live conversation stream, presence badges, typing indicators,
- * reply-to message quoting, cursor pagination, and WebSocket / REST status monitoring.
+ * @description OFC360 Connect Hub featuring 6 KPI Module Cards:
+ * 1. Chat (2-Pane Employee Messaging & Directory)
+ * 2. Call (Voice & Audio Calling Hub)
+ * 3. Meet (Video Meeting Room & Meeting Intelligence)
+ * 4. Slack (Slack Channel & Webhook Sync)
+ * 5. Announcement (Company-wide Broadcasts & Notices)
+ * 6. Help Desk (Employee IT & HR Support Service Desk)
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   MessageSquare,
   Users,
   Send,
-  CornerUpLeft,
-  X,
-  Radio,
   Wifi,
   WifiOff,
-  CheckCheck,
   RefreshCw,
+  PhoneCall,
+  Video,
+  Hash,
+  Megaphone,
+  Headphones,
+  Plus,
+  Clock,
+  Mic,
+  MicOff,
+  PhoneOff,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
+import { cn } from '@/shared/lib/utils';
 import {
   useGetColleaguesQuery,
   useCreateOrGetConversationMutation,
@@ -36,24 +47,79 @@ import type {
   PresenceStatus,
 } from '../types';
 
+type ConnectToolId = 'chat' | 'call' | 'meet' | 'slack' | 'announcement' | 'helpdesk';
+
+interface ConnectModuleCard {
+  id: ConnectToolId;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+}
+
+const CONNECT_MODULES: ConnectModuleCard[] = [
+  {
+    id: 'chat',
+    title: 'Chat',
+    icon: MessageSquare,
+    iconBg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+    iconColor: 'text-indigo-600 dark:text-indigo-400',
+  },
+  {
+    id: 'call',
+    title: 'Call',
+    icon: PhoneCall,
+    iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+  },
+  {
+    id: 'meet',
+    title: 'Meet',
+    icon: Video,
+    iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+  },
+  {
+    id: 'slack',
+    title: 'Slack',
+    icon: Hash,
+    iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+  },
+  {
+    id: 'announcement',
+    title: 'Announcement',
+    icon: Megaphone,
+    iconBg: 'bg-rose-500/10 dark:bg-rose-500/20',
+    iconColor: 'text-rose-600 dark:text-rose-400',
+  },
+  {
+    id: 'helpdesk',
+    title: 'Help Desk',
+    icon: Headphones,
+    iconBg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
+    iconColor: 'text-cyan-600 dark:text-cyan-400',
+  },
+];
+
 export const ConnectPage: React.FC = () => {
   const toast = useToast();
+  const navigate = useNavigate();
 
-  // Active view on left pane: 'chats' | 'colleagues'
-  const [activeTab, setActiveTab] = useState<'chats' | 'colleagues'>('chats');
+  // Active KPI Module Tool
+  const [activeTool, setActiveTool] = useState<ConnectToolId>('chat');
+
+  // =========================================================================
+  // CHAT TOOL STATES
+  // =========================================================================
+  const [chatActiveTab, setChatActiveTab] = useState<'chats' | 'colleagues'>('chats');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
-  // Colleague filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDept, setSelectedDept] = useState<string>('ALL');
-  const [selectedPresence, setSelectedPresence] = useState<string>('ALL');
-
-  // Chat message composer states
   const [inputText, setInputText] = useState('');
   const [replyToMessage, setReplyToMessage] = useState<ConnectMessage | null>(null);
   const [isSending, setIsSending] = useState(false);
 
-  // Pagination cursor
   const [cursorBefore, setCursorBefore] = useState<string | undefined>(undefined);
   const [olderMessages, setOlderMessages] = useState<ConnectMessage[]>([]);
 
@@ -63,14 +129,8 @@ export const ConnectPage: React.FC = () => {
   });
 
   // Queries
-  const {
-    data: colleaguesData,
-    isLoading: isColleaguesLoading,
-    refetch: refetchColleagues,
-  } = useGetColleaguesQuery({
+  const { data: colleaguesData } = useGetColleaguesQuery({
     search: searchQuery || undefined,
-    department: selectedDept !== 'ALL' ? selectedDept : undefined,
-    presence: selectedPresence !== 'ALL' ? selectedPresence : undefined,
   });
 
   const {
@@ -78,11 +138,10 @@ export const ConnectPage: React.FC = () => {
     isLoading: isConversationsLoading,
     refetch: refetchConversations,
   } = useGetConnectConversationsQuery(undefined, {
-    // If WebSocket is not live, poll every 5 seconds as fallback
     pollingInterval: isSocketLive ? 0 : 5000,
   });
 
-  // Auto-select first conversation if none selected
+  // Auto-select first conversation
   useEffect(() => {
     if (!activeConversationId && conversations.length > 0) {
       setActiveConversationId(conversations[0].id);
@@ -92,7 +151,6 @@ export const ConnectPage: React.FC = () => {
   // Messages Query for active conversation
   const {
     data: currentMessages = [],
-    isLoading: isMessagesLoading,
     refetch: refetchMessages,
   } = useGetConnectMessagesQuery(
     {
@@ -102,634 +160,836 @@ export const ConnectPage: React.FC = () => {
     },
     {
       skip: !activeConversationId,
-      // If WebSocket is not live, poll every 3 seconds for active conversation
-      pollingInterval: isSocketLive ? 0 : 3000,
+      pollingInterval: isSocketLive ? 0 : 4000,
     }
   );
-
-  // Append older messages if loaded via cursor
-  useEffect(() => {
-    if (cursorBefore && currentMessages.length > 0) {
-      setOlderMessages((prev) => {
-        const existingIds = new Set(prev.map((m) => m.id));
-        const newOnes = currentMessages.filter((m) => !existingIds.has(m.id));
-        return [...newOnes, ...prev];
-      });
-    }
-  }, [currentMessages, cursorBefore]);
-
-  // Clear cursor on conversation switch
-  useEffect(() => {
-    setCursorBefore(undefined);
-    setOlderMessages([]);
-    setReplyToMessage(null);
-    setInputText('');
-  }, [activeConversationId]);
-
-  // Combined messages
-  const allMessages = useMemo(() => {
-    if (olderMessages.length > 0) {
-      const combined = [...olderMessages, ...currentMessages];
-      const seen = new Set<string>();
-      return combined.filter((m) => {
-        if (seen.has(m.id)) return false;
-        seen.add(m.id);
-        return true;
-      });
-    }
-    return currentMessages;
-  }, [olderMessages, currentMessages]);
 
   // Mutations
   const [createOrGetConversation] = useCreateOrGetConversationMutation();
   const [sendConnectMessage] = useSendConnectMessageMutation();
 
-  // Active conversation object
+  // Reset pagination when conversation changes
+  useEffect(() => {
+    setCursorBefore(undefined);
+    setOlderMessages([]);
+    setReplyToMessage(null);
+  }, [activeConversationId]);
+
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId),
     [conversations, activeConversationId]
   );
 
-  // Other participant in DM
-  const otherParticipant = useMemo(() => {
-    if (!activeConversation || !activeConversation.participants) return null;
-    return activeConversation.participants[0] || null;
-  }, [activeConversation]);
+  const otherParticipant = activeConversation?.participants[0];
 
-  // Scroll to bottom
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const allMessages = useMemo(() => {
+    const map = new Map<string, ConnectMessage>();
+    olderMessages.forEach((m) => map.set(m.id, m));
+    currentMessages.forEach((m) => map.set(m.id, m));
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [olderMessages, currentMessages]);
+
+  const messageEndRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!cursorBefore) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [allMessages, cursorBefore]);
 
-  // Handle click on colleague -> Create or Open DM
-  const handleSelectColleague = async (colleague: Colleague) => {
+  const handleStartChatWithColleague = async (colleague: Colleague) => {
     try {
-      const conv = await createOrGetConversation({ targetUserId: colleague.id }).unwrap();
+      const conv = await createOrGetConversation({
+        targetUserId: colleague.id,
+      }).unwrap();
+
       setActiveConversationId(conv.id);
-      setActiveTab('chats');
-      toast.info(`Opened conversation with ${colleague.name}`, 'OFC Connect');
-    } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to open conversation with colleague.', 'Error');
+      setChatActiveTab('chats');
+      toast.success(`Connected with ${colleague.name}`, 'Chat Started');
+    } catch {
+      toast.error('Unable to initialize conversation. Please retry.', 'Chat Error');
     }
   };
 
-  // Handle Send Message
-  const handleSendMessage = async () => {
-    const trimmed = inputText.trim();
-    if (!trimmed || !activeConversationId || isSending) return;
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = inputText.trim();
+    if (!clean || !activeConversationId || isSending) return;
 
     setIsSending(true);
+    setInputText('');
+
     try {
       await sendConnectMessage({
         conversationId: activeConversationId,
-        text: trimmed,
+        text: clean,
         replyToMessageId: replyToMessage?.id,
       }).unwrap();
 
-      setInputText('');
       setReplyToMessage(null);
-      if (otherParticipant?.userId) {
-        sendTyping(otherParticipant.userId, false);
-      }
-    } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to deliver message.', 'Error');
+      refetchMessages();
+    } catch {
+      toast.error('Failed to send message. Please retry.', 'Send Error');
+      setInputText(clean);
     } finally {
       setIsSending(false);
     }
   };
 
-  // Handle Input Keydown (Enter to send, Shift+Enter for newline)
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  // Handle typing change
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputText(e.target.value);
-    if (otherParticipant?.userId) {
-      sendTyping(otherParticipant.userId, true);
-    }
-  };
-
-  // Helper for presence indicator dot
-  const renderPresenceDot = (status: PresenceStatus = 'offline') => {
+  const renderPresenceDot = (status?: PresenceStatus) => {
     switch (status) {
       case 'online':
-        return <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" title="Online" />;
-      case 'away':
-        return <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs" title="Away" />;
+        return <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" title="Online" />;
       case 'busy':
-      case 'dnd':
-        return <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs" title="Do Not Disturb" />;
+        return <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-zinc-900" title="Busy" />;
+      case 'away':
+        return <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-900" title="Away" />;
       default:
         return <span className="w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-zinc-600" title="Offline" />;
     }
   };
 
-  // Check if other participant is currently typing
   const isOtherTyping = Boolean(otherParticipant?.userId && typingMap[otherParticipant.userId]);
 
+  // =========================================================================
+  // CALL TOOL STATES & LOGIC
+  // =========================================================================
+  const [activeCallContact, setActiveCallContact] = useState<string | null>(null);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (activeCallContact) {
+      timer = setInterval(() => setCallDuration((p) => p + 1), 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [activeCallContact]);
+
+  const formatCallTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainder = secs % 60;
+    return `${mins}:${remainder < 10 ? '0' : ''}${remainder}`;
+  };
+
+  // =========================================================================
+  // ANNOUNCEMENTS & HELPDESK DATA
+  // =========================================================================
+  const announcements = [
+    {
+      id: 'ann-1',
+      title: 'Diwali & Festival Bonus Disbursal Timeline 2026',
+      author: 'HR Operations',
+      time: '2 hours ago',
+      priority: 'HIGH',
+      content: 'All festive allowances and bonus statements are credited. View payslips in Payroll portal.',
+    },
+    {
+      id: 'ann-2',
+      title: 'New Hybrid Workplace Guidelines & Desk Booking Policy',
+      author: 'Operations Leadership',
+      time: 'Yesterday',
+      priority: 'GENERAL',
+      content: 'Effective next week, team leads can schedule in-office collaborative work sessions using OFC360 Desk Planner.',
+    },
+    {
+      id: 'ann-3',
+      title: 'Annual Executive Health Checkup & Family Insurance Enrollment',
+      author: 'Benefits Desk',
+      time: '3 days ago',
+      priority: 'GENERAL',
+      content: 'Enrollment window is open until end of month. Comprehensive coverage includes OPD and dental add-ons.',
+    },
+  ];
+
+  const helpdeskTickets = [
+    {
+      id: 'TICK-402',
+      title: 'VPN Access & MFA Token Reset',
+      department: 'IT Infrastructure',
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      updated: '10 mins ago',
+    },
+    {
+      id: 'TICK-398',
+      title: 'PF Passbook UAN Linking Verification',
+      department: 'Payroll & Statutory',
+      status: 'OPEN',
+      priority: 'MEDIUM',
+      updated: '2 hours ago',
+    },
+    {
+      id: 'TICK-385',
+      title: 'Ergonomic Chair & Dual Monitor Request',
+      department: 'Admin & Facilities',
+      status: 'RESOLVED',
+      priority: 'LOW',
+      updated: 'Yesterday',
+    },
+  ];
+
   return (
-    <div className="h-[calc(100vh-5rem)] min-h-[600px] flex rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
-      {/* =========================================================================
-          LEFT PANE: Conversation List & Colleague Directory
-         ========================================================================= */}
-      <aside className="w-80 sm:w-96 border-r border-gray-200 dark:border-zinc-800 flex flex-col h-full bg-white dark:bg-[#171717] shrink-0">
-        {/* Header with Title and Mode Switcher */}
-        <div className="p-4 border-b border-gray-200 dark:border-zinc-800/80 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center border border-brand-500/20">
-                <Radio className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 dark:text-[#ececec]">
-                  OFC360 Connect
-                </h2>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-400">
-                  Employee Real-Time Collaboration
-                </p>
-              </div>
-            </div>
+    <div className="space-y-6 pb-12">
+      {/* 6 Connect KPI Module Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {CONNECT_MODULES.map((module) => {
+          const Icon = module.icon;
+          const isActive = activeTool === module.id;
 
-            {/* Socket status pill */}
+          return (
             <div
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-                isSocketLive
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60'
-                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60'
-              }`}
-              title={isSocketLive ? 'Connected via real-time WebSocket' : 'Polling via REST fallback'}
-            >
-              {isSocketLive ? (
-                <>
-                  <Wifi className="w-3 h-3 text-emerald-500" />
-                  <span>Live WS</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3 h-3 text-amber-500" />
-                  <span>Polling</span>
-                </>
+              key={module.id}
+              onClick={() => setActiveTool(module.id)}
+              className={cn(
+                'p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#171717] border shadow-sm',
+                'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center justify-between gap-3',
+                isActive
+                  ? 'border-indigo-500 ring-2 ring-indigo-500/25 bg-indigo-50/20 dark:bg-indigo-950/20 shadow-md'
+                  : 'border-gray-200 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-500/60'
               )}
-            </div>
-          </div>
-
-          {/* Toggle Tabs: Chats vs Colleagues */}
-          <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-zinc-800/60 rounded-xl text-xs font-semibold">
-            <button
-              onClick={() => setActiveTab('chats')}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
-                activeTab === 'chats'
-                  ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-bold'
-                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveTool(module.id);
+                }
+              }}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Chats ({conversations.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('colleagues')}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
-                activeTab === 'colleagues'
-                  ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-bold'
-                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Colleagues</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab 1: Active Conversations List */}
-        {activeTab === 'chats' && (
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-800/60">
-            {isConversationsLoading ? (
-              <div className="p-8 text-center text-xs text-gray-400">Loading active chats...</div>
-            ) : conversations.length === 0 ? (
-              <div className="p-8 text-center space-y-3">
-                <MessageSquare className="w-8 h-8 text-gray-300 dark:text-zinc-600 mx-auto" />
-                <p className="text-xs text-gray-500 dark:text-zinc-400">No active conversations yet.</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setActiveTab('colleagues')}
-                  className="rounded-xl text-xs"
-                >
-                  Find a Colleague
-                </Button>
-              </div>
-            ) : (
-              conversations.map((conv) => {
-                const participant = conv.participants[0];
-                const isActive = conv.id === activeConversationId;
-                return (
-                  <button
-                    key={conv.id}
-                    onClick={() => setActiveConversationId(conv.id)}
-                    className={`w-full p-3.5 text-left flex items-start gap-3 transition-colors ${
-                      isActive
-                        ? 'bg-brand-50/70 dark:bg-brand-950/30 border-l-4 border-brand-500'
-                        : 'hover:bg-gray-50 dark:hover:bg-zinc-800/40'
-                    }`}
-                  >
-                    <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
-                        {participant?.avatarUrl ? (
-                          <img
-                            src={participant.avatarUrl}
-                            alt={participant.name}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          participant?.name?.substring(0, 2).toUpperCase() || 'DM'
-                        )}
-                      </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white dark:ring-zinc-900 rounded-full">
-                        {renderPresenceDot(participant?.presenceStatus)}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-xs font-bold text-gray-900 dark:text-[#ececec] truncate">
-                          {participant?.name || 'Direct Chat'}
-                        </span>
-                        {conv.lastMessageAt && (
-                          <span className="text-[10px] text-gray-400 shrink-0">
-                            {new Date(conv.lastMessageAt).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
-                        {conv.lastMessagePreview || 'Click to start conversation'}
-                      </p>
-                    </div>
-
-                    {conv.unreadCount > 0 && (
-                      <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500 text-white">
-                        {conv.unreadCount}
-                      </span>
-                    )}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        )}
-
-        {/* Tab 2: Colleague Directory */}
-        {activeTab === 'colleagues' && (
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            {/* Search and Filters */}
-            <div className="p-3 border-b border-gray-200 dark:border-zinc-800/80 space-y-2 bg-gray-50/50 dark:bg-zinc-900/40">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search name, email, role..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder-gray-400 focus:outline-hidden focus:ring-1 focus:ring-brand-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedDept}
-                  onChange={(e) => setSelectedDept(e.target.value)}
-                  className="flex-1 px-2.5 py-1 text-[11px] rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300"
-                >
-                  <option value="ALL">All Depts</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Product">Product</option>
-                  <option value="Design">Design</option>
-                  <option value="Human Resources">HR</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Operations">Operations</option>
-                </select>
-
-                <select
-                  value={selectedPresence}
-                  onChange={(e) => setSelectedPresence(e.target.value)}
-                  className="flex-1 px-2.5 py-1 text-[11px] rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300"
-                >
-                  <option value="ALL">All Status</option>
-                  <option value="online">Online</option>
-                  <option value="away">Away</option>
-                  <option value="busy">Busy / DND</option>
-                  <option value="offline">Offline</option>
-                </select>
-
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => refetchColleagues()}
-                  className="px-2 py-1 h-7"
-                  title="Refresh Colleague Directory"
-                >
-                  <RefreshCw className="w-3 h-3 text-gray-500" />
-                </Button>
+              <span
+                className={cn(
+                  'text-xs font-semibold uppercase tracking-wider transition-colors',
+                  isActive
+                    ? 'text-indigo-600 dark:text-indigo-400 font-bold'
+                    : 'text-gray-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                )}
+              >
+                {module.title}
+              </span>
+              <div
+                className={cn(
+                  'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105',
+                  module.iconBg,
+                  module.iconColor
+                )}
+              >
+                <Icon className="w-4 h-4" />
               </div>
             </div>
-
-            {/* Colleagues List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-800/60">
-              {isColleaguesLoading ? (
-                <div className="p-8 text-center text-xs text-gray-400">Loading directory...</div>
-              ) : !colleaguesData?.colleagues || colleaguesData.colleagues.length === 0 ? (
-                <div className="p-8 text-center text-xs text-gray-400">No colleagues found.</div>
-              ) : (
-                colleaguesData.colleagues.map((colleague) => (
-                  <button
-                    key={colleague.id}
-                    onClick={() => handleSelectColleague(colleague)}
-                    className="w-full p-3 text-left flex items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-zinc-800/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative shrink-0">
-                        <div className="w-9 h-9 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center text-xs border border-indigo-500/20">
-                          {colleague.avatarUrl ? (
-                            <img
-                              src={colleague.avatarUrl}
-                              alt={colleague.name}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          ) : (
-                            colleague.name.substring(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white dark:ring-zinc-900 rounded-full">
-                          {renderPresenceDot(colleague.presenceStatus)}
-                        </div>
-                      </div>
-
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-gray-900 dark:text-[#ececec] truncate">
-                          {colleague.name}
-                        </p>
-                        <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">
-                          {colleague.designation || colleague.department || colleague.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="shrink-0 text-[10px] text-brand-600 dark:text-brand-400 font-semibold px-2 py-1 rounded-md bg-brand-50 dark:bg-brand-950/30">
-                      Message
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </aside>
+          );
+        })}
+      </div>
 
       {/* =========================================================================
-          RIGHT PANE: Active Chat Stream & Message Composer
+          MODULE 1: CHAT VIEW (Live 2-Pane Employee Messaging)
          ========================================================================= */}
-      <main className="flex-1 flex flex-col h-full bg-[#fcfcfd] dark:bg-[#121212] overflow-hidden">
-        {activeConversation ? (
-          <>
-            {/* Chat Header Bar */}
-            <header className="h-14 px-5 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-[#171717] shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
-                    {otherParticipant?.avatarUrl ? (
-                      <img
-                        src={otherParticipant.avatarUrl}
-                        alt={otherParticipant.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      otherParticipant?.name?.substring(0, 2).toUpperCase() || 'DM'
-                    )}
+      {activeTool === 'chat' && (
+        <div className="h-[calc(100vh-14rem)] min-h-[550px] flex rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shadow-sm">
+          {/* Left Pane */}
+          <aside className="w-80 sm:w-96 border-r border-gray-200 dark:border-zinc-800 flex flex-col h-full bg-white dark:bg-[#171717] shrink-0">
+            <div className="p-4 border-b border-gray-200 dark:border-zinc-800/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200/50">
+                    <MessageSquare className="w-4 h-4" />
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white dark:ring-zinc-900 rounded-full">
-                    {renderPresenceDot(otherParticipant?.presenceStatus)}
-                  </div>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white">
+                    Direct Messages
+                  </span>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-[#ececec]">
-                    {otherParticipant?.name || 'Direct Conversation'}
-                  </h3>
-                  <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400">
-                    <span className="capitalize">{otherParticipant?.presenceStatus || 'offline'}</span>
-                    <span>•</span>
-                    <span>{otherParticipant?.email || 'Tenant Isolated'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    refetchMessages();
-                    refetchConversations();
-                  }}
-                  className="rounded-xl text-xs flex items-center gap-1.5 h-8"
-                  title="Force Sync Conversation"
+                <div
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+                    isSocketLive
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60'
+                  }`}
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sync</span>
-                </Button>
+                  {isSocketLive ? (
+                    <>
+                      <Wifi className="w-3 h-3 text-emerald-500" />
+                      <span>Live WS</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-3 h-3 text-amber-500" />
+                      <span>Polling</span>
+                    </>
+                  )}
+                </div>
               </div>
-            </header>
 
-            {/* Message Stream */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-              {/* Load Older Messages Cursor Button */}
-              {allMessages.length > 0 && (
-                <div className="text-center py-1">
+              {/* Mode Toggle */}
+              <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-zinc-800/60 rounded-xl text-xs font-semibold">
+                <button
+                  onClick={() => setChatActiveTab('chats')}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
+                    chatActiveTab === 'chats'
+                      ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-bold'
+                      : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Chats ({conversations.length})</span>
+                </button>
+                <button
+                  onClick={() => setChatActiveTab('colleagues')}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
+                    chatActiveTab === 'colleagues'
+                      ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-bold'
+                      : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Colleagues</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Conversation List */}
+            {chatActiveTab === 'chats' && (
+              <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-800/60">
+                {isConversationsLoading ? (
+                  <div className="p-8 text-center text-xs text-gray-400">Loading active chats...</div>
+                ) : conversations.length === 0 ? (
+                  <div className="p-8 text-center space-y-3">
+                    <MessageSquare className="w-8 h-8 text-gray-300 dark:text-zinc-600 mx-auto" />
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">No active conversations yet.</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setChatActiveTab('colleagues')}
+                      className="rounded-xl text-xs"
+                    >
+                      Find a Colleague
+                    </Button>
+                  </div>
+                ) : (
+                  conversations.map((conv) => {
+                    const participant = conv.participants[0];
+                    const isActive = conv.id === activeConversationId;
+                    return (
+                      <button
+                        key={conv.id}
+                        onClick={() => setActiveConversationId(conv.id)}
+                        className={`w-full p-3.5 text-left flex items-start gap-3 transition-colors ${
+                          isActive
+                            ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-l-4 border-indigo-600'
+                            : 'hover:bg-gray-50 dark:hover:bg-zinc-800/40'
+                        }`}
+                      >
+                        <div className="relative shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                            {participant?.name?.substring(0, 2).toUpperCase() || 'DM'}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5">
+                            {renderPresenceDot(participant?.presenceStatus)}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-900 dark:text-[#ececec] truncate">
+                              {participant?.name || 'Conversation'}
+                            </span>
+                            <span className="text-[10px] text-gray-400">
+                              {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
+                            {conv.lastMessagePreview || 'Started conversation'}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Colleague Directory */}
+            {chatActiveTab === 'colleagues' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="p-3 border-b border-gray-100 dark:border-zinc-800/60">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search colleagues..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-gray-50 dark:bg-zinc-900/70 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-800/60 p-1">
+                  {(colleaguesData?.colleagues || []).map((c: Colleague) => (
+                    <div
+                      key={c.id}
+                      onClick={() => handleStartChatWithColleague(c)}
+                      className="p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-zinc-800/40 rounded-xl cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="relative">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-zinc-200">
+                            {c.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5">
+                            {renderPresenceDot(c.presenceStatus)}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-900 dark:text-white">{c.name}</h4>
+                          <span className="text-[10px] text-gray-500 dark:text-zinc-400">{c.department || 'General'}</span>
+                        </div>
+                      </div>
+
+                      <Button size="sm" variant="ghost" className="h-7 text-xs text-indigo-600">
+                        Chat
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+
+          {/* Right Pane: Message Stream */}
+          <main className="flex-1 flex flex-col h-full bg-[#fcfcfd] dark:bg-[#121212] overflow-hidden">
+            {activeConversation ? (
+              <>
+                {/* Header */}
+                <header className="h-14 px-5 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-[#171717] shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                      {otherParticipant?.name?.substring(0, 2).toUpperCase() || 'DM'}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                        {otherParticipant?.name || 'Direct Conversation'}
+                      </h3>
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400">
+                        <span className="capitalize">{otherParticipant?.presenceStatus || 'offline'}</span>
+                        <span>•</span>
+                        <span>{otherParticipant?.email || 'Tenant Isolated'}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => {
-                      if (allMessages.length > 0) {
-                        setCursorBefore(allMessages[0].id);
-                      }
+                      refetchMessages();
+                      refetchConversations();
                     }}
-                    className="text-xs text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white rounded-lg h-7 px-3"
+                    className="rounded-xl text-xs flex items-center gap-1.5 h-8"
                   >
-                    Load older messages
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Sync</span>
                   </Button>
-                </div>
-              )}
+                </header>
 
-              {isMessagesLoading && allMessages.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-xs text-gray-400">
-                  Loading message history...
-                </div>
-              ) : allMessages.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center text-center space-y-2 text-gray-400">
-                  <MessageSquare className="w-10 h-10 stroke-1 text-gray-300 dark:text-zinc-700" />
-                  <p className="text-xs">No messages yet. Say hello to get started!</p>
-                </div>
-              ) : (
-                allMessages.map((msg) => {
-                  const isMe = msg.senderId !== otherParticipant?.userId;
-
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col group ${isMe ? 'items-end' : 'items-start'}`}
-                    >
-                      {/* Replying quote snippet */}
-                      {msg.replyToId && (
-                        <div
-                          className={`flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-zinc-400 mb-1 px-3 py-1 rounded-md bg-gray-100/70 dark:bg-zinc-800/60 max-w-md ${
-                            isMe ? 'mr-1' : 'ml-1'
-                          }`}
-                        >
-                          <CornerUpLeft className="w-3 h-3 shrink-0 text-brand-500" />
-                          <span className="truncate">Replying to previous message</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-end gap-2 max-w-lg sm:max-w-xl">
-                        {!isMe && (
-                          <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-[10px] font-bold flex items-center justify-center shrink-0 mb-1">
-                            {otherParticipant?.name?.substring(0, 1).toUpperCase() || 'U'}
-                          </div>
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                  {allMessages.map((m) => {
+                    const isSelf = otherParticipant ? m.senderId !== otherParticipant.userId : false;
+                    return (
+                      <div
+                        key={m.id}
+                        className={cn(
+                          'flex flex-col max-w-[80%]',
+                          isSelf ? 'ml-auto items-end' : 'mr-auto items-start'
                         )}
-
+                      >
                         <div
-                          className={`relative rounded-2xl px-4 py-2.5 text-xs sm:text-sm shadow-2xs leading-relaxed transition-all ${
-                            isMe
-                              ? 'bg-brand-600 text-white rounded-br-xs'
-                              : 'bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-[#ececec] border border-gray-200/80 dark:border-zinc-800 rounded-bl-xs'
-                          }`}
+                          className={cn(
+                            'p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs',
+                            isSelf
+                              ? 'bg-indigo-600 text-white rounded-tr-none'
+                              : 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700/60 rounded-tl-none'
+                          )}
                         >
-                          {/* Message Content */}
-                          <p className="whitespace-pre-wrap select-text">{msg.content}</p>
-
-                          {/* Timestamp and Delivery Indicators */}
-                          <div
-                            className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
-                              isMe ? 'text-brand-100' : 'text-gray-400 dark:text-zinc-500'
-                            }`}
-                          >
-                            <span>
-                              {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                            {isMe && <CheckCheck className="w-3.5 h-3.5 text-brand-200" />}
-                          </div>
+                          {m.content}
                         </div>
-
-                        {/* Reply trigger button */}
-                        <button
-                          onClick={() => setReplyToMessage(msg)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200"
-                          title="Reply to this message"
-                        >
-                          <CornerUpLeft className="w-3.5 h-3.5" />
-                        </button>
+                        <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 px-1">
+                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
-                    </div>
-                  );
-                })
-              )}
-
-              {/* Typing indicator banner */}
-              {isOtherTyping && (
-                <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-zinc-500 italic pl-9 animate-pulse">
-                  <span>{otherParticipant?.name || 'Colleague'} is typing...</span>
+                    );
+                  })}
+                  {isOtherTyping && (
+                    <div className="text-xs text-gray-400 italic">Colleague is typing...</div>
+                  )}
+                  <div ref={messageEndRef} />
                 </div>
-              )}
 
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Message Composer Area */}
-            <div className="p-4 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] shrink-0 space-y-2">
-              {/* Reply Quote Banner */}
-              {replyToMessage && (
-                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 text-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <CornerUpLeft className="w-3.5 h-3.5 text-brand-500 shrink-0" />
-                    <span className="font-semibold text-gray-700 dark:text-zinc-300">
-                      Replying to {replyToMessage.senderName}:
-                    </span>
-                    <span className="text-gray-500 dark:text-zinc-400 truncate">
-                      {replyToMessage.content}
-                    </span>
+                {/* Composer */}
+                <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-[#171717] border-t border-gray-200 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => {
+                        setInputText(e.target.value);
+                        if (otherParticipant?.userId) {
+                          sendTyping(otherParticipant.userId, true);
+                        }
+                      }}
+                      placeholder="Type your message..."
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <Button type="submit" disabled={!inputText.trim() || isSending} size="sm" className="bg-indigo-600 text-white rounded-xl h-10 px-4">
+                      <Send className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <button
-                    onClick={() => setReplyToMessage(null)}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
+                <MessageSquare className="w-10 h-10 text-gray-300 dark:text-zinc-600" />
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">OFC360 Connect Chat</h3>
+                <p className="text-xs text-gray-500 max-w-sm">Select an active conversation or pick a colleague from the directory to start messaging.</p>
+              </div>
+            )}
+          </main>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODULE 2: CALL VIEW (Voice & Audio Hub)
+         ========================================================================= */}
+      {activeTool === 'call' && (
+        <div className="space-y-6">
+          {/* Active Call Banner if active */}
+          {activeCallContact && (
+            <div className="p-4 rounded-2xl bg-emerald-600 text-white flex items-center justify-between shadow-lg animate-in fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center animate-pulse">
+                  <PhoneCall className="w-5 h-5 text-white" />
                 </div>
-              )}
+                <div>
+                  <h4 className="text-sm font-bold">Call with {activeCallContact}</h4>
+                  <p className="text-xs text-emerald-100 flex items-center gap-2">
+                    <span>Connected ({formatCallTime(callDuration)})</span>
+                    <span>•</span>
+                    <span>High Definition Audio</span>
+                  </p>
+                </div>
+              </div>
 
-              <div className="flex items-end gap-2 bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-zinc-800 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition-all">
-                <textarea
-                  rows={1}
-                  value={inputText}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder={`Message ${otherParticipant?.name || 'colleague'}... (Enter to send, Shift+Enter for new line)`}
-                  className="flex-1 bg-transparent border-0 resize-none text-xs sm:text-sm text-gray-900 dark:text-[#ececec] placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-hidden py-1 px-2 max-h-32"
-                />
-
+              <div className="flex items-center gap-2">
                 <Button
                   size="sm"
-                  variant="primary"
-                  onClick={handleSendMessage}
-                  disabled={!inputText.trim() || isSending}
-                  className="rounded-xl h-8 px-3 shrink-0 flex items-center gap-1.5 shadow-2xs shadow-brand-500/20"
+                  onClick={() => setIsMicMuted(!isMicMuted)}
+                  className={cn(
+                    'rounded-xl text-xs',
+                    isMicMuted ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-white/20 hover:bg-white/30 text-white'
+                  )}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Send</span>
+                  {isMicMuted ? <MicOff className="w-4 h-4 mr-1" /> : <Mic className="w-4 h-4 mr-1" />}
+                  <span>{isMicMuted ? 'Unmute' : 'Mute'}</span>
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    toast.info(`Call ended with ${activeCallContact}`, 'Call Disconnected');
+                    setActiveCallContact(null);
+                  }}
+                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs flex items-center gap-1.5"
+                >
+                  <PhoneOff className="w-4 h-4" />
+                  <span>End Call</span>
                 </Button>
               </div>
             </div>
-          </>
-        ) : (
-          /* Empty State when no conversation selected */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center border border-brand-200/60 dark:border-brand-900/40 shadow-sm">
-              <Radio className="w-8 h-8" />
+          )}
+
+          {/* Call Colleagues & History Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Audio Dial Directory */}
+            <div className="lg:col-span-2 p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Instant Voice Calling</h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">Zero-latency peer audio calls across your organization</p>
+                </div>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                  Audio Bridge Active
+                </span>
+              </div>
+
+              <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
+                {(colleaguesData?.colleagues || []).slice(0, 6).map((c: Colleague) => (
+                  <div key={c.id} className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-zinc-200">
+                          {c.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5">
+                          {renderPresenceDot(c.presenceStatus)}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900 dark:text-white">{c.name}</h4>
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400">{c.department || 'General'} • {c.designation || 'Colleague'}</p>
+                      </div>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setActiveCallContact(c.name);
+                        toast.success(`Calling ${c.name}...`, 'Voice Call');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center gap-1.5 h-8 px-3"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5" />
+                      <span>Call</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="max-w-md space-y-1">
-              <h3 className="text-base font-bold text-gray-900 dark:text-[#ececec]">
-                Welcome to OFC360 Connect
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-zinc-400">
-                Direct employee-to-employee messaging with presence indicators, WebSockets, and directory discovery. Select an active conversation or browse colleagues on the left.
-              </p>
+
+            {/* Recent Call Logs */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">Recent Call Logs</h3>
+              <div className="space-y-3">
+                {[
+                  { name: 'Vinit Sharma', duration: '14m 20s', time: '10:45 AM', type: 'incoming' },
+                  { name: 'Priya Verma', duration: '4m 12s', time: 'Yesterday', type: 'outgoing' },
+                  { name: 'Amit Patel', duration: 'Missed', time: '2 days ago', type: 'missed' },
+                ].map((log, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+                    <div>
+                      <h5 className="text-xs font-bold text-gray-900 dark:text-white">{log.name}</h5>
+                      <span className="text-[10px] text-gray-500 dark:text-zinc-400">{log.time}</span>
+                    </div>
+                    <span className={cn('text-[11px] font-semibold', log.type === 'missed' ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400')}>
+                      {log.duration}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODULE 3: MEET VIEW (Video Meeting Launcher & Intelligence)
+         ========================================================================= */}
+      {activeTool === 'meet' && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">OFC360 Video Meet & Rooms</h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">High definition encrypted team video conferences with AI automated minutes</p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/ai/meeting-intelligence')}
+                className="rounded-xl text-xs flex items-center gap-1.5"
+              >
+                <Video className="w-4 h-4 text-blue-600" />
+                <span>Meeting Intelligence AI</span>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => toast.success('Instant Meeting Room created: meet.ofc360.internal/room-492', 'Meeting Live')}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Start Instant Meet</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Scheduled Meetings List */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {[
+              { title: 'Weekly Product & Sprint Sync', time: '11:00 AM - 11:45 AM', attendees: 8 },
+              { title: 'HR Policy Townhall & Q&A', time: '3:00 PM - 4:00 PM', attendees: 45 },
+              { title: 'Engineering Architecture Review', time: 'Tomorrow 10:00 AM', attendees: 6 },
+            ].map((meet, idx) => (
+              <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/60 dark:bg-zinc-900/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200">
+                    Scheduled
+                  </span>
+                  <span className="text-[11px] text-gray-500">{meet.attendees} Members</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900 dark:text-white">{meet.title}</h4>
+                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>{meet.time}</span>
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => toast.info(`Joining ${meet.title}...`, 'Connecting')} className="w-full bg-blue-600 text-white rounded-xl text-xs h-8">
+                  Join Meeting
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODULE 4: SLACK VIEW (Slack Workspace & Channel Sync)
+         ========================================================================= */}
+      {activeTool === 'slack' && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
+                <Hash className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Slack Workspace Integration</h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">Connected to ofc360-enterprise.slack.com • Real-time Webhook Synced</p>
+              </div>
+            </div>
+
             <Button
-              variant="outline"
               size="sm"
-              onClick={() => setActiveTab('colleagues')}
-              className="rounded-xl text-xs flex items-center gap-2"
+              onClick={() => toast.success('Synchronized 14 new channel notifications from Slack.', 'Sync Complete')}
+              variant="outline"
+              className="rounded-xl text-xs flex items-center gap-1.5"
             >
-              <Users className="w-3.5 h-3.5 text-brand-500" />
-              <span>Explore Colleague Directory</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Sync Channels</span>
             </Button>
           </div>
-        )}
-      </main>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { name: '#general', unread: 3, desc: 'Company-wide announcements & watercooler' },
+              { name: '#tech-engineering', unread: 12, desc: 'Sprint commits, bugs, and release builds' },
+              { name: '#payroll-alerts', unread: 0, desc: 'Automated salary statements & tax alerts' },
+              { name: '#hr-helpdesk', unread: 2, desc: 'Employee tickets & onboarding queries' },
+            ].map((ch, idx) => (
+              <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                    <Hash className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{ch.name}</span>
+                  </span>
+                  {ch.unread > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
+                      {ch.unread}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-2">{ch.desc}</p>
+                <Button size="sm" variant="ghost" className="text-xs text-amber-600 dark:text-amber-400 p-0 h-6">
+                  Open Channel →
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODULE 5: ANNOUNCEMENT VIEW (Broadcast & Bulletin Board)
+         ========================================================================= */}
+      {activeTool === 'announcement' && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Organization Broadcasts & Announcements</h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Official company news, policy updates, and holiday circulars</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => toast.success('New announcement drafted for company-wide broadcast.', 'Draft Created')}
+              className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs flex items-center gap-1.5"
+            >
+              <Megaphone className="w-4 h-4" />
+              <span>Post Announcement</span>
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {announcements.map((item) => (
+              <div key={item.id} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200">
+                      {item.priority}
+                    </span>
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{item.title}</h4>
+                  </div>
+                  <span className="text-[11px] text-gray-400">{item.time}</span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-zinc-300 leading-relaxed">{item.content}</p>
+                <div className="text-[10px] text-gray-400">Published by {item.author}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODULE 6: HELP DESK VIEW (Service Desk & Support Tickets)
+         ========================================================================= */}
+      {activeTool === 'helpdesk' && (
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Internal Employee Help Desk</h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Submit and monitor IT, HR, and Administrative support tickets</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => toast.success('Ticket form opened. Select department to proceed.', 'New Ticket')}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Raise Ticket</span>
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {helpdeskTickets.map((t) => (
+              <div key={t.id} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">{t.id}</span>
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{t.title}</h4>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-zinc-400">{t.department} • Updated {t.updated}</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                      t.status === 'RESOLVED'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400'
+                        : t.status === 'IN_PROGRESS'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400'
+                        : 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-400'
+                    )}
+                  >
+                    {t.status.replace('_', ' ')}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

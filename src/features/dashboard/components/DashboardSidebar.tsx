@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, PanelLeft } from 'lucide-react';
+import { ChevronDown, PanelLeft, X } from 'lucide-react';
 import {
   DASHBOARD_TABS,
   SIDEBAR_SECTIONS,
@@ -13,6 +13,7 @@ export interface DashboardSidebarProps {
   onTabChange?: (tabId: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onMobileClose?: () => void;
 }
 
 const SIDEBAR_WIDTH = 'w-64';
@@ -23,6 +24,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onTabChange,
   collapsed = false,
   onToggleCollapse,
+  onMobileClose,
 }) => {
   const location = useLocation();
 
@@ -110,7 +112,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <NavLink
             key={tab.id}
             to={tab.path}
-            onClick={() => onTabChange?.(tab.id)}
+            onClick={() => {
+              onTabChange?.(tab.id);
+              onMobileClose?.();
+            }}
             title={tab.label}
             className={({ isActive: navActive }) => `
               relative flex items-center justify-center px-3 py-2.5 rounded-lg transition-colors duration-150
@@ -132,7 +137,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           role="tab"
           aria-selected={isActive}
           aria-label={tab.label}
-          onClick={() => onTabChange?.(tab.id)}
+          onClick={() => {
+            onTabChange?.(tab.id);
+            onMobileClose?.();
+          }}
           className={`
             relative flex items-center justify-center px-3 py-2.5 rounded-lg transition-colors duration-150
             ${isActive
@@ -176,7 +184,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         ) : tab.path ? (
           <NavLink
             to={tab.path}
-            onClick={() => onTabChange?.(tab.id)}
+            onClick={() => {
+              onTabChange?.(tab.id);
+              onMobileClose?.();
+            }}
             className={({ isActive: navActive }) => `
               w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
               ${navActive || isDirectActive
@@ -193,7 +204,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             type="button"
             role="tab"
             aria-selected={isActive}
-            onClick={() => onTabChange?.(tab.id)}
+            onClick={() => {
+              onTabChange?.(tab.id);
+              onMobileClose?.();
+            }}
             className={`
               w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
               ${isActive
@@ -215,7 +229,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <NavLink
                   key={child.id}
                   to={child.path || '#'}
-                  onClick={() => onTabChange?.(child.id)}
+                  onClick={() => {
+                    onTabChange?.(child.id);
+                    onMobileClose?.();
+                  }}
                   className={({ isActive: navActive }) => {
                     const isSubActive =
                       navActive ||
@@ -294,7 +311,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             />
           </Link>
 
-          {onToggleCollapse && (
+          {onMobileClose ? (
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+              aria-label="Close navigation"
+              title="Close navigation"
+            >
+              <X className="w-5 h-5" strokeWidth={2} />
+            </button>
+          ) : onToggleCollapse ? (
             <button
               type="button"
               onClick={onToggleCollapse}
@@ -304,7 +331,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             >
               <PanelLeft className="w-5 h-5" strokeWidth={2} />
             </button>
-          )}
+          ) : null}
         </div>
       ) : (
         <div className="h-16 flex items-center justify-center px-2 py-3 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">

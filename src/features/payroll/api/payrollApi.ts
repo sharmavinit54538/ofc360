@@ -88,6 +88,7 @@ export const payrollApi = createApi({
                 year,
                 totalGrossPayroll: 0,
                 totalNetPayable: 0,
+                totalDeductions: 0,
                 employeesProcessed: 0,
                 onHoldCount: 0,
                 currentRunStatus: 'NOT_STARTED',

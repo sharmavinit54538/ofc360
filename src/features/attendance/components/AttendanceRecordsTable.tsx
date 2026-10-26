@@ -129,8 +129,8 @@ export const AttendanceRecordsTable: React.FC<AttendanceRecordsTableProps> = ({
 
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs md:text-sm">
+      <div className="overflow-x-auto min-w-0">
+        <table className="w-full min-w-[720px] text-left text-xs md:text-sm">
           <thead className="bg-gray-50 dark:bg-zinc-800/60 text-gray-600 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-gray-200 dark:border-zinc-800">
             <tr>
               <th className="px-4 py-3">Date</th>
