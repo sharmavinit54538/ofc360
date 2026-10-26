@@ -108,9 +108,9 @@
 5. **Payroll & Benefits** - Payroll
 6. **Leave Management** - Leaves
 7. **Performance** - Performance
-8. **Reports & Analytics** - Analytics from all modules
-9. **AI Intelligence Hub** - All AI features
-10. **Documents & Compliance** - Documents, Policies, Templates, Compliance
+8. **Reports** - Analytics from all modules
+9. **AI Hub** - All AI features
+10. **Documents** - Documents, Policies, Templates, Compliance
 11. **HR Operations** - Assets, Visitors, Travel, Expenses, Onboarding, Offboarding, Exit, Timeline
 12. **Settings & Integrations** - Settings
 
@@ -142,20 +142,20 @@
 ### 7. Performance
 - Performance (from Core)
 
-### 8. Reports & Analytics
+### 8. Reports
 - AI Insights (from Core) -> AnalyticsCenterPage
 - Hiring Reports (from Recruitment)
 - Recruitment Analytics (from Recruitment)
 - Analytics Center (from AI Hub)
 - Any other analytics/reporting tabs
 
-### 9. AI Intelligence Hub
+### 9. AI Hub
 - All 15 AI Hub tabs
 - Recruitment AI (from Recruitment)
 - AI Copilot (from Recruitment)
 - Meeting Intelligence (from AI Hub - already there)
 
-### 10. Documents & Compliance
+### 10. Documents
 - Documents (from Core)
 - Compliance (from Recruitment)
 - Compliance Monitor (from AI Hub)
@@ -179,6 +179,6 @@
 ## Duplicates to Resolve
 1. Shifts, Rosters, Holidays - appear as children of Attendance AND as standalone tabs -> Keep only as children
 2. Offboarding & Exit Management - both point to ExitManagementPage -> Keep one (Exit Management)
-3. Analytics Center appears in Core (as AI Insights) and AI Hub -> Move to Reports & Analytics
+3. Analytics Center appears in Core (as AI Insights) and AI Hub -> Move to Reports
 4. Meeting Intelligence appears in AI Hub and as separate route -> Keep in AI Hub
 5. Assets appears in Core (ComingSoon) and HR Ops (AssetManagementPage) -> Use HR Ops version

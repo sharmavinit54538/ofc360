@@ -206,7 +206,7 @@ export const DocumentsComplianceHubPage: React.FC = () => {
               <span>Enterprise Document Vault & Statutory Governance</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <span>Documents & Compliance Hub</span>
+              <span>Documents Hub</span>
             </h1>
             <p className="text-sm md:text-base text-slate-300">
               Secure document storage, policy handbooks, automated contract generation, legally binding e-signatures, and real-time labor compliance.

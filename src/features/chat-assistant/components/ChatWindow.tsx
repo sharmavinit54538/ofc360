@@ -5,8 +5,9 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { Bot, RotateCcw, Plus } from 'lucide-react';
+import { RotateCcw, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 import type {
   ConversationThread,
   ChatMessage,
@@ -53,12 +54,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Header Bar */}
       <div className="h-14 px-4 sm:px-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-[#171717] shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center border border-brand-200/60 dark:border-brand-900/40 shadow-2xs">
-            <Bot className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200/60 dark:border-indigo-900/40 shadow-2xs">
+            <GeminiIcon className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-[#ececec] truncate max-w-xs sm:max-w-md">
-              {conversation?.title || 'Gemini HR Copilot'}
+              {conversation?.title || 'OFC360 HR Copilot'}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -136,8 +137,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {/* Typing Indicator */}
             {isSending && (
               <div className="flex items-start gap-3 my-4 animate-in fade-in duration-200">
-                <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-900 text-brand-600 dark:text-brand-400 flex items-center justify-center border border-gray-200 dark:border-zinc-800 shadow-2xs">
-                  <Bot className="w-4 h-4 animate-pulse" />
+                <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-gray-200 dark:border-zinc-800 shadow-2xs">
+                  <GeminiIcon className="w-4 h-4 animate-pulse" />
                 </div>
                 <div className="p-3.5 rounded-2xl rounded-tl-none bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-zinc-800/80 shadow-2xs flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: '0ms' }} />

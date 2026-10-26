@@ -111,7 +111,7 @@ const STATIC_PAGES: StaticNavOption[] = [
     keywords: ['recruitment', 'jobs', 'hiring', 'candidates', 'interviews', 'applicants', 'openings'],
   },
   {
-    title: 'AI Intelligence Hub',
+    title: 'AI Hub',
     subtitle: 'Agentic assistants, document query & AI analytics',
     url: '/dashboard/ai-hub',
     category: 'pages',
@@ -119,7 +119,7 @@ const STATIC_PAGES: StaticNavOption[] = [
     keywords: ['ai', 'intelligence', 'agent', 'gemini', 'chat', 'assistant', 'smart'],
   },
   {
-    title: 'Documents & Compliance',
+    title: 'Documents',
     subtitle: 'Company policies, letters, contracts & compliance archive',
     url: '/dashboard/documents',
     category: 'pages',

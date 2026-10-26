@@ -7,7 +7,6 @@
 import React, { useState } from 'react';
 import {
   User,
-  Bot,
   Copy,
   Check,
   Clock,
@@ -15,6 +14,7 @@ import {
   ExternalLink,
   Sparkles,
 } from 'lucide-react';
+import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 import type { ChatMessage, ChatActionChip } from '../types';
 
 interface MessageBubbleProps {
@@ -175,7 +175,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             : 'bg-white dark:bg-zinc-900 text-brand-600 dark:text-brand-400 border-gray-200 dark:border-zinc-800'
         }`}
       >
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+        {isUser ? <User className="w-4 h-4" /> : <GeminiIcon className="w-4 h-4" />}
       </div>
 
       {/* Bubble Container */}

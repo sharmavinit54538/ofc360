@@ -26,6 +26,7 @@ export type SidebarSection =
   | 'payroll'
   | 'reports'
   | 'aihub'
+  | 'connect'
   | 'documents'
   | 'hrops'
   | 'settings'
@@ -94,38 +95,45 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
   },
   {
     id: 'reports',
-    label: 'Reports & Analytics',
+    label: 'Reports',
     icon: LineChart,
     collapsible: false,
     order: 5,
   },
   {
     id: 'aihub',
-    label: 'AI Intelligence Hub',
+    label: 'AI Hub',
     icon: GeminiIconMono,
     collapsible: false,
     order: 6,
   },
   {
-    id: 'documents',
-    label: 'Documents & Compliance',
-    icon: FolderKanban,
+    id: 'connect',
+    label: 'Connect',
+    icon: MessageSquare,
     collapsible: false,
     order: 7,
+  },
+  {
+    id: 'documents',
+    label: 'Documents',
+    icon: FolderKanban,
+    collapsible: false,
+    order: 8,
   },
   {
     id: 'hrops',
     label: 'HR Operations',
     icon: Activity,
     collapsible: false,
-    order: 8,
+    order: 9,
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: Settings,
     collapsible: false,
-    order: 9,
+    order: 10,
   },
 ];
 
@@ -139,6 +147,7 @@ const ReportsAnalyticsHubPage = React.lazy(() => import('@/features/analytics/pa
 const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
 const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
 const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPage'));
+const ConnectPage = React.lazy(() => import('@/features/connect/pages/ConnectPage'));
 
 export const DASHBOARD_TABS: DashboardTabItem[] = [
   // ==========================================
@@ -208,11 +217,11 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 6. REPORTS & ANALYTICS (1 tab - links to /dashboard/reports)
+  // 6. Reports (1 tab - links to /dashboard/reports)
   // ==========================================
   {
     id: 'reports',
-    label: 'Reports & Analytics',
+    label: 'Reports',
     icon: LineChart,
     group: 'reports',
     section: 'reports',
@@ -221,11 +230,11 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 7. AI INTELLIGENCE HUB (1 tab - links to /dashboard/ai-hub)
+  // 7. AI Hub (1 tab - links to /dashboard/ai-hub)
   // ==========================================
   {
     id: 'aihub',
-    label: 'AI Intelligence Hub',
+    label: 'AI Hub',
     icon: GeminiIconMono,
     group: 'aihub',
     section: 'aihub',
@@ -234,11 +243,24 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 8. DOCUMENTS & COMPLIANCE (1 tab - links to /dashboard/documents)
+  // 8. CONNECT (1 tab - links to /dashboard/connect)
+  // ==========================================
+  {
+    id: 'connect',
+    label: 'Connect',
+    icon: MessageSquare,
+    group: 'connect',
+    section: 'connect',
+    path: '/dashboard/connect',
+    component: ConnectPage,
+  },
+
+  // ==========================================
+  // 9. Documents (1 tab - links to /dashboard/documents)
   // ==========================================
   {
     id: 'documents',
-    label: 'Documents & Compliance',
+    label: 'Documents',
     icon: FolderKanban,
     group: 'documents',
     section: 'documents',

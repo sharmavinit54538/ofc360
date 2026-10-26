@@ -43,7 +43,7 @@
   - [3. HR Operations & Administration](#3-hr-operations--administration)
   - [4. Recruitment & Talent Acquisition Hub](#4-recruitment--talent-acquisition-hub)
   - [5. Attendance, Shifts & Leave Management](#5-attendance-shifts--leave-management)
-  - [6. AI Intelligence Hub & Analytics](#6-ai-intelligence-hub--analytics)
+  - [6. AI Hub & Analytics](#6-ai-intelligence-hub--analytics)
 - [Demo](#demo)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
@@ -87,7 +87,7 @@ Engineered for **Super Admins, HR Executives, Team Managers, Employees, and IT P
 | **HR Operations Hub** | Operations | Asset tracking, visitor management, travel & expense workflows | HR Admins, IT Admins, Employees |
 | **Talent Acquisition Suite** | Recruitment | End-to-end recruitment pipelines, scorecards, and candidate CRM | HR Admin, Hiring Managers |
 | **Time, Shift & Rostering** | Workforce | Shift scheduling, rotational rosters, holiday calendars, timesheets | Managers, Employees, HR |
-| **AI Intelligence Hub** | Analytics | Meeting intelligence summaries, policy assistant, and HR chat bot | Executives, HR, Employees |
+| **AI Hub** | Analytics | Meeting intelligence summaries, policy assistant, and HR chat bot | Executives, HR, Employees |
 
 ---
 
@@ -203,7 +203,7 @@ Managers access `/dashboard/attendance/rosters` to plan weekly schedules; employ
 
 ---
 
-### 6. AI Intelligence Hub & Analytics
+### 6. AI Hub & Analytics
 
 #### What it does
 Harnesses modern AI tooling to assist workforce operations:
@@ -278,7 +278,7 @@ ofc360/
 │   │   ├── auth/               # In-memory JWT, WebAuthn, guards, login & OTP
 │   │   ├── chat-assistant/     # Contextual HR policy conversation bot
 │   │   ├── dashboard/          # Dashboards per role (SuperAdmin, HR, IT, etc.)
-│   │   ├── documents/          # Employee documents & compliance policies
+│   │   ├── documents/          # Employee Documents policies
 │   │   ├── employee-onboarding/# New hire checklists & setup procedures
 │   │   ├── exit-management/    # Resignation, handovers & clearance offboarding
 │   │   ├── expenses/           # Employee expense claims & receipts

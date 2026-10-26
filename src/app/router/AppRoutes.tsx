@@ -93,7 +93,7 @@ const RootRedirect: React.FC = () => {
           const parsed = JSON.parse(rawUser);
           storedRole = parsed.activeRole || parsed.role || (parsed.roles && parsed.roles[0]);
         }
-      } catch {}
+      } catch { }
     }
   }
 
@@ -385,7 +385,7 @@ export const AppRoutes: React.FC = () => {
         element={<Navigate to="/dashboard/talent?tab=performance" replace />}
       />
 
-      {/* Documents & Compliance Hub */}
+      {/* Documents Hub */}
       <Route
         path="/dashboard/documents"
         element={
@@ -528,7 +528,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* AI Intelligence Hub Control Center */}
+      {/* AI Hub Control Center */}
       <Route
         path="/dashboard/ai-hub"
         element={

@@ -28,7 +28,7 @@ interface AIModuleCard {
 const AI_MODULES: AIModuleCard[] = [
   {
     id: 'chat-assistant',
-    title: 'Gemini HR Copilot',
+    title: 'OFC360 HR Copilot',
     icon: GeminiIcon,
     path: '/ai/chat-assistant',
     iconBg: 'bg-indigo-500/10 dark:bg-indigo-500/20',

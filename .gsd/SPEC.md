@@ -22,9 +22,9 @@ The sidebar shows exactly 12 flat items, one per `SIDEBAR_SECTIONS` entry (no gr
 5. Payroll & Benefits
 6. Leave Management
 7. Performance
-8. Reports & Analytics
-9. AI Intelligence Hub
-10. Documents & Compliance
+8. Reports
+9. AI Hub
+10. Documents
 11. HR Operations
 12. Settings & Integrations
 

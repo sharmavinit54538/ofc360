@@ -224,7 +224,7 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
               <span>Enterprise Business Intelligence & Reporting</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <span>Reports & Analytics Hub</span>
+              <span>Reports Hub</span>
             </h1>
             <p className="text-sm md:text-base text-slate-300">
               Interactive analytics dashboards, workforce variance insights, scheduled PDF/Excel reports, and statutory audit registers.
