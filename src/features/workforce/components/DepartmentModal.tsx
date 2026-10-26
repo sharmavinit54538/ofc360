@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building2, X, AlertCircle } from 'lucide-react';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { useToast } from '@/shared/ui/Toast';
@@ -272,13 +271,10 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                   Department Code (Read-Only)
                 </label>
-                <div className="mt-0.5 flex items-center gap-2">
+                <div className="mt-0.5">
                   <span className="font-mono text-sm font-bold text-gray-900 dark:text-white">
                     {department.department_code || department.departmentCode || department.code || 'GENERATED'}
                   </span>
-                  <Badge variant="brand" size="sm" className="font-mono text-[10px]">
-                    Server Generated
-                  </Badge>
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 dark:text-zinc-500 text-right max-w-xs">

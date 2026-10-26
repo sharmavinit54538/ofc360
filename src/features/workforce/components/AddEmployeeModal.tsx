@@ -389,8 +389,6 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
                 <option value="manager">Manager (Team Lead / Approver)</option>
                 <option value="it_admin">IT Admin (Systems & Infrastructure)</option>
                 <option value="executive">Executive (Leadership & Director)</option>
-                <option value="hr_admin">HR Admin</option>
-                <option value="super_admin">Super Admin</option>
               </select>
               {errors.role?.message && <p className="text-xs text-rose-500">{errors.role.message}</p>}
             </div>

@@ -513,7 +513,7 @@ describe('DepartmentModal Component Requirements', () => {
 
     expect(screen.getByText('Edit Department')).toBeDefined();
     expect(screen.getByText('CLOUD-99')).toBeDefined();
-    expect(screen.getByText('Server Generated')).toBeDefined();
+    expect(screen.queryByText(/Server Generated/i)).toBeNull();
     expect(screen.getByText(/Code is generated automatically upon creation and cannot be modified/i)).toBeDefined();
   });
 
