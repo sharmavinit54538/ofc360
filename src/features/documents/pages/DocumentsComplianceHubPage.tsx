@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
   ShieldCheck,
@@ -166,6 +167,7 @@ const CATEGORIES = [
 ];
 
 export const DocumentsComplianceHubPage: React.FC = () => {
+  const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -189,6 +191,10 @@ export const DocumentsComplianceHubPage: React.FC = () => {
   const handleCardClick = (module: DocumentModuleCard) => {
     if (module.id === 'epfo-pf-compliance') {
       setSelectedCategory('epfo-pf');
+      return;
+    }
+    if (module.id === 'document-generator') {
+      navigate('/ai/document-generator');
       return;
     }
     setActiveModal(module);
@@ -227,7 +233,7 @@ export const DocumentsComplianceHubPage: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => toast.info('Document generation wizard ready', 'New Document')}
+              onClick={() => navigate('/ai/document-generator')}
               className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
             >
               <FilePlus2 className="w-4 h-4" />

@@ -155,7 +155,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ employee, is
       const selectedDesg = designations?.find((d) => d.id === data.designationId);
       const designationName =
         selectedDesg?.title ||
-        selectedDesg?.name ||
+        (selectedDesg as any)?.name ||
         data.designation ||
         data.designationId ||
         '';

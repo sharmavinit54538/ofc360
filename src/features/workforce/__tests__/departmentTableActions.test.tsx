@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
+import { ToastProvider } from '@/shared/ui/Toast';
 import { DepartmentBreakdownCard } from '../components/DepartmentBreakdownCard';
 import type { DepartmentItem, EmployeeItem } from '../types/workforce.types';
+
+const render = (ui: React.ReactElement) => rtlRender(<ToastProvider>{ui}</ToastProvider>);
 
 // Mock useGetEmployeesQuery and isUuid from workforceApi
 const mockEmployeesList: EmployeeItem[] = [
@@ -50,6 +53,12 @@ vi.mock('../api/workforceApi', async (importOriginal) => {
       data: { items: mockEmployeesList, total: 2 },
       isLoading: false,
     })),
+    useGetDepartmentsQuery: vi.fn(() => ({
+      data: [],
+      isLoading: false,
+    })),
+    useCreateDepartmentMutation: () => [vi.fn(), { isLoading: false }],
+    useUpdateDepartmentMutation: () => [vi.fn(), { isLoading: false }],
   };
 });
 
@@ -124,6 +133,7 @@ const mockDepartments: DepartmentItem[] = [
     budget: 0,
     employee_capacity: 15,
     headcount: 0,
+    totalEmployees: 0,
     status: 'INACTIVE',
     isActive: false,
   },
@@ -221,7 +231,7 @@ describe('Department Table UI & Three-Dot Actions Menu', () => {
     // Modal opens
     expect(screen.getByText('Department Details')).toBeDefined();
     expect(screen.getByText('Core product engineering and architecture')).toBeDefined();
-    expect(screen.getByText('Building A, Floor 3')).toBeDefined();
+    expect(screen.getAllByText('Building A, Floor 3').length).toBeGreaterThan(0);
     expect(screen.getByText('CC-ENG-101')).toBeDefined();
   });
 

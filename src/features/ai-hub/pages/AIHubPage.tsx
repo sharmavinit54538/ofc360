@@ -82,6 +82,7 @@ const AI_MODULES: AIModuleCard[] = [
     id: 'document-generator',
     title: 'Smart Legal Generator',
     icon: FileText,
+    path: '/ai/document-generator',
     iconBg: 'bg-rose-500/10 dark:bg-rose-500/20',
     iconColor: 'text-rose-600 dark:text-rose-400',
   },

@@ -14,7 +14,7 @@ import {
   toDepartmentPayload,
 } from '../api/workforceApi';
 import { departmentFormSchema, type DepartmentFormData } from '../schemas/workforce.schemas';
-import type { DepartmentItem } from '../types/workforce.types';
+import type { DepartmentItem, DepartmentFormPayload } from '../types/workforce.types';
 
 export interface DepartmentModalProps {
   isOpen: boolean;

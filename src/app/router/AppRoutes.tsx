@@ -29,6 +29,7 @@ import { DashboardReportsRoute } from '@/routes/dashboard.reports';
 import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
 import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
 import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
+import { AIDocumentGeneratorRoute } from '@/routes/ai.document-generator';
 import { DashboardConnectRoute } from '@/routes/dashboard.connect';
 import { DashboardAttendanceRoute } from '@/routes/dashboard.attendance';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
@@ -524,6 +525,38 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <AIMeetingIntelligenceRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AI Hub Document Generator */}
+      <Route
+        path="/ai/document-generator"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIDocumentGeneratorRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/ai-hub/document-generator"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIDocumentGeneratorRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/document-generator"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIDocumentGeneratorRoute />
           </ProtectedRoute>
         }
       />

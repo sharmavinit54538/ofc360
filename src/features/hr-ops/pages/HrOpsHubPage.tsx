@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Activity,
   LayoutDashboard,
   Box,
   Users,
@@ -42,17 +41,6 @@ const HROPS_MODULES: HrOpsModuleCard[] = [
     gradient: 'from-blue-500/10 via-indigo-500/5 to-transparent',
     iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
-  },
-  {
-    id: 'employee-timeline',
-    title: 'Employee Timeline',
-    description: 'Complete employee lifecycle events, career milestones, promotions, and status history.',
-    icon: Activity,
-    path: '/dashboard/employee-timeline',
-    tags: ['Career Lifecycle', 'Milestones', 'History'],
-    gradient: 'from-violet-500/10 via-purple-500/5 to-transparent',
-    iconBg: 'bg-violet-500/10 dark:bg-violet-500/20',
-    iconColor: 'text-violet-600 dark:text-violet-400',
   },
   {
     id: 'asset-management',
