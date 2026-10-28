@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FolderKanban,
   ShieldCheck,
@@ -20,12 +20,15 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { useToast } from '@/shared/ui/Toast';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import { PfComplianceCenter } from '@/features/payroll/components/PfComplianceCenter';
+import { SignatureCenter } from '../components/SignatureCenter';
+import { useGetSignatureStatsQuery } from '../api/signaturesApi';
 
 interface DocumentModuleCard {
   id: string;
   title: string;
-  category: 'repository' | 'policies' | 'generator' | 'signatures' | 'compliance';
+  category: 'repository' | 'policies' | 'generator' | 'signatures' | 'compliance' | 'esign';
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   tags: string[];
@@ -79,14 +82,14 @@ const DOCUMENT_MODULES: DocumentModuleCard[] = [
   {
     id: 'digital-signatures',
     title: 'Digital Signatures & E-Signs',
-    category: 'signatures',
+    category: 'esign',
     description: 'Multi-party legally binding e-signature workflows, signature tracking, and automated expiration reminders.',
     icon: FileCheck,
     tags: ['E-Signatures', 'Audit Trail', 'Reminders'],
     gradient: 'from-amber-500/10 via-orange-500/5 to-transparent',
     iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
-    metric: { label: 'Pending Signs', value: '14' },
+    metric: { label: 'Pending Signs', value: '—' },
     actionText: 'Track Signatures',
   },
   {
@@ -159,19 +162,37 @@ const DOCUMENT_MODULES: DocumentModuleCard[] = [
 const CATEGORIES = [
   { id: 'all', label: 'All Modules' },
   { id: 'epfo-pf', label: 'EPFO PF & ECR Compliance' },
+  { id: 'esign', label: 'Digital Signatures & E-Signs' },
   { id: 'compliance', label: 'Compliance & Audits' },
   { id: 'repository', label: 'Vault & Storage' },
   { id: 'policies', label: 'Policies & Handbooks' },
   { id: 'generator', label: 'Document Generator' },
-  { id: 'signatures', label: 'E-Signatures' },
 ];
 
 export const DocumentsComplianceHubPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
+  const { hasRole } = useRBAC();
+  const isAdmin = hasRole(['SUPER_ADMIN', 'HR_ADMIN']);
+
+  const {
+    data: signatureStats,
+    isLoading: statsLoading,
+    isError: statsError,
+  } = useGetSignatureStatsQuery();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    return searchParams.get('view') === 'esign' ? 'esign' : 'all';
+  });
   const [activeModal, setActiveModal] = useState<DocumentModuleCard | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get('view') === 'esign') {
+      setSelectedCategory('esign');
+    }
+  }, [searchParams]);
 
   const filteredModules = useMemo(() => {
     return DOCUMENT_MODULES.filter((m) => {
@@ -191,6 +212,10 @@ export const DocumentsComplianceHubPage: React.FC = () => {
   const handleCardClick = (module: DocumentModuleCard) => {
     if (module.id === 'epfo-pf-compliance') {
       setSelectedCategory('epfo-pf');
+      return;
+    }
+    if (module.id === 'digital-signatures') {
+      setSelectedCategory('esign');
       return;
     }
     if (module.id === 'document-generator') {
@@ -231,6 +256,15 @@ export const DocumentsComplianceHubPage: React.FC = () => {
               <span>EPFO PF & ECR</span>
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedCategory('esign')}
+              className="bg-indigo-500/20 border-indigo-400/40 text-indigo-200 hover:bg-indigo-500/30 hover:text-white flex items-center gap-1.5 shadow-sm"
+            >
+              <FileCheck className="w-4 h-4 text-indigo-300" />
+              <span>E-Sign</span>
+            </Button>
+            <Button
               variant="primary"
               size="sm"
               onClick={() => navigate('/ai/document-generator')}
@@ -265,7 +299,11 @@ export const DocumentsComplianceHubPage: React.FC = () => {
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
             <span className="text-slate-400 block text-[11px]">Pending E-Signatures</span>
-            <span className="text-xl font-bold text-amber-400 mt-0.5 block">14 Awaiting</span>
+            <span className="text-xl font-bold text-amber-400 mt-0.5 block">
+              {statsLoading || statsError
+                ? '—'
+                : `${(signatureStats?.awaitingMySignature ?? 0) + (isAdmin ? (signatureStats?.waitingOnOthers ?? 0) : 0)} Awaiting`}
+            </span>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
             <span className="text-slate-400 block text-[11px]">Encryption Standard</span>
@@ -319,7 +357,7 @@ export const DocumentsComplianceHubPage: React.FC = () => {
         </div>
       </div>
 
-      {/* View Switch: EPFO PF Center vs Document Modules */}
+      {/* View Switch: EPFO PF Center vs Digital Signatures vs Document Modules */}
       {selectedCategory === 'epfo-pf' ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-xl bg-slate-100 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700">
@@ -342,12 +380,24 @@ export const DocumentsComplianceHubPage: React.FC = () => {
           </div>
           <PfComplianceCenter />
         </div>
+      ) : selectedCategory === 'esign' ? (
+        <SignatureCenter
+          onBackToVault={() => setSelectedCategory('all')}
+          initialDocumentId={searchParams.get('sourceDocumentId') || undefined}
+          autoOpenWizard={searchParams.get('new') === '1'}
+        />
       ) : (
         <>
           {/* Grid of Document & Compliance Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredModules.map((module) => {
               const Icon = module.icon;
+              const displayMetricValue =
+                module.id === 'digital-signatures'
+                  ? statsLoading || statsError
+                    ? '—'
+                    : String(signatureStats?.awaitingMySignature ?? 0)
+                  : module.metric?.value;
 
               return (
                 <div
@@ -393,7 +443,7 @@ export const DocumentsComplianceHubPage: React.FC = () => {
                             {module.metric.label}
                           </span>
                           <span className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 block leading-none">
-                            {module.metric.value}
+                            {displayMetricValue}
                           </span>
                         </div>
                       )}

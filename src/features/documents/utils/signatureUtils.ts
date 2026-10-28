@@ -387,3 +387,4 @@ export const getSignerStatusBadgeConfig = (
       return { label: status, variant: 'slate' };
   }
 };
+

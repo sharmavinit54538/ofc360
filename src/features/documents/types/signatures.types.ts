@@ -207,3 +207,4 @@ export interface PublicSignatureTokenData {
   otpSent?: boolean;
   isOtpVerified?: boolean;
 }
+
