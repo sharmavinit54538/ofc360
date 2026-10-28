@@ -32,7 +32,7 @@ const BASE_URL = getNormalizedBaseUrl();
 export const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   credentials: 'include', // Ensures httpOnly session cookies are transmitted
-  prepareHeaders: (headers, { getState }) => {
+  prepareHeaders: (headers, { getState, arg }) => {
     const state = getState() as RootState;
     let token = state.auth?.accessToken;
 
@@ -56,7 +56,13 @@ export const rawBaseQuery = fetchBaseQuery({
 
     headers.set('X-Client-Platform', 'OFC360-Enterprise-Web');
     headers.set('Accept', 'application/json');
-    if (!headers.has('Content-Type')) {
+    const isFormData =
+      typeof arg === 'object' &&
+      arg !== null &&
+      'body' in arg &&
+      typeof FormData !== 'undefined' &&
+      (arg as any).body instanceof FormData;
+    if (!headers.has('Content-Type') && !isFormData) {
       headers.set('Content-Type', 'application/json');
     }
 
