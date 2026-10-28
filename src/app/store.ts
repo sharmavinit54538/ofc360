@@ -24,6 +24,7 @@ import { meetingIntelligenceApi } from '../services/meetingIntelligenceApi';
 import { connectApi } from '../features/connect/api/connectApi';
 import { announcementsApi } from '../features/announcements/api/announcementsApi';
 import { documentGeneratorApi } from '../features/document-generator/api/documentGeneratorApi';
+import { signaturesApi } from '../features/documents/api/signaturesApi';
 
 export const store = configureStore({
   reducer: {
@@ -51,6 +52,7 @@ export const store = configureStore({
     [connectApi.reducerPath]: connectApi.reducer,
     [announcementsApi.reducerPath]: announcementsApi.reducer,
     [documentGeneratorApi.reducerPath]: documentGeneratorApi.reducer,
+    [signaturesApi.reducerPath]: signaturesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -81,7 +83,8 @@ export const store = configureStore({
       meetingIntelligenceApi.middleware,
       connectApi.middleware,
       announcementsApi.middleware,
-      documentGeneratorApi.middleware
+      documentGeneratorApi.middleware,
+      signaturesApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });
