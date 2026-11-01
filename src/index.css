@@ -28,6 +28,38 @@
     --color-destructive-foreground: #ffffff;
     --color-input: #e5e5e5;
     --color-ring: #6366f1;
+
+    /* RGB channels power opacity-aware Tailwind semantic utilities. */
+    --color-background-rgb: 255 255 255;
+    --color-foreground-rgb: 13 13 13;
+    --color-canvas-rgb: 249 249 249;
+    --color-surface-rgb: 244 244 244;
+    --color-surface-elevated-rgb: 244 244 244;
+    --color-surface-border-rgb: 229 229 229;
+    --color-text-primary-rgb: 13 13 13;
+    --color-text-secondary-rgb: 93 93 93;
+    --color-card-rgb: 255 255 255;
+    --color-card-foreground-rgb: 13 13 13;
+    --color-popover-rgb: 255 255 255;
+    --color-popover-foreground-rgb: 13 13 13;
+    --color-primary-rgb: 99 102 241;
+    --color-primary-foreground-rgb: 255 255 255;
+    --color-secondary-rgb: 244 244 244;
+    --color-secondary-foreground-rgb: 13 13 13;
+    --color-muted-rgb: 244 244 244;
+    --color-muted-foreground-rgb: 93 93 93;
+    --color-accent-rgb: 244 244 244;
+    --color-accent-foreground-rgb: 13 13 13;
+    --color-destructive-rgb: 239 68 68;
+    --color-destructive-foreground-rgb: 255 255 255;
+    --color-border-rgb: 229 229 229;
+    --color-input-rgb: 229 229 229;
+    --color-ring-rgb: 99 102 241;
+    --color-chart-1-rgb: 99 102 241;
+    --color-chart-2-rgb: 14 165 233;
+    --color-chart-3-rgb: 16 185 129;
+    --color-chart-4-rgb: 245 158 11;
+    --color-chart-5-rgb: 244 63 94;
     --radius: 0.75rem;
   }
 
@@ -56,6 +88,38 @@
     --color-destructive-foreground: #0d0d0d;
     --color-input: #383838;
     --color-ring: #818cf8;
+
+    /* RGB channels power opacity-aware Tailwind semantic utilities. */
+    --color-background-rgb: 33 33 33;
+    --color-foreground-rgb: 236 236 236;
+    --color-canvas-rgb: 33 33 33;
+    --color-surface-rgb: 23 23 23;
+    --color-surface-elevated-rgb: 47 47 47;
+    --color-surface-border-rgb: 56 56 56;
+    --color-text-primary-rgb: 236 236 236;
+    --color-text-secondary-rgb: 180 180 180;
+    --color-card-rgb: 23 23 23;
+    --color-card-foreground-rgb: 236 236 236;
+    --color-popover-rgb: 23 23 23;
+    --color-popover-foreground-rgb: 236 236 236;
+    --color-primary-rgb: 129 140 248;
+    --color-primary-foreground-rgb: 13 13 13;
+    --color-secondary-rgb: 47 47 47;
+    --color-secondary-foreground-rgb: 236 236 236;
+    --color-muted-rgb: 47 47 47;
+    --color-muted-foreground-rgb: 180 180 180;
+    --color-accent-rgb: 47 47 47;
+    --color-accent-foreground-rgb: 236 236 236;
+    --color-destructive-rgb: 248 113 113;
+    --color-destructive-foreground-rgb: 13 13 13;
+    --color-border-rgb: 56 56 56;
+    --color-input-rgb: 56 56 56;
+    --color-ring-rgb: 129 140 248;
+    --color-chart-1-rgb: 129 140 248;
+    --color-chart-2-rgb: 56 189 248;
+    --color-chart-3-rgb: 52 211 153;
+    --color-chart-4-rgb: 251 191 36;
+    --color-chart-5-rgb: 251 113 133;
     --radius: 0.75rem;
   }
 }
