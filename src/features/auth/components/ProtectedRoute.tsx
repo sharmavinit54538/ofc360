@@ -11,7 +11,7 @@
  * - error: Authentication system error occurred
  */
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole, Permission, ROLE_DASHBOARD_ROUTES, normalizeRole } from '../types/auth.types';
@@ -30,6 +30,17 @@ export interface ProtectedRouteProps {
   redirectUnauthorizedTo?: string;
 }
 
+/**
+ * Safe hook to get location, returns null if not in router context
+ */
+function useSafeLocation() {
+  try {
+    return useLocation();
+  } catch {
+    return null;
+  }
+}
+
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
@@ -39,7 +50,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectUnauthenticatedTo = '/auth/login',
   redirectUnauthorizedTo = '/unauthorized',
 }) => {
-  const location = useLocation();
+  const location = useSafeLocation();
   const {
     user,
     isAuthenticated,
@@ -96,6 +107,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   const authStatus = getAuthStatus();
 
+  // Build redirect target with return URL - safe version that handles missing location
+  const buildRedirectTarget = useMemo(() => {
+    const pathname = location?.pathname ?? '';
+    const search = location?.search ?? '';
+    const returnUrl = encodeURIComponent(pathname + search);
+    return `${redirectUnauthenticatedTo}?redirect=${returnUrl}`;
+  }, [location, redirectUnauthenticatedTo]);
+
+  // Build unauthorized redirect with state - safe version
+  const buildUnauthorizedNavigate = useMemo(() => {
+    if (!location) {
+      return <Navigate to={redirectUnauthorizedTo} replace />;
+    }
+    return (
+      <Navigate
+        to={redirectUnauthorizedTo}
+        replace
+        state={{
+          from: location,
+          currentRole: effectiveRole ? normalizeRole(effectiveRole) : null,
+          allowedRoles: allowedRoles?.map((r) => normalizeRole(r)) ?? [],
+          homeRoute: effectiveRole ? ROLE_DASHBOARD_ROUTES[normalizeRole(effectiveRole)] : '/dashboard/employee',
+        }}
+      />
+    );
+  }, [location, redirectUnauthorizedTo, effectiveRole, allowedRoles]);
+
   // 1. Session Initialization / Rehydration Screen
   // Prevent premature redirection while authentication or session hydration is in flight
   // Show stable loading fallback during initialization to avoid Suspense conflicts with lazy routes
@@ -107,28 +145,29 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Allow access if isAuthenticated is true OR if a valid access token exists in localStorage / sessionStorage.
   // Never prematurely kick out users to /auth/login if a valid session/token is present.
   if (authStatus === 'unauthenticated') {
+    const attemptedPath = location ? `${location.pathname}${location.search}` : 'unknown';
     console.warn('[ProtectedRoute] Access blocked -> redirecting to login.', {
       isAuthenticated,
       hasValidToken,
       hasUser: Boolean(effectiveUser),
-      attemptedPath: location.pathname + location.search,
+      attemptedPath,
     });
-    const returnUrl = encodeURIComponent(location.pathname + location.search);
-    return (
-      <Navigate
-        to={`${redirectUnauthenticatedTo}?redirect=${returnUrl}`}
-        replace
-        state={{ from: location }}
-      />
-    );
+
+    if (!location) {
+      // Fallback: redirect without return URL if no router context
+      return <Navigate to={redirectUnauthenticatedTo} replace />;
+    }
+
+    return <Navigate to={buildRedirectTarget} replace state={{ from: location }} />;
   }
 
   // 3. Email Verification Enforcement (if flagged)
+  const currentPath = location?.pathname ?? '';
   if (
     requireVerifiedEmail &&
     effectiveUser &&
     !effectiveUser.isEmailVerified &&
-    location.pathname !== '/auth/verify-email'
+    currentPath !== '/auth/verify-email'
   ) {
     return <Navigate to="/auth/verify-email" replace />;
   }
@@ -146,23 +185,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!isRoleAuthorized) {
       const canonicalRole = effectiveRole ? normalizeRole(effectiveRole) : null;
       console.warn('[ProtectedRoute] RBAC clearance rejected.', {
-        attemptedPath: location.pathname,
+        attemptedPath: location?.pathname ?? 'unknown',
         currentRole: canonicalRole,
         userRoles: effectiveUser?.roles,
         allowedRoles,
       });
-      return (
-        <Navigate
-          to={redirectUnauthorizedTo}
-          replace
-          state={{
-            from: location,
-            currentRole: canonicalRole,
-            allowedRoles: allowedRoles.map((r) => normalizeRole(r)),
-            homeRoute: canonicalRole ? ROLE_DASHBOARD_ROUTES[canonicalRole] : '/dashboard/employee',
-          }}
-        />
-      );
+
+      return buildUnauthorizedNavigate;
     }
   }
 

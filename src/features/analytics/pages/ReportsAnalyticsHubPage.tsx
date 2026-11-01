@@ -3,26 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {
   LineChart,
   BarChart2,
-  PieChart,
-  FileSpreadsheet,
   Download,
   Search,
-  Sparkles,
-  ArrowRight,
-  TrendingUp,
   Users,
   CreditCard,
   Clock,
   Gauge,
   Receipt,
-  FileText,
   Box,
   ShieldCheck,
   Calendar,
-  Filter,
-  CheckCircle2,
-  Printer,
-  Share2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/Button';
@@ -165,36 +155,22 @@ const REPORT_MODULES: ReportCard[] = [
   },
 ];
 
-const CATEGORIES = [
-  { id: 'all', label: 'All Reports' },
-  { id: 'workforce', label: 'Workforce & Headcount' },
-  { id: 'recruitment', label: 'Recruitment & Sourcing' },
-  { id: 'attendance', label: 'Attendance & Leave' },
-  { id: 'payroll', label: 'Payroll & Expenses' },
-  { id: 'compliance', label: 'Compliance & Audits' },
-];
-
 export const ReportsAnalyticsHubPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedReport, setSelectedReport] = useState<ReportCard | null>(null);
 
   const filteredReports = useMemo(() => {
-    return REPORT_MODULES.filter((r) => {
-      if (selectedCategory !== 'all' && r.category !== selectedCategory) {
-        return false;
-      }
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
+    if (!searchQuery.trim()) return REPORT_MODULES;
+    const q = searchQuery.toLowerCase();
+    return REPORT_MODULES.filter(
+      (r) =>
         r.title.toLowerCase().includes(q) ||
         r.description.toLowerCase().includes(q) ||
         r.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    });
-  }, [selectedCategory, searchQuery]);
+    );
+  }, [searchQuery]);
 
   const handleOpenReport = (report: ReportCard) => {
     if (report.path) {
@@ -214,99 +190,20 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 md:p-8 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur border border-white/10 text-xs font-medium text-indigo-200">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-              <span>Enterprise Business Intelligence & Reporting</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <span>Reports Hub</span>
-            </h1>
-            <p className="text-sm md:text-base text-slate-300">
-              Interactive analytics dashboards, workforce variance insights, scheduled PDF/Excel reports, and statutory audit registers.
-            </p>
-          </div>
+      {/* Semantic Landmark Title */}
+      <h1 className="sr-only">Reports &amp; Analytics Hub</h1>
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/dashboard/analytics')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2"
-            >
-              <LineChart className="w-4 h-4" />
-              <span>Interactive Analytics</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toast.info('Export queue scheduler active', 'Scheduler')}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white flex items-center gap-1.5"
-            >
-              <Download className="w-4 h-4" />
-              <span>Bulk Export</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Live Counters */}
-        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Ready Reports</span>
-            <span className="text-xl font-bold text-white mt-0.5 block">9 Datasets</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Data Synchronization</span>
-            <span className="text-xl font-bold text-emerald-400 mt-0.5 block flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Real-time
-            </span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Scheduled Exports</span>
-            <span className="text-xl font-bold text-indigo-300 mt-0.5 block">12 Active</span>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-slate-400 block text-[11px]">Audit Readiness</span>
-            <span className="text-xl font-bold text-cyan-300 mt-0.5 block">100% Validated</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                'px-3.5 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all duration-150',
-                selectedCategory === cat.id
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm font-semibold'
-                  : 'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 hover:text-slate-900 dark:hover:text-white'
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
+      {/* Top Action & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative w-full lg:w-72 shrink-0">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search reports by keyword..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-2xs"
           />
           {searchQuery && (
             <button
@@ -318,10 +215,32 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
             </button>
           )}
         </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/dashboard/analytics')}
+            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-1.5"
+          >
+            <LineChart className="w-3.5 h-3.5" />
+            <span>Interactive Analytics</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toast.info('Export queue scheduler active', 'Scheduler')}
+            className="text-xs flex items-center gap-1.5 border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#1a1a1a] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 shadow-2xs"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Bulk Export</span>
+          </Button>
+        </div>
       </div>
 
       {/* Grid of Report Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredReports.map((report) => {
           const Icon = report.icon;
 
@@ -330,7 +249,7 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
               key={report.id}
               onClick={() => handleOpenReport(report)}
               className={cn(
-                'group relative flex flex-col justify-between rounded-2xl p-6 cursor-pointer',
+                'group relative flex flex-col rounded-2xl p-6 cursor-pointer',
                 'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
                 'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-xl hover:-translate-y-0.5',
                 'transition-all duration-200 overflow-hidden'
@@ -353,71 +272,22 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
               />
 
               <div className="relative z-10 space-y-4">
-                {/* Icon & Metric badge */}
-                <div className="flex items-center justify-between">
-                  <div
-                    className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
-                      report.iconBg
-                    )}
-                  >
-                    <Icon className={cn('w-6 h-6', report.iconColor)} />
-                  </div>
-                  {report.metric && (
-                    <div className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/60 text-right">
-                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 block leading-none">
-                        {report.metric.label}
-                      </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 block leading-none">
-                        {report.metric.value}
-                      </span>
-                    </div>
+                {/* Module Icon */}
+                <div
+                  className={cn(
+                    'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
+                    report.iconBg
                   )}
+                >
+                  <Icon className={cn('w-6 h-6', report.iconColor)} />
                 </div>
 
-                {/* Title & Description */}
+                {/* Module Title */}
                 <div>
                   <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     {report.title}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                    {report.description}
-                  </p>
                 </div>
-
-                {/* Feature Tags & Formats */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex flex-wrap gap-1.5">
-                    {report.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-zinc-500">
-                    <span>Formats:</span>
-                    {report.exportFormat.map((fmt) => (
-                      <span
-                        key={fmt}
-                        className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-700 dark:text-zinc-300"
-                      >
-                        {fmt}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Footer */}
-              <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                <span>Generate & View Report</span>
-                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200">
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
               </div>
             </div>
           );
@@ -431,17 +301,14 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
             No reports match &ldquo;{searchQuery}&rdquo;
           </h3>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Try searching for another keyword or select &quot;All Reports&quot;.
+            Try searching for another keyword or clear your search filter.
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
+            onClick={() => setSearchQuery('')}
             className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
           >
-            Reset Filters
+            Clear Search Filter
           </button>
         </div>
       )}
@@ -477,7 +344,7 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-2">
               <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 block">
-                Export Options & Formats:
+                Export Options &amp; Formats:
               </span>
               <div className="flex items-center gap-2">
                 {selectedReport.exportFormat.map((fmt) => (

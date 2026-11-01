@@ -435,11 +435,7 @@ export const GlobalSearch: React.FC = () => {
           >
             <X className="w-3.5 h-3.5" />
           </button>
-        ) : (
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-gray-200/70 dark:bg-zinc-700/60 border border-gray-300 dark:border-zinc-600 text-[10px] font-semibold text-gray-500 dark:text-zinc-400 select-none shrink-0">
-            Ctrl K
-          </kbd>
-        )}
+        ) : null}
       </div>
 
       {/* Results Dropdown Panel (Only renders when user has entered a query - NO history or past search list is EVER rendered) */}

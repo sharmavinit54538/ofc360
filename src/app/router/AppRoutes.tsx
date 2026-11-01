@@ -372,18 +372,18 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route path="stage/:stageSlug" element={<ExitStagePage />} />
-        <Route path="stages" element={<Navigate to="/exit-management/stages" replace />} />
-        <Route path="resignation-submitted" element={<Navigate to="/exit-management/resignation-submitted" replace />} />
-        <Route path="manager-review" element={<Navigate to="/exit-management/manager-review" replace />} />
-        <Route path="hr-review" element={<Navigate to="/exit-management/hr-review" replace />} />
-        <Route path="clearance-pending" element={<Navigate to="/exit-management/clearance-pending" replace />} />
-        <Route path="fnf-settlement" element={<Navigate to="/exit-management/fnf-settlement" replace />} />
-        <Route path="exit-interview" element={<Navigate to="/exit-management/exit-interview" replace />} />
-        <Route path="documents-pending" element={<Navigate to="/exit-management/documents-pending" replace />} />
-        <Route path="access-revocation" element={<Navigate to="/exit-management/access-revocation" replace />} />
-        <Route path="completed" element={<Navigate to="/exit-management/completed" replace />} />
-        <Route path="rejected" element={<Navigate to="/exit-management/rejected" replace />} />
-        <Route path="withdrawn" element={<Navigate to="/exit-management/withdrawn" replace />} />
+        <Route path="stages" element={<ExitStagePage />} />
+        <Route path="resignation-submitted" element={<ExitStagePage />} />
+        <Route path="manager-review" element={<ExitStagePage />} />
+        <Route path="hr-review" element={<ExitStagePage />} />
+        <Route path="clearance-pending" element={<ExitStagePage />} />
+        <Route path="fnf-settlement" element={<ExitStagePage />} />
+        <Route path="exit-interview" element={<ExitStagePage />} />
+        <Route path="documents-pending" element={<ExitStagePage />} />
+        <Route path="access-revocation" element={<ExitStagePage />} />
+        <Route path="completed" element={<ExitStagePage />} />
+        <Route path="rejected" element={<ExitStagePage />} />
+        <Route path="withdrawn" element={<ExitStagePage />} />
       </Route>
       <Route
         path="/dashboard/my-exit"

@@ -377,16 +377,9 @@ export const PayrollHubPage: React.FC = () => {
       {activeModule === null ? (
         /* Main Hub View: 8-Module KPI Card Grid + Live Financial KPIs */
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-                Payroll Management
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-zinc-400">
-                Click any module card below to open its dedicated workspace
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="sr-only">Payroll Management</h1>
+            <div className="flex items-center gap-2 ml-auto">
               <Link to="/settings/payroll">
                 <Button variant="outline" size="sm" leftIcon={<Settings2 className="w-3.5 h-3.5" />}>
                   Payroll Settings

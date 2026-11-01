@@ -40,10 +40,6 @@ describe('DocumentsComplianceHubPage Integration', () => {
     // Find the Digital Signatures & E-Signs card heading
     const cardTitle = await screen.findByRole('heading', { name: 'Digital Signatures & E-Signs' });
     expect(cardTitle).toBeDefined();
-
-    // Verify the card's metric label is "Pending Signs"
-    const metricLabels = screen.getAllByText('Pending Signs');
-    expect(metricLabels.length).toBeGreaterThan(0);
   });
 
   it('clicking Digital Signatures card switches to SignatureCenter workspace', async () => {

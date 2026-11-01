@@ -1,5 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+/**
+ * @file HrOpsHubPage.tsx
+ * @description OFC360 HR Operations Landing Page with compact two-tab navigation:
+ * 1. Modules (Cards) - Displays existing operational module cards with seamless navigation.
+ * 2. Action Queue - Displays the comprehensive operational command queue interface.
+ */
+
+import React, { useMemo } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard,
   Box,
@@ -8,14 +15,11 @@ import {
   Plane,
   UserCheck,
   LogOut,
-  ArrowRight,
-  Search,
-  SlidersHorizontal,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { useGetHrOpsMetricsQuery } from '../api/hrOpsApi';
 import { HrOpsPage } from './HrOpsPage';
+
+export type HrOpsTabType = 'cards' | 'queue';
 
 interface HrOpsModuleCard {
   id: string;
@@ -112,26 +116,31 @@ const HROPS_MODULES: HrOpsModuleCard[] = [
 
 export const HrOpsHubPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'cards' | 'command'>('cards');
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Metrics query for top counters
-  const { data: metrics } = useGetHrOpsMetricsQuery();
+  // Resolve current active tab from query param or hash, defaulting to 'cards'
+  const activeTab = useMemo<HrOpsTabType>(() => {
+    const tabParam = searchParams.get('tab')?.toLowerCase();
+    if (tabParam === 'queue' || tabParam === 'action-queue' || location.hash === '#queue') {
+      return 'queue';
+    }
+    return 'cards';
+  }, [searchParams, location.hash]);
 
-  const filteredModules = useMemo(() => {
-    if (!searchQuery.trim()) return HROPS_MODULES;
-    const q = searchQuery.toLowerCase();
-    return HROPS_MODULES.filter(
-      (m) =>
-        m.title.toLowerCase().includes(q) ||
-        m.description.toLowerCase().includes(q) ||
-        m.tags.some((t) => t.toLowerCase().includes(q))
-    );
-  }, [searchQuery]);
+  const handleTabChange = (tab: HrOpsTabType) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (tab === 'queue') {
+      nextParams.set('tab', 'queue');
+    } else {
+      nextParams.delete('tab');
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const handleCardClick = (module: HrOpsModuleCard) => {
-    if (module.path === '#queue') {
-      setViewMode('command');
+    if (module.path === '#queue' || module.id === 'hrops-command') {
+      handleTabChange('queue');
     } else {
       navigate(module.path);
     }
@@ -139,196 +148,105 @@ export const HrOpsHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 md:p-8 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* View Mode Toggle & Search */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
-            {/* View Switcher Tabs */}
-            <div className="inline-flex items-center p-1 rounded-xl bg-white/10 border border-white/15 backdrop-blur">
-              <button
-                type="button"
-                onClick={() => setViewMode('cards')}
-                className={cn(
-                  'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150',
-                  viewMode === 'cards'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                )}
-              >
-                Modules (Cards)
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('command')}
-                className={cn(
-                  'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150',
-                  viewMode === 'command'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                )}
-              >
-                Action Queue
-              </button>
-            </div>
-
-            {viewMode === 'cards' && (
-              <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter HR Ops modules..."
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/10 border border-white/15 text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white/15 transition-all"
-                />
-              </div>
+      {/* 1. Compact Horizontal Segmented Navigation Tabs */}
+      <div className="flex items-center justify-start">
+        <div className="inline-flex items-center p-1 rounded-xl bg-slate-900 dark:bg-[#0f172a] border border-slate-800 shadow-md">
+          <button
+            type="button"
+            onClick={() => handleTabChange('cards')}
+            className={cn(
+              'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer',
+              activeTab === 'cards'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'bg-transparent text-slate-300 dark:text-zinc-400 hover:text-white'
             )}
-          </div>
+            aria-selected={activeTab === 'cards'}
+            role="tab"
+          >
+            Modules (Cards)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('queue')}
+            className={cn(
+              'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer',
+              activeTab === 'queue'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'bg-transparent text-slate-300 dark:text-zinc-400 hover:text-white'
+            )}
+            aria-selected={activeTab === 'queue'}
+            role="tab"
+          >
+            Action Queue
+          </button>
         </div>
-
-        {/* Quick KPI Counters Strip */}
-        {metrics && (
-          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
-            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <span className="text-slate-400 block text-[11px]">Pending Actions</span>
-              <span className="text-xl font-bold text-white mt-0.5 block">{metrics.pendingItems ?? 0}</span>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <span className="text-slate-400 block text-[11px]">SLA At Risk</span>
-              <span className="text-xl font-bold text-amber-400 mt-0.5 block">{metrics.slaAtRiskItems ?? 0}</span>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <span className="text-slate-400 block text-[11px]">Avg Resolution</span>
-              <span className="text-xl font-bold text-emerald-400 mt-0.5 block">{metrics.avgResolutionHours ?? 0}h</span>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <span className="text-slate-400 block text-[11px]">Total Completed</span>
-              <span className="text-xl font-bold text-indigo-300 mt-0.5 block">{metrics.completedItems ?? 0}</span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* View Content */}
-      {viewMode === 'command' ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setViewMode('cards')}
-              className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1.5"
-            >
-              &larr; Back to Modules Cards
-            </button>
-          </div>
-          <HrOpsPage />
-        </div>
+      {/* 2. Tab Content Views */}
+      {activeTab === 'queue' ? (
+        /* Action Queue Content */
+        <HrOpsPage />
       ) : (
-        <>
-          {/* Grid of Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredModules.map((module) => {
-              const Icon = module.icon;
+        /* Modules (Cards) View: ONLY module cards */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {HROPS_MODULES.map((module) => {
+            const Icon = module.icon;
 
-              return (
+            return (
+              <div
+                key={module.id}
+                onClick={() => handleCardClick(module)}
+                className={cn(
+                  'group relative flex flex-col justify-between rounded-2xl p-5 cursor-pointer min-h-[145px]',
+                  'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
+                  'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-lg hover:-translate-y-0.5',
+                  'transition-all duration-200 overflow-hidden'
+                )}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCardClick(module);
+                  }
+                }}
+              >
+                {/* Subtle top corner gradient */}
                 <div
-                  key={module.id}
-                  onClick={() => handleCardClick(module)}
                   className={cn(
-                    'group relative flex flex-col justify-between rounded-2xl p-6 cursor-pointer',
-                    'bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-zinc-800',
-                    'hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-xl hover:-translate-y-0.5',
-                    'transition-all duration-200 overflow-hidden'
+                    'absolute top-0 right-0 w-36 h-36 bg-gradient-to-br opacity-80 pointer-events-none rounded-bl-full transition-opacity group-hover:opacity-100',
+                    module.gradient
                   )}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleCardClick(module);
-                    }
-                  }}
-                >
-                  {/* Subtle top corner gradient */}
+                />
+
+                <div className="relative z-10 space-y-3">
+                  {/* Module Icon (top-left) */}
                   <div
                     className={cn(
-                      'absolute top-0 right-0 w-36 h-36 bg-gradient-to-br opacity-80 pointer-events-none rounded-bl-full transition-opacity group-hover:opacity-100',
-                      module.gradient
+                      'w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
+                      module.iconBg
                     )}
-                  />
-
-                  <div className="relative z-10 space-y-4">
-                    {/* Icon & Arrow */}
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={cn(
-                          'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-200',
-                          module.iconBg
-                        )}
-                      >
-                        <Icon className={cn('w-6 h-6', module.iconColor)} />
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400 dark:text-zinc-500 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200">
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 duration-200" />
-                      </div>
-                    </div>
-
-                    {/* Title & Description */}
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {module.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                        {module.description}
-                      </p>
-                    </div>
-
-                    {/* Feature Tags */}
-                    {module.tags && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {module.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                  >
+                    <Icon className={cn('w-5.5 h-5.5', module.iconColor)} />
                   </div>
 
-                  {/* Bottom Footer */}
-                  <div className="relative z-10 pt-4 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    <span>Open Module</span>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                  {/* Module Title */}
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {module.title}
+                    </h3>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {filteredModules.length === 0 && (
-            <div className="text-center py-16 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-zinc-800">
-              <Search className="w-10 h-10 text-slate-400 dark:text-zinc-600 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                No modules match &ldquo;{searchQuery}&rdquo;
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                Try searching for another keyword like &quot;travel&quot;, &quot;assets&quot;, &quot;visitor&quot;, or &quot;exit&quot;.
-              </p>
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium hover:bg-indigo-100 transition-colors"
-              >
-                Clear Search Filter
-              </button>
-            </div>
-          )}
-        </>
+                {/* Bottom Footer */}
+                <div className="relative z-10 pt-2 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                  <span>Open Module</span>
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

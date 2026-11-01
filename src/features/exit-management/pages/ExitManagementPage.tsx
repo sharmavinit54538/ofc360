@@ -81,6 +81,7 @@ export const ExitManagementPage: React.FC = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedCaseForReject, setSelectedCaseForReject] = useState<ExitCase | null>(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // 4. RTK Query Backend Payload
   const queryFilters: ExitFiltersType = useMemo(
@@ -300,47 +301,82 @@ export const ExitManagementPage: React.FC = () => {
 
   // Export handlers
   const handleExport = (format: 'excel' | 'csv') => {
-    const headers = [
-      'Employee ID',
-      'Employee Name',
-      'Email',
-      'Department',
-      'Designation',
-      'Reporting Manager',
-      'Resignation Date',
-      'Last Working Day',
-      'Notice Days',
-      'Exit Reason',
-      'Stage',
-      'Exit Status',
-      'F&F Status',
-    ];
+    if (isExporting) return;
 
-    const rows = filteredCases.map((c) => [
-      `"${c.employeeId}"`,
-      `"${c.employeeName}"`,
-      `"${c.employeeEmail || ''}"`,
-      `"${c.department}"`,
-      `"${c.designation}"`,
-      `"${c.managerName || ''}"`,
-      `"${c.resignationDate || ''}"`,
-      `"${c.expectedLastWorkingDay || ''}"`,
-      `"${c.noticeDays || ''}"`,
-      `"${typeof c.reason === 'string' ? c.reason : ''}"`,
-      `"${c.stage}"`,
-      `"${c.exitStatus}"`,
-      `"${c.fnfStatus}"`,
-    ]);
+    setIsExporting(true);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Exit_Records_${format.toUpperCase()}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`Exported ${filteredCases.length} records to ${format.toUpperCase()}`, 'Export Complete');
+    try {
+      const headers = [
+        'Employee ID',
+        'Employee Name',
+        'Email',
+        'Department',
+        'Designation',
+        'Reporting Manager',
+        'Resignation Date',
+        'Last Working Day',
+        'Notice Days',
+        'Exit Reason',
+        'Stage',
+        'Exit Status',
+        'F&F Status',
+      ];
+
+      const rows = filteredCases.map((c) => [
+        `"${c.employeeId}"`,
+        `"${c.employeeName}"`,
+        `"${c.employeeEmail || ''}"`,
+        `"${c.department}"`,
+        `"${c.designation}"`,
+        `"${c.managerName || ''}"`,
+        `"${c.resignationDate || ''}"`,
+        `"${c.expectedLastWorkingDay || ''}"`,
+        `"${c.noticeDays || ''}"`,
+        `"${typeof c.reason === 'string' ? c.reason : ''}"`,
+        `"${c.stage}"`,
+        `"${c.exitStatus}"`,
+        `"${c.fnfStatus}"`,
+      ]);
+
+      if (format === 'excel') {
+        // For Excel, we create a proper HTML table that Excel can read
+        const htmlContent = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+          <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Exit Records</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+          <body>
+            <table border="1">
+              <thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+              <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+            </table>
+          </body>
+          </html>
+        `;
+        const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Exit_Records_Excel_${new Date().toISOString().slice(0, 10)}.xls`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Exit_Records_CSV_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      toast.success(`Exported ${filteredCases.length} records to ${format.toUpperCase()}`, 'Export Complete');
+    } catch (error) {
+      toast.error('Failed to export records. Please try again.', 'Export Failed');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Drilldown handler from analytics chart to table
@@ -362,6 +398,7 @@ export const ExitManagementPage: React.FC = () => {
           onFilterToggle={() => setIsFiltersModalOpen(true)}
           isFiltersOpen={isFiltersModalOpen}
           isLoading={isCasesLoading || isCasesFetching || isStatsLoading}
+          isExporting={isExporting}
           totalRecords={filteredCases.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}

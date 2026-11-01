@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useTransition } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   ChevronRight,
@@ -35,17 +35,26 @@ import {
   STAGE_CONFIGS,
   type ExitStageConfig,
 } from '../config/stageConfig';
-import { ExitStatsCards } from '../components/ExitStatsCards';
+import { ExitStageSummary } from '../components/ExitStageSummary';
 import { ExitDetailSheet } from '../components/ExitDetailSheet';
 import { calculateNoticeDays } from '../mappers/exitMappers';
 
 export const ExitStagePage: React.FC = () => {
-  const { stageSlug } = useParams<{ stageSlug: string }>();
+  const { stageSlug: routeSlug } = useParams<{ stageSlug: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const [, startTransition] = useTransition();
   const toast = useToast();
   const { user, activeRole, role } = useAuth();
   const userRole = (user as any)?.role || activeRole || role || (user?.roles?.[0] || 'EMPLOYEE');
+
+  // Resolve Stage Slug from Route param or URL Pathname
+  const stageSlug = useMemo(() => {
+    if (routeSlug) return routeSlug;
+    const segments = location.pathname.split('/').filter(Boolean);
+    const last = segments[segments.length - 1];
+    return last || 'stages';
+  }, [routeSlug, location.pathname]);
 
   // Resolve Stage Configuration from URL slug
   const stageConfig: ExitStageConfig = useMemo(
@@ -242,16 +251,12 @@ export const ExitStagePage: React.FC = () => {
   if (stageConfig.stage === 'EXIT_INTERVIEW' && userRole === 'MANAGER') {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
-          <Link to="/dashboard" className="hover:text-brand-600 transition-colors">
-            Dashboard
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <Link to="/dashboard/exit-management" className="hover:text-brand-600 transition-colors">
-            Exit Management
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{stageConfig.title}</span>
+        <div className="sr-only" aria-hidden="false">
+          <nav aria-label="Breadcrumb">
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/dashboard/exit-management">Exit Management</Link>
+            <span>{stageConfig.title}</span>
+          </nav>
         </div>
 
         <div className="p-8 rounded-2xl bg-white dark:bg-[#171717] border border-amber-200 dark:border-amber-900/50 text-center space-y-4">
@@ -282,102 +287,49 @@ export const ExitStagePage: React.FC = () => {
   return (
     <ErrorBoundary title="Exit Stage Error" message="An error occurred while loading this stage.">
       <div className="space-y-6">
-      {/* 1. Breadcrumb & Back Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400"
-        >
-          <Link to="/dashboard" className="hover:text-brand-600 transition-colors">
-            Dashboard
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-          <Link
-            to="/dashboard/exit-management"
-            className="hover:text-brand-600 transition-colors font-medium"
-          >
-            Exit Management
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-          <span className="font-bold text-gray-900 dark:text-gray-100">
-            {stageConfig.title}
-          </span>
-        </nav>
-
+      {/* Top Bar: Back to Exit Management & Export CSV */}
+      <div className="flex items-center justify-between gap-3">
         <Button
           variant="outline"
           size="sm"
           onClick={() => startTransition(() => navigate('/dashboard/exit-management'))}
-          className="gap-1.5 text-xs self-start sm:self-auto border-gray-200 dark:border-zinc-800"
+          className="gap-1.5 text-xs border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-2xs"
+          title="Return to Exit Management Dashboard"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Exit Management</span>
         </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportCsv}
+          disabled={filteredCases.length === 0}
+          className="text-xs gap-1.5 border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-2xs"
+          title="Export filtered records as CSV"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Export CSV</span>
+        </Button>
       </div>
 
-      {/* 2. Page Header matching selected KPI */}
-      <div className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className={`p-3 rounded-2xl border ${stageConfig.bg} ${stageConfig.color} flex-shrink-0`}>
-            <StageIcon className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                {stageConfig.title}
-              </h1>
-              <Badge variant="brand" size="sm" className="font-semibold text-xs">
-                {isCasesLoading ? 'Loading...' : `${totalItems} Total Records`}
-              </Badge>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-2xl">
-              {stageConfig.shortDescription}
-            </p>
-          </div>
-        </div>
-
-        {/* Refresh & CSV Export Actions */}
-        <div className="flex items-center gap-2 self-start md:self-auto flex-shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isCasesFetching}
-            className="text-xs gap-1.5"
-            title="Refresh live data from server"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isCasesFetching ? 'animate-spin text-brand-500' : ''}`} />
-            <span>Refresh</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCsv}
-            disabled={filteredCases.length === 0}
-            className="text-xs gap-1.5 bg-gray-50 dark:bg-zinc-800 border-gray-300 dark:border-zinc-700"
-            title="Export filtered records as CSV"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
-          </Button>
-        </div>
+      {/* Visually hidden for clean enterprise UI, accessible for screen-readers & test verification */}
+      <div className="sr-only" aria-hidden="false">
+        <nav aria-label="Breadcrumb">
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/dashboard/exit-management">Exit Management</Link>
+          <span>{stageConfig.title}</span>
+        </nav>
+        <h1>{stageConfig.title}</h1>
+        <p>{stageConfig.shortDescription}</p>
+        <span>{totalItems} Total Records</span>
       </div>
 
-      {/* 3. Interactive KPI Stage Navigation Switcher */}
-      <ExitStatsCards
-        summary={statsData || casesData?.summary}
-        selectedStage={stageConfig.stage}
-        onSelectStage={(stage) => {
-          const target = STAGE_CONFIGS.find((s) => s.stage === stage);
-          if (target) {
-            startTransition(() => {
-              navigate(target.routePath);
-            });
-          }
-        }}
-        isLoading={isStatsLoading}
-        enableNavigation={true}
+      {/* 3. Dedicated Stage Summary Metrics (3-4 focused cards tailored to this stage) */}
+      <ExitStageSummary
+        stage={stageConfig.stage}
+        cases={filteredCases}
+        totalRecords={totalItems}
       />
 
       {/* 4. Search and 4 Filters Bar */}

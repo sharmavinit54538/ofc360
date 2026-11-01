@@ -205,53 +205,39 @@ export const AttendanceHubPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Attendance & Leave Header & Primary 2-Tab Switcher */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 md:p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-gradient-to-tr from-blue-500/20 via-indigo-500/20 to-violet-500/20 border border-blue-500/30 rounded-xl text-blue-600 dark:text-blue-400">
-                <CalendarCheck className="w-5 h-5" />
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Attendance & Time Off Hub
-              </h1>
-            </div>
-            <p className="mt-1 text-xs md:text-sm text-slate-500 dark:text-zinc-400">
-              Manage daily biometric punch logs, attendance regularization, shift policies, and leave requests.
-            </p>
-          </div>
+      {/* Semantic Landmark Title */}
+      <h1 className="sr-only">Attendance &amp; Time Off Hub</h1>
 
-          {/* Primary 2-Tab Segmented Switcher */}
-          <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/60 self-start md:self-center">
-            <button
-              type="button"
-              onClick={() => handleTabChange('attendance')}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-150',
-                currentTab === 'attendance'
-                  ? 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              )}
-            >
-              <Clock className="w-4 h-4" />
-              <span>Daily Attendance</span>
-            </button>
+      {/* Primary 2-Tab Segmented Switcher */}
+      <div className="flex items-center justify-start">
+        <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/60 shadow-xs">
+          <button
+            type="button"
+            onClick={() => handleTabChange('attendance')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-150 cursor-pointer',
+              currentTab === 'attendance'
+                ? 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+            )}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Daily Attendance</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={() => handleTabChange('leave')}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-150',
-                currentTab === 'leave'
-                  ? 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              )}
-            >
-              <Palmtree className="w-4 h-4" />
-              <span>Leave Management</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleTabChange('leave')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-150 cursor-pointer',
+              currentTab === 'leave'
+                ? 'bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+            )}
+          >
+            <Palmtree className="w-4 h-4" />
+            <span>Leave Management</span>
+          </button>
         </div>
       </div>
 
