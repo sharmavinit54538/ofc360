@@ -296,28 +296,7 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
       </div>
 
       {/* 2. 14-Stage Separation Workflow KPI Cards */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-gray-100 dark:border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-              Separation Pipeline Stages (14-Stage Workflow)
-            </h3>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-900/40">
-              Interactive Filter
-            </span>
-          </div>
-
-          {selectedStage !== 'ALL' && onSelectStage && (
-            <button
-              type="button"
-              onClick={() => onSelectStage('ALL')}
-              className="text-xs text-brand-600 dark:text-brand-400 hover:underline font-semibold flex items-center gap-1 self-start sm:self-auto"
-            >
-              Reset to All Stages
-            </button>
-          )}
-        </div>
-
+      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
         {/* 14 Stage KPI Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
           {STAGE_KPI_CONFIGS.map((stage) => {

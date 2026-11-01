@@ -248,14 +248,9 @@ export const ExitManagementPage: React.FC = () => {
       <ExitFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        stageFilter={stageFilter}
-        onStageChange={setStageFilter}
         departmentFilter={departmentFilter}
         onDepartmentChange={setDepartmentFilter}
-        onResetFilters={handleResetFilters}
         onCreateNew={() => setIsCreateModalOpen(true)}
-        onRefresh={handleRefreshAll}
-        isRefreshing={isCasesFetching}
       />
 
       {/* Error Display if query fails */}

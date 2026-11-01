@@ -497,13 +497,11 @@ describe('OFC360 Exit Management: Full 14-Stage Workflow Test Suite', () => {
       expect(screen.getByText(/₹\s*1,?40,?000/)).toBeInTheDocument();
     });
 
-    it('ExitFilters: renders search bar and stage chip options', () => {
+    it('ExitFilters: renders search bar and department filter', () => {
       render(
         <ExitFilters
           searchQuery=""
           onSearchChange={vi.fn()}
-          stageFilter="ALL"
-          onStageChange={vi.fn()}
           departmentFilter="ALL"
           onDepartmentChange={vi.fn()}
           onResetFilters={vi.fn()}
@@ -513,9 +511,7 @@ describe('OFC360 Exit Management: Full 14-Stage Workflow Test Suite', () => {
       expect(
         screen.getByPlaceholderText(/Search by Employee, Case ID/i)
       ).toBeInTheDocument();
-      expect(screen.getByText('Resignation Submitted')).toBeInTheDocument();
-      expect(screen.getByText('Manager Review')).toBeInTheDocument();
-      expect(screen.getByText('Knowledge Transfer')).toBeInTheDocument();
+      expect(screen.getByText('All Departments')).toBeInTheDocument();
     });
 
     it('ExitNoticePeriodPage: renders Active, Early Release, and Buyout tabs with API gap banners', () => {

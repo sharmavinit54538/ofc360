@@ -1,16 +1,13 @@
 import React from 'react';
-import { Search, Filter, X, RefreshCw, UserMinus } from 'lucide-react';
+import { Search, Filter, X, UserMinus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
-import type { ExitStage } from '../types/exit.types';
 
 interface ExitFiltersProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  stageFilter: ExitStage | 'ALL';
-  onStageChange: (stage: ExitStage | 'ALL') => void;
   departmentFilter: string;
   onDepartmentChange: (dept: string) => void;
-  onResetFilters: () => void;
+  onResetFilters?: () => void;
   onCreateNew?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
@@ -19,32 +16,10 @@ interface ExitFiltersProps {
 export const ExitFilters: React.FC<ExitFiltersProps> = ({
   searchQuery,
   onSearchChange,
-  stageFilter,
-  onStageChange,
   departmentFilter,
   onDepartmentChange,
-  onResetFilters,
   onCreateNew,
-  onRefresh,
-  isRefreshing = false,
 }) => {
-  const stageOptions: { value: ExitStage | 'ALL'; label: string }[] = [
-    { value: 'ALL', label: 'All Stages' },
-    { value: 'RESIGNATION_SUBMITTED', label: 'Resignation Submitted' },
-    { value: 'MANAGER_REVIEW', label: 'Manager Review' },
-    { value: 'HR_REVIEW', label: 'HR Review' },
-    { value: 'NOTICE_PERIOD', label: 'Notice Period' },
-    { value: 'KNOWLEDGE_TRANSFER', label: 'Knowledge Transfer' },
-    { value: 'CLEARANCE_PENDING', label: 'Clearance Pending' },
-    { value: 'FNF_SETTLEMENT', label: 'FnF Settlement' },
-    { value: 'EXIT_INTERVIEW', label: 'Exit Interview' },
-    { value: 'DOCUMENTS_PENDING', label: 'Documents Pending' },
-    { value: 'ACCESS_REVOCATION', label: 'Access Revocation' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'REJECTED', label: 'Rejected' },
-    { value: 'WITHDRAWN', label: 'Withdrawn' },
-  ];
-
   const departmentOptions = [
     { value: 'ALL', label: 'All Departments' },
     { value: 'Engineering', label: 'Engineering' },
@@ -56,8 +31,6 @@ export const ExitFilters: React.FC<ExitFiltersProps> = ({
     { value: 'Finance', label: 'Finance' },
     { value: 'Operations', label: 'Operations' },
   ];
-
-  const hasActiveFilters = searchQuery !== '' || stageFilter !== 'ALL' || departmentFilter !== 'ALL';
 
   return (
     <div className="space-y-3 p-4 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
@@ -104,32 +77,6 @@ export const ExitFilters: React.FC<ExitFiltersProps> = ({
             ))}
           </select>
 
-          {hasActiveFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onResetFilters}
-              className="text-xs gap-1.5 border-dashed border-gray-300 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800"
-            >
-              <X className="w-3 h-3" />
-              Reset
-            </Button>
-          )}
-
-          {onRefresh && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              className="text-xs gap-1.5"
-              title="Sync latest exit cases from backend"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-brand-500' : ''}`} />
-              <span className="hidden sm:inline">Sync</span>
-            </Button>
-          )}
-
           {onCreateNew && (
             <Button
               variant="primary"
@@ -142,30 +89,6 @@ export const ExitFilters: React.FC<ExitFiltersProps> = ({
             </Button>
           )}
         </div>
-      </div>
-
-      {/* Stage Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 no-scrollbar">
-        <span className="text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mr-1">
-          Stage:
-        </span>
-        {stageOptions.map((opt) => {
-          const isActive = stageFilter === opt.value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onStageChange(opt.value)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/30 font-semibold shadow-xs'
-                  : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 border border-transparent'
-              }`}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
       </div>
     </div>
   );
