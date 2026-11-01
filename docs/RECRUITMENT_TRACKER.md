@@ -50,14 +50,14 @@ One row per requested page, public flow, foundation, and data-layer item. A row 
 | PUB2 | Interview Booking | Wave 3 | TODO | Pending | /interviews/book/{token} | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
 | PUB3 | Candidate AI Interview | Wave 3 | TODO | Pending | /api/v2/interview-bot/public/* | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
 | PUB4 | Employee 10-step Onboarding | Wave 5 | TODO | Pending | /employee-onboarding progress/draft/step/upload/complete | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
-| F0 | Baseline, contract, screenshots | Prompt 0 | TODO | docs/RECRUITMENT_CONTRACT.md, docs/RECRUITMENT_TRACKER.md, .gsd/recruitment | user route audit: 100/119 present, 19 unconfirmed | N/A | typecheck/test/build baseline recorded; screenshots pending | Pending |
-| F1 | Tailwind semantic theme bridge | Prompt 0 | TODO | Pending | N/A | N/A | Regression screenshots | Pending |
-| F2 | Accessible shared UI primitives | Prompt 0 | TODO | Pending | N/A | N/A | Primitive unit tests | Pending |
+| F0 | Baseline, contract, screenshots | Prompt 0 | BLOCKED | docs/RECRUITMENT_CONTRACT.md, docs/RECRUITMENT_TRACKER.md, .gsd/recruitment | user route audit: 100/119 present, 19 unconfirmed | N/A | typecheck/test/build baseline recorded | Talent hub rendered in CUA output only; no persistent file; remaining three routes not captured after UI helper timed out. Question: can you provide persistent baseline screenshots or restore a stable browser-control session? |
+| F1 | Tailwind semantic theme bridge | Prompt 0 | BLOCKED | tailwind.config.js, src/index.css, src/shared/ui/__tests__/themeTokens.test.js | N/A | N/A | theme token test 1 passed | Visual comparison blocked by F0 screenshot gap |
+| F2 | Accessible shared UI primitives | Prompt 0 | BLOCKED | src/shared/ui/Dialog.tsx, Checkbox.tsx, Progress.tsx, RadioGroup.tsx, Slider.tsx, PageHeader.tsx, sharedPrimitives.test.tsx | N/A | N/A | primitive suite 8 passed | Visual comparison blocked by F0 screenshot gap |
 | F3 | Imperative toast bridge | Prompt 0 | DONE | src/shared/lib/toast.ts, src/shared/ui/Toast.tsx, src/shared/lib/toast.test.tsx | N/A | N/A | 2 passed | N/A |
 | F4 | Dependencies, environment, public URLs | Prompt 0 | DONE | package.json, package-lock.json, .env.example, src/vite-env.d.ts, src/shared/lib/publicUrl.ts, src/shared/lib/publicUrl.test.ts | N/A | N/A | 5 passed; targeted tsc passed | N/A |
 | F5 | Recruitment API data layer and public client | Prompt 0 | TODO | Pending | Section 4 routes; verify from OpenAPI | N/A | MSW and mapper tests | Pending |
 | F6 | Recruitment routes, shell, landing hub | Prompt 0 | TODO | Pending | N/A | 4 states on route pages | Router/navigation tests | Pending |
-| D1 | Domain types and API mappers | Prompt 0 | TODO | Pending | Section 4 mapping rules | N/A | Pure mapper tests | Pending |
+| D1 | Domain types and API mappers | Prompt 0 | DONE | src/features/recruitment/types/index.ts, src/features/recruitment/utils/apiMappers.ts | Section 4 mapping rules | N/A | mapper suite 8 passed; isolated strict tsc passed | N/A |
 | D2 | RTK Query endpoint groups | Prompt 0 | TODO | Pending | Section 4.4; route existence pending OpenAPI | N/A | MSW endpoint tests | Pending |
 | D3 | useRecruitment facade and optimistic cache | Prompt 0 | TODO | Pending | Verified endpoints only | N/A | Facade and rollback tests | Pending |
 | D4 | Public fetch client and response/error normalization | Prompt 0 | TODO | Pending | Public route groups in section 4.4 | N/A | Public client and normalization tests | Pending |
