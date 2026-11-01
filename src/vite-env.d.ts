@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_AUTH_TOKEN_HEADER?: string;
   readonly VITE_GOOGLE_CLIENT_ID?: string;
   readonly VITE_ENABLE_MOCK_FALLBACK?: string;
+  readonly VITE_AI_INTERVIEW_ENABLED?: string;
+  readonly VITE_PUBLIC_APP_URL?: string;
 }
 
 interface ImportMeta {

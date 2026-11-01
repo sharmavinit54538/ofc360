@@ -1,4 +1,4 @@
-﻿# Recruitment Module Roadmap
+# Recruitment Module Roadmap
 
 All paths are relative to the Vite target repository. Follow the user-provided prompts in order; each task is verified and committed before the next dependent task.
 
@@ -8,7 +8,7 @@ All paths are relative to the Vite target repository. Follow the user-provided p
 - [ ] F1: Tailwind semantic token bridge
 - [ ] F2: accessible shared primitives
 - [ ] F3: imperative toast bridge
-- [ ] F4: dependencies, env typing, public URL helpers
+- [x] F4: dependencies, env typing, public URL helpers
 - [ ] D1: domain types and pure API mappers
 - [ ] D2: RTK Query endpoint groups (route verification required)
 - [ ] D3: useRecruitment facade and cache behavior
@@ -40,7 +40,7 @@ All paths are relative to the Vite target repository. Follow the user-provided p
 
 ## Blocking dependencies
 
-- Route existence checks require docs/openapi.json. The user-provided path was absent at initialization; ask for the file while continuing contract-independent foundations.
+- The user supplied a route-list audit: 100 of 119 operations exist and 19 are absent. The missing operations are recorded in docs/API_GAPS.md and must remain Backend pending; do not use alternate routes without approval.
 - Baseline desktop screenshots are pending because the Windows UI helper did not retain a stable Edge window. Use a browser screenshot path if available; otherwise record the exact blocker and ask for the screenshots.
 
 
@@ -48,4 +48,3 @@ All paths are relative to the Vite target repository. Follow the user-provided p
 
 ## Route audit update (2026-11-01)
 The user supplied route-list results (100 of 119 paths/methods exist; 19 are absent). The missing operations are in docs/API_GAPS.md. No alternative route is used without approval. The local JSON file is not required for the supplied existence results.
-

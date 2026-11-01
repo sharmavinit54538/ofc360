@@ -1,6 +1,6 @@
-﻿# Recruitment Module Tracker
+# Recruitment Module Tracker
 
-One row per requested page, public flow, foundation, and data-layer item. A row becomes DONE only with its code, tests, and proof. Route existence remains gated on docs/openapi.json; the file was not present at the path the user supplied when this tracker was seeded.
+One row per requested page, public flow, foundation, and data-layer item. A row becomes DONE only with its code, tests, and proof. The user supplied route-list results (100 of 119 section-4.4 operations are present, 19 are absent); see docs/API_GAPS.md. Payload shapes remain limited to the Prompt 0 contract.
 
 | ID | Name | Wave | Status (TODO/DONE/BLOCKED) | Files | API calls | States | Tests | Screenshot |
 |---|---|---|---|---|---|---|---|---|
@@ -50,11 +50,11 @@ One row per requested page, public flow, foundation, and data-layer item. A row 
 | PUB2 | Interview Booking | Wave 3 | TODO | Pending | /interviews/book/{token} | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
 | PUB3 | Candidate AI Interview | Wave 3 | TODO | Pending | /api/v2/interview-bot/public/* | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
 | PUB4 | Employee 10-step Onboarding | Wave 5 | TODO | Pending | /employee-onboarding progress/draft/step/upload/complete | loading/error/empty/success | Pending | 375/768/1280 light/dark pending |
-| F0 | Baseline, contract, screenshots | Prompt 0 | TODO | Pending | baseline commands; OpenAPI file pending | N/A | Typecheck/test/build baseline; screenshots pending | Pending |
+| F0 | Baseline, contract, screenshots | Prompt 0 | TODO | docs/RECRUITMENT_CONTRACT.md, docs/RECRUITMENT_TRACKER.md, .gsd/recruitment | user route audit: 100/119 present, 19 unconfirmed | N/A | typecheck/test/build baseline recorded; screenshots pending | Pending |
 | F1 | Tailwind semantic theme bridge | Prompt 0 | TODO | Pending | N/A | N/A | Regression screenshots | Pending |
 | F2 | Accessible shared UI primitives | Prompt 0 | TODO | Pending | N/A | N/A | Primitive unit tests | Pending |
 | F3 | Imperative toast bridge | Prompt 0 | DONE | src/shared/lib/toast.ts, src/shared/ui/Toast.tsx, src/shared/lib/toast.test.tsx | N/A | N/A | 2 passed | N/A |
-| F4 | Dependencies, environment, public URLs | Prompt 0 | TODO | Pending | N/A | N/A | URL utility tests | Pending |
+| F4 | Dependencies, environment, public URLs | Prompt 0 | DONE | package.json, package-lock.json, .env.example, src/vite-env.d.ts, src/shared/lib/publicUrl.ts, src/shared/lib/publicUrl.test.ts | N/A | N/A | 5 passed; targeted tsc passed | N/A |
 | F5 | Recruitment API data layer and public client | Prompt 0 | TODO | Pending | Section 4 routes; verify from OpenAPI | N/A | MSW and mapper tests | Pending |
 | F6 | Recruitment routes, shell, landing hub | Prompt 0 | TODO | Pending | N/A | 4 states on route pages | Router/navigation tests | Pending |
 | D1 | Domain types and API mappers | Prompt 0 | TODO | Pending | Section 4 mapping rules | N/A | Pure mapper tests | Pending |
@@ -70,8 +70,6 @@ One row per requested page, public flow, foundation, and data-layer item. A row 
 - `npm run lint`: placeholder script only; it prints `ESLint setup scheduled for Phase 4`.
 - OpenAPI: `docs/openapi.json` was absent; `https://api.ofc360.com/openapi.json` returned HTTP 404. User supplied the expected local path but the file was not present.
 - Baseline screenshots: pending. The computer-use helper could not attach to a stable Edge window (`window is not a usable app window`; refreshed window ID disappeared before capture).
-
-
 
 
 ## Route audit update (user supplied, 2026-11-01)

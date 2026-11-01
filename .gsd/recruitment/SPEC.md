@@ -1,4 +1,4 @@
-﻿# Specification: OFC360 Recruitment Module
+# Specification: OFC360 Recruitment Module
 
 Status: FINALIZED
 Date: 2026-11-01
@@ -22,7 +22,7 @@ Build the complete Recruitment module in this Vite/React target using the self-c
 
 ## API verification boundary
 
-The supplied data contract is transcribed verbatim in docs/RECRUITMENT_CONTRACT.md. The user's expected route-list-only file is docs/openapi.json, but it was absent on 2026-11-01; the public URL api.ofc360.com/openapi.json returned 404. Route existence verification is therefore pending. Prompt payload fields remain the only field source; any undocumented field is BLOCKED pending a precise user/backend answer.
+The supplied data contract is transcribed verbatim in docs/RECRUITMENT_CONTRACT.md. The user supplied a route-list audit: 100 of 119 section-4.4 operations exist and 19 are absent. The absent operations are in docs/API_GAPS.md and remain Backend pending; no alternate paths are used without approval. Prompt payload fields remain the only field source; any undocumented field is BLOCKED pending a precise user/backend answer.
 
 ## Baseline
 
@@ -34,9 +34,7 @@ The supplied data contract is transcribed verbatim in docs/RECRUITMENT_CONTRACT.
 
 ## Finalization
 
-This scope is finalized based on the self-contained build prompt. Route-dependent work remains gated on the expected OpenAPI file. The ROADMAP and tracker record the staged execution and evidence required.
-
-
+This scope is finalized based on the self-contained build prompt and the user-supplied route audit. Work on the 19 absent operations remains gated behind Backend pending UI; do not substitute other routes without approval. The ROADMAP and tracker record the staged execution and evidence required.
 
 
 ## Route audit update

@@ -35,3 +35,7 @@ The user supplied a route-list audit: 100/119 section-4.4 operations exist; 19 a
 ## Foundation progress
 F3 imperative toast bridge is implemented with an id-based loading-to-success update and two passing targeted tests.
 
+
+
+F4 dependencies, env typing, and public URL helpers are implemented. The publicUrl test file passed 5/5; targeted TypeScript checking of publicUrl.ts passed.
+
