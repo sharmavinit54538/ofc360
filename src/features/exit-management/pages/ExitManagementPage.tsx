@@ -1,5 +1,21 @@
 import React, { useState, useMemo } from 'react';
+import {
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  ShieldAlert,
+  ArrowRight,
+  Filter,
+  User,
+  Calendar,
+  Box,
+  FileCheck,
+  CreditCard,
+} from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { Badge } from '@/shared/ui/Badge';
+import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/Toast';
 import {
   useGetExitCasesQuery,
@@ -12,9 +28,12 @@ import { ExitRequestsTable } from '../components/ExitRequestsTable';
 import { ExitDetailSheet } from '../components/ExitDetailSheet';
 import { CreateExitModal } from '../components/CreateExitModal';
 import { RejectExitModal } from '../components/RejectExitModal';
+import { calculateNoticeDays } from '../mappers/exitMappers';
 
 export const ExitManagementPage: React.FC = () => {
   const toast = useToast();
+  const { user } = useAuth();
+  const userRole = user?.role || 'EMPLOYEE';
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,6 +96,43 @@ export const ExitManagementPage: React.FC = () => {
 
   const items = casesData?.items || [];
 
+  // Overdue / SLA breach highlights: cases with remaining notice days <= 5
+  const urgentCases = useMemo(() => {
+    return items.filter((c) => {
+      if (c.stage === 'COMPLETED' || c.stage === 'REJECTED' || c.stage === 'WITHDRAWN') return false;
+      const { remainingDays } = calculateNoticeDays(c.resignationDate, c.expectedLastWorkingDay, c.noticeDays);
+      return remainingDays <= 7;
+    });
+  }, [items]);
+
+  // Role pending action counts
+  const rolePendingActions = useMemo(() => {
+    if (userRole === 'MANAGER') {
+      return items.filter(
+        (c) =>
+          c.stage === 'RESIGNATION_SUBMITTED' ||
+          (c.stage === 'MANAGER_REVIEW' && c.managerApproval.status === 'PENDING') ||
+          !c.ktStatus
+      );
+    }
+    if (userRole === 'IT_ADMIN') {
+      return items.filter((c) => {
+        const itClearance = c.clearances.find((d) => d.department === 'IT');
+        const hasUnreturnedAssets = c.assignedAssets.some((a) => a.status !== 'RETURNED');
+        return itClearance?.status !== 'CLEARED' || hasUnreturnedAssets;
+      });
+    }
+    if (userRole === 'HR_ADMIN' || userRole === 'SUPER_ADMIN') {
+      return items.filter(
+        (c) =>
+          c.stage === 'HR_REVIEW' ||
+          (c.managerApproval.status === 'APPROVED' && c.hrApproval.status === 'PENDING') ||
+          c.fnfStatus !== 'PAID'
+      );
+    }
+    return [];
+  }, [items, userRole]);
+
   return (
     <div className="space-y-6">
       {/* KPI Stats Cards */}
@@ -84,6 +140,60 @@ export const ExitManagementPage: React.FC = () => {
         summary={statsData || casesData?.summary}
         isLoading={isStatsLoading || isCasesLoading}
       />
+
+      {/* Role Action & SLA Urgent Highlights */}
+      {(urgentCases.length > 0 || rolePendingActions.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Urgent / SLA Cases */}
+          {urgentCases.length > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span>SLA Watch: Separations ≤ 7 Days Remaining</span>
+                </div>
+                <Badge variant="warning" size="sm">
+                  {urgentCases.length} Approaching LWD
+                </Badge>
+              </div>
+              <div className="space-y-1.5 text-xs text-gray-700 dark:text-zinc-300">
+                {urgentCases.slice(0, 3).map((uc) => {
+                  const { remainingDays } = calculateNoticeDays(uc.resignationDate, uc.expectedLastWorkingDay, uc.noticeDays);
+                  return (
+                    <div
+                      key={uc.id}
+                      className="flex items-center justify-between p-2 rounded-lg bg-white/80 dark:bg-zinc-900/80 border border-amber-100 dark:border-amber-900/30"
+                    >
+                      <span className="font-semibold">{uc.employeeName} ({uc.department})</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-bold">
+                        {remainingDays} days remaining
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Role Pending Actions */}
+          {rolePendingActions.length > 0 && (
+            <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-indigo-800 dark:text-indigo-300">
+                  <Clock className="w-4 h-4 text-indigo-600" />
+                  <span>Pending Actions for Your Role ({userRole.replace('_', ' ')})</span>
+                </div>
+                <Badge variant="brand" size="sm">
+                  {rolePendingActions.length} Pending
+                </Badge>
+              </div>
+              <p className="text-xs text-indigo-900/70 dark:text-indigo-200/70">
+                You have {rolePendingActions.length} cases awaiting approval, verification, or clearance sign-off under your authorized responsibilities.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Real-time Filters & Actions */}
       <ExitFilters
