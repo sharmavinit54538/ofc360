@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
+﻿import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { CheckCircle2, AlertCircle, Info, AlertTriangle, LoaderCircle, X } from 'lucide-react';
+import { subscribeToasts } from '@/shared/lib/toast';
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
 export interface ToastItem {
   id: string;
@@ -26,14 +27,19 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<(ToastItem & { message: string; type: ToastType })[]>([]);
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const fallbackId = useRef(0);
 
   const dismiss = useCallback((id: string) => {
+    const timer = timers.current.get(id);
+    if (timer) clearTimeout(timer);
+    timers.current.delete(id);
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const addToast = useCallback(
-    ({ title, message, description, type, variant, duration = 4000 }: Omit<ToastItem, 'id'>) => {
-      const id = Math.random().toString(36).substring(2, 9);
+    ({ id: requestedId, title, message, description, type, variant, duration = 4000 }: Omit<ToastItem, 'id'> & { id?: string }) => {
+      const id = requestedId ?? `toast-${Date.now()}-${++fallbackId.current}`;
       const resolvedMessage = message || description || '';
       let resolvedType: ToastType = type || 'info';
       if (!type) {
@@ -41,16 +47,22 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         else if (variant === 'default' || variant === 'success') resolvedType = 'success';
         else if (variant === 'warning') resolvedType = 'warning';
       }
-      setToasts((prev) => [...prev, { id, title, message: resolvedMessage, type: resolvedType, duration }]);
+      const item = { id, title, message: resolvedMessage, type: resolvedType, duration };
+      setToasts((prev) => prev.some((existing) => existing.id === id)
+        ? prev.map((existing) => existing.id === id ? item : existing)
+        : [...prev, item]);
 
-      if (duration > 0) {
-        setTimeout(() => {
-          dismiss(id);
-        }, duration);
-      }
+      const previousTimer = timers.current.get(id);
+      if (previousTimer) clearTimeout(previousTimer);
+      timers.current.delete(id);
+      if (duration > 0) timers.current.set(id, setTimeout(() => dismiss(id), duration));
+      return id;
     },
     [dismiss]
   );
+
+  useEffect(() => subscribeToasts((event) => { addToast(event); }), [addToast]);
+  useEffect(() => () => { timers.current.forEach((timer) => clearTimeout(timer)); }, []);
 
   const success = useCallback((message: string, title?: string) => addToast({ type: 'success', message, title }), [addToast]);
   const error = useCallback((message: string, title?: string) => addToast({ type: 'error', message, title }), [addToast]);
@@ -62,13 +74,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
 
       {/* Top Right Floating Flash Message Container */}
-      <div className="fixed top-5 right-5 z-50 flex flex-col items-end gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4">
+      <div role="status" aria-live="polite" className="fixed top-5 right-5 z-50 flex flex-col items-end gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4">
         {toasts.map((t) => {
           const icons = {
             success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />,
             error: <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />,
             warning: <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />,
             info: <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />,
+            loading: <LoaderCircle className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5 animate-spin" />,
           };
 
           const cardStyles = {
@@ -76,6 +89,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             error: 'border-rose-200 dark:border-rose-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-rose-950/5 dark:shadow-rose-900/10',
             warning: 'border-amber-200 dark:border-amber-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-amber-950/5 dark:shadow-amber-900/10',
             info: 'border-indigo-200 dark:border-indigo-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-indigo-950/5 dark:shadow-indigo-900/10',
+            loading: 'border-indigo-200 dark:border-indigo-900/30 bg-white dark:bg-[#171717] shadow-xl shadow-indigo-950/5 dark:shadow-indigo-900/10',
           };
 
           const titleColor = 'text-gray-900 dark:text-[#ececec]';
@@ -117,3 +131,5 @@ export const useToast = () => {
   }
   return context;
 };
+
+

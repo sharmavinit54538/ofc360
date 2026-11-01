@@ -10,8 +10,70 @@ export type { TextareaProps } from './Textarea';
 export { Label } from './Label';
 export type { LabelProps } from './Label';
 
-export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './Select';
-export type { SelectProps, SelectTriggerProps, SelectContentProps, SelectItemProps, SelectValueProps } from './Select';
+export {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
+} from './Select';
+export type {
+  SelectProps,
+  SelectTriggerProps,
+  SelectContentProps,
+  SelectItemProps,
+  SelectValueProps,
+  SelectGroupProps,
+  SelectLabelProps,
+  SelectSeparatorProps,
+} from './Select';
+
+export {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogClose,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetClose,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from './Dialog';
+export type {
+  DialogProps,
+  DialogTriggerProps,
+  DialogContentProps,
+  DialogHeaderProps,
+  DialogFooterProps,
+  DialogTitleProps,
+  DialogDescriptionProps,
+  SheetContentProps,
+} from './Dialog';
+
+export { Progress } from './Progress';
+export type { ProgressProps } from './Progress';
+
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+
+export { Slider } from './Slider';
+export type { SliderProps } from './Slider';
+
+export { RadioGroup, RadioGroupItem } from './RadioGroup';
+export type { RadioGroupProps, RadioGroupItemProps } from './RadioGroup';
+
+export { PageHeader } from './PageHeader';
+export type { PageHeaderProps } from './PageHeader';
 
 export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
