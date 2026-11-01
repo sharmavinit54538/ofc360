@@ -412,14 +412,61 @@ describe('OFC360 Exit Management: Full 14-Stage Workflow Test Suite', () => {
       );
 
       expect(screen.getByText('Active Exits')).toBeInTheDocument();
-      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getAllByText('12').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Pending Manager Review')).toBeInTheDocument();
-      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Clearances In Progress')).toBeInTheDocument();
-      expect(screen.getByText('4')).toBeInTheDocument();
+      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Completed Exits')).toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
+      expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Avg 30d notice')).toBeInTheDocument();
+    });
+
+    it('ExitStatsCards: renders all 14 workflow stage KPI cards with interactive selection', () => {
+      const handleSelect = vi.fn();
+      render(
+        <ExitStatsCards
+          selectedStage="ALL"
+          onSelectStage={handleSelect}
+          stageCounts={{
+            ALL: 14,
+            RESIGNATION_SUBMITTED: 1,
+            MANAGER_REVIEW: 2,
+            HR_REVIEW: 1,
+            NOTICE_PERIOD: 3,
+            KNOWLEDGE_TRANSFER: 1,
+            CLEARANCE_PENDING: 2,
+            FNF_SETTLEMENT: 1,
+            EXIT_INTERVIEW: 1,
+            DOCUMENTS_PENDING: 1,
+            ACCESS_REVOCATION: 1,
+            COMPLETED: 5,
+            REJECTED: 1,
+            WITHDRAWN: 1,
+          }}
+          isLoading={false}
+        />
+      );
+
+      // Verify all 14 requested KPI cards are rendered
+      expect(screen.getByText('All Stages')).toBeInTheDocument();
+      expect(screen.getByText('Resignation Submitted')).toBeInTheDocument();
+      expect(screen.getByText('Manager Review')).toBeInTheDocument();
+      expect(screen.getByText('HR Review')).toBeInTheDocument();
+      expect(screen.getByText('Notice Period')).toBeInTheDocument();
+      expect(screen.getByText('Knowledge Transfer')).toBeInTheDocument();
+      expect(screen.getByText('Clearance Pending')).toBeInTheDocument();
+      expect(screen.getByText('FnF Settlement')).toBeInTheDocument();
+      expect(screen.getByText('Exit Interview')).toBeInTheDocument();
+      expect(screen.getByText('Documents Pending')).toBeInTheDocument();
+      expect(screen.getByText('Access Revocation')).toBeInTheDocument();
+      expect(screen.getByText('Completed')).toBeInTheDocument();
+      expect(screen.getByText('Rejected')).toBeInTheDocument();
+      expect(screen.getByText('Withdrawn')).toBeInTheDocument();
+
+      // Verify clicking a card calls onSelectStage
+      fireEvent.click(screen.getByText('Manager Review'));
+      expect(handleSelect).toHaveBeenCalledWith('MANAGER_REVIEW');
     });
 
     it('ExitRequestsTable: renders empty state when cases list is empty', () => {

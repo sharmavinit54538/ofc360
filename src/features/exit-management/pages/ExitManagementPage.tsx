@@ -66,6 +66,11 @@ export const ExitManagementPage: React.FC = () => {
     refetch: refetchCases,
   } = useGetExitCasesQuery(queryFilters);
 
+  // Unfiltered cases to compute accurate live stage distribution across all 14 stages
+  const { data: allCasesData, refetch: refetchAllCases } = useGetExitCasesQuery(
+    departmentFilter !== 'ALL' ? { department: departmentFilter } : undefined
+  );
+
   const {
     data: statsData,
     isLoading: isStatsLoading,
@@ -74,6 +79,7 @@ export const ExitManagementPage: React.FC = () => {
 
   const handleRefreshAll = () => {
     refetchCases();
+    refetchAllCases();
     refetchStats();
     toast.info('Refreshed exit management data from server', 'Syncing Data');
   };
@@ -133,11 +139,54 @@ export const ExitManagementPage: React.FC = () => {
     return [];
   }, [items, userRole]);
 
+  // Accurate stage distribution counts across all 14 stages
+  const stageCounts = useMemo<Record<ExitStage | 'ALL', number>>(() => {
+    const counts: Record<ExitStage | 'ALL', number> = {
+      ALL: 0,
+      RESIGNATION_SUBMITTED: 0,
+      MANAGER_REVIEW: 0,
+      HR_REVIEW: 0,
+      NOTICE_PERIOD: 0,
+      KNOWLEDGE_TRANSFER: 0,
+      CLEARANCE_PENDING: 0,
+      FNF_SETTLEMENT: 0,
+      EXIT_INTERVIEW: 0,
+      DOCUMENTS_PENDING: 0,
+      ACCESS_REVOCATION: 0,
+      COMPLETED: 0,
+      REJECTED: 0,
+      WITHDRAWN: 0,
+    };
+
+    const source = allCasesData?.items || casesData?.items || [];
+    counts.ALL = allCasesData?.total ?? source.length;
+
+    source.forEach((c) => {
+      if (counts[c.stage] !== undefined) {
+        counts[c.stage]++;
+      }
+    });
+
+    if (statsData) {
+      if (counts.ALL === 0 && statsData.totalExits) counts.ALL = statsData.totalExits;
+      if (counts.MANAGER_REVIEW === 0 && statsData.pendingManagerReviews) counts.MANAGER_REVIEW = statsData.pendingManagerReviews;
+      if (counts.HR_REVIEW === 0 && statsData.pendingHrReviews) counts.HR_REVIEW = statsData.pendingHrReviews;
+      if (counts.CLEARANCE_PENDING === 0 && statsData.pendingClearances) counts.CLEARANCE_PENDING = statsData.pendingClearances;
+      if (counts.FNF_SETTLEMENT === 0 && statsData.pendingFnF) counts.FNF_SETTLEMENT = statsData.pendingFnF;
+      if (counts.COMPLETED === 0 && statsData.completedThisMonth) counts.COMPLETED = statsData.completedThisMonth;
+    }
+
+    return counts;
+  }, [allCasesData, casesData, statsData]);
+
   return (
     <div className="space-y-6">
-      {/* KPI Stats Cards */}
+      {/* KPI Stats Cards & 14-Stage Separation Pipeline */}
       <ExitStatsCards
         summary={statsData || casesData?.summary}
+        stageCounts={stageCounts}
+        selectedStage={stageFilter}
+        onSelectStage={setStageFilter}
         isLoading={isStatsLoading || isCasesLoading}
       />
 
