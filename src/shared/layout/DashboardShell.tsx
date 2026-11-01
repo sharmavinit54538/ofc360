@@ -136,7 +136,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           />
 
           {/* Drawer Container */}
-          <div className="relative z-50 flex flex-col w-72 max-w-[85vw] h-full bg-white dark:bg-[#171717] shadow-2xl animate-in slide-in-from-left duration-200">
+          <div className="relative z-50 flex flex-col h-full bg-white dark:bg-[#171717] shadow-2xl animate-in slide-in-from-left duration-200 max-w-[85vw]" style={{ width: 'var(--sidebar-width)' }}>
             {React.isValidElement(sidebar)
               ? React.cloneElement(sidebar as React.ReactElement<any>, {
                   onMobileClose: () => setMobileMenuOpen(false),

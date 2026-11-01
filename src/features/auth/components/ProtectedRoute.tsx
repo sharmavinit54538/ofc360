@@ -11,11 +11,12 @@
  * - error: Authentication system error occurred
  */
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole, Permission, ROLE_DASHBOARD_ROUTES, normalizeRole } from '../types/auth.types';
 import { AuthLoadingScreen } from '@/shared/layout/AuthLoadingScreen';
+import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
 export type AuthStatus = 'initializing' | 'authenticated' | 'unauthenticated' | 'refreshing' | 'error';
 
@@ -190,7 +191,26 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  return children ? <>{children}</> : <Outlet />;
+  return (
+    <ErrorBoundary
+      title="Protected Route Error"
+      message="An error occurred while loading this protected page."
+    >
+      <Suspense
+        fallback={
+          <div className="min-h-[400px] flex items-center justify-center p-8">
+            <div className="space-y-4 w-full max-w-xl animate-pulse">
+              <div className="h-8 w-48 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+              <div className="h-32 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl" />
+              <div className="h-64 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl" />
+            </div>
+          </div>
+        }
+      >
+        {children ? <>{children}</> : <Outlet />}
+      </Suspense>
+    </ErrorBoundary>
+  );
 };
 
 export default ProtectedRoute;

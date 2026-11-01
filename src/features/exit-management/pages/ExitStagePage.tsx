@@ -24,6 +24,7 @@ import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
+import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import {
   useGetExitCasesQuery,
   useGetExitStatsQuery,
@@ -43,8 +44,8 @@ export const ExitStagePage: React.FC = () => {
   const navigate = useNavigate();
   const [, startTransition] = useTransition();
   const toast = useToast();
-  const { user, activeRole } = useAuth();
-  const userRole = activeRole || (user?.roles?.[0] || 'EMPLOYEE');
+  const { user, activeRole, role } = useAuth();
+  const userRole = (user as any)?.role || activeRole || role || (user?.roles?.[0] || 'EMPLOYEE');
 
   // Resolve Stage Configuration from URL slug
   const stageConfig: ExitStageConfig = useMemo(
@@ -279,7 +280,8 @@ export const ExitStagePage: React.FC = () => {
   const StageIcon = stageConfig.icon;
 
   return (
-    <div className="space-y-6">
+    <ErrorBoundary title="Exit Stage Error" message="An error occurred while loading this stage.">
+      <div className="space-y-6">
       {/* 1. Breadcrumb & Back Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <nav
@@ -787,6 +789,7 @@ export const ExitStagePage: React.FC = () => {
         }}
       />
     </div>
+    </ErrorBoundary>
   );
 };
 

@@ -61,6 +61,10 @@
     --color-chart-4-rgb: 245 158 11;
     --color-chart-5-rgb: 244 63 94;
     --radius: 0.75rem;
+
+    /* Sidebar width variables */
+    --sidebar-width: 224px;
+    --sidebar-collapsed-width: 72px;
   }
 
   .dark {

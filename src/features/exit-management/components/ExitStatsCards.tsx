@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { ExitAnalyticsMetrics, ExitStage } from '../types/exit.types';
 import { STAGE_CONFIGS } from '../config/stageConfig';
+import { StageKpiCard } from './StageKpiCard';
 
 export interface StageKpiCardConfig {
   id: ExitStage | 'ALL';
@@ -34,6 +35,25 @@ export const STAGE_KPI_CONFIGS: StageKpiCardConfig[] = STAGE_CONFIGS.map((c) => 
   slug: c.slug,
   routePath: c.routePath,
 }));
+
+const STAGE_THEME_COLOR: Record<ExitStage | 'ALL', StageKpiCardProps['color']> = {
+  ALL: 'indigo',
+  RESIGNATION_SUBMITTED: 'blue',
+  MANAGER_REVIEW: 'amber',
+  HR_REVIEW: 'purple',
+  NOTICE_PERIOD: 'sky',
+  KNOWLEDGE_TRANSFER: 'emerald',
+  CLEARANCE_PENDING: 'cyan',
+  FNF_SETTLEMENT: 'green',
+  EXIT_INTERVIEW: 'violet',
+  DOCUMENTS_PENDING: 'orange',
+  ACCESS_REVOCATION: 'rose',
+  COMPLETED: 'green',
+  REJECTED: 'red',
+  WITHDRAWN: 'slate',
+};
+
+import type { StageKpiCardProps } from './StageKpiCard';
 
 export interface ExitStatsCardsProps {
   summary?: ExitAnalyticsMetrics;
@@ -130,16 +150,25 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
     return 0;
   };
 
+  const handleStageClick = (stageId: ExitStage | 'ALL', routePath: string) => {
+    onSelectStage?.(stageId);
+    if (enableNavigation && navigate) {
+      startTransition(() => {
+        navigate(routePath);
+      });
+    }
+  };
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* 1. Top Executive Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {executiveCards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <div
               key={idx}
-              className="p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md"
+              className="p-4 rounded-xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-[0_1px_2px_rgba(0,0,0,0.03)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-all hover:shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase font-semibold text-gray-500 dark:text-zinc-400 tracking-wider">
@@ -150,18 +179,18 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
                 </div>
               </div>
 
-              <div className="mt-3 flex items-baseline justify-between">
+              <div className="mt-2.5 flex items-baseline justify-between">
                 {isLoading ? (
-                  <div className="h-8 w-16 bg-gray-200 dark:bg-zinc-800 rounded animate-pulse" />
+                  <div className="h-7 w-14 bg-gray-200 dark:bg-zinc-800 rounded animate-pulse" />
                 ) : (
-                  <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[#ececec]">
+                  <div className="text-xl font-bold tracking-tight text-gray-900 dark:text-[#ececec]">
                     {card.value}
                   </div>
                 )}
 
                 {card.badge && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-900/40">
-                    <AlertCircle className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-900/40">
+                    <AlertCircle className="w-2.5 h-2.5" />
                     {card.badge}
                   </span>
                 )}
@@ -178,72 +207,27 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
         })}
       </div>
 
-      {/* 2. 14-Stage Separation Workflow KPI Cards */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
-        {/* 14 Stage KPI Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
-          {STAGE_KPI_CONFIGS.map((stage) => {
-            const Icon = stage.icon;
-            const count = getStageCount(stage.id);
-            const isSelected = selectedStage === stage.id;
+      {/* 2. 14-Stage Separation Workflow KPI Cards - Compact Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+        {STAGE_KPI_CONFIGS.map((stage) => {
+          const Icon = stage.icon;
+          const count = getStageCount(stage.id);
+          const isSelected = selectedStage === stage.id;
+          const themeColor = STAGE_THEME_COLOR[stage.id];
 
-            return (
-              <button
-                key={stage.id}
-                type="button"
-                onClick={() => {
-                  onSelectStage?.(stage.id);
-                  if (enableNavigation && navigate) {
-                    startTransition(() => {
-                      navigate(stage.routePath);
-                    });
-                  }
-                }}
-                aria-selected={isSelected}
-                className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between group cursor-pointer ${
-                  isSelected
-                    ? stage.activeBorder
-                    : 'bg-gray-50/60 dark:bg-zinc-900/40 border-gray-200/80 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800/50 hover:shadow-xs'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full mb-1.5">
-                  <div className={`p-1.5 rounded-lg border ${stage.bg} ${stage.color}`}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <span
-                    className={`text-base font-bold tracking-tight ${
-                      isSelected
-                        ? 'text-brand-600 dark:text-brand-400'
-                        : 'text-gray-900 dark:text-[#ececec]'
-                    }`}
-                  >
-                    {isLoading ? '-' : count}
-                  </span>
-                </div>
-
-                <div className="w-full">
-                  <div
-                    className={`text-xs font-semibold truncate transition-colors ${
-                      isSelected
-                        ? 'text-brand-700 dark:text-brand-300'
-                        : 'text-gray-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400'
-                    }`}
-                    title={stage.label}
-                  >
-                    {stage.label}
-                  </div>
-                  <div className="text-[10px] text-gray-400 dark:text-zinc-500 truncate mt-0.5">
-                    {stage.description}
-                  </div>
-                </div>
-
-                {isSelected && (
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-500" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <StageKpiCard
+              key={stage.id}
+              icon={Icon}
+              title={stage.label}
+              count={isLoading ? 0 : count}
+              color={themeColor}
+              active={isSelected}
+              onClick={() => handleStageClick(stage.id, stage.routePath)}
+              aria-pressed={isSelected}
+            />
+          );
+        })}
       </div>
     </div>
   );

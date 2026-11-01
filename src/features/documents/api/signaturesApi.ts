@@ -7,7 +7,13 @@
 
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from '@/shared/api/baseQuery';
-import type { RootState } from '@/app/store';
+
+interface StateWithAuth {
+  auth?: {
+    user?: any;
+    accessToken?: string | null;
+  };
+}
 import type {
   SignatureRequest,
   SignatureStats,
@@ -207,7 +213,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     getSignatureStats: builder.query<SignatureStats, void>({
       queryFn: async (_arg, api, extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const currentUserEmail = state.auth?.user?.email;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -257,7 +263,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     getSignatureRequests: builder.query<SignatureRequestsResponse, SignatureFilterParams | void>({
       queryFn: async (filters, api, extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const currentUserEmail = state.auth?.user?.email;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -407,7 +413,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     createSignatureRequest: builder.mutation<SignatureRequest, CreateSignatureRequestPayload>({
       queryFn: async (payload, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const currentUser = state.auth?.user || {
           id: 'usr-admin-1',
           fullName: 'Enterprise Admin',
@@ -489,7 +495,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     remindSigners: builder.mutation<boolean, { id: string; payload?: RemindSignersPayload }>({
       queryFn: async ({ id, payload }, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const user = state.auth?.user;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -533,7 +539,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     resendRequest: builder.mutation<boolean, { id: string; payload?: ResendRequestPayload }>({
       queryFn: async ({ id, payload }, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const user = state.auth?.user;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -578,7 +584,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     cancelSignatureRequest: builder.mutation<boolean, { id: string; payload: CancelRequestPayload }>({
       queryFn: async ({ id, payload }, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const user = state.auth?.user;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -623,7 +629,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     signDocument: builder.mutation<SignatureRequest, { id: string; payload: SignDocumentPayload }>({
       queryFn: async ({ id, payload }, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const user = state.auth?.user;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 
@@ -676,7 +682,7 @@ export const signaturesApi = createApi({
     // ─────────────────────────────────────────────────────────────────────────
     declineSignature: builder.mutation<SignatureRequest, { id: string; payload: DeclineSignaturePayload }>({
       queryFn: async ({ id, payload }, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
+        const state = api.getState() as StateWithAuth;
         const user = state.auth?.user;
         const enableMock = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true';
 

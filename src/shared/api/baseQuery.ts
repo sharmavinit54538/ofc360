@@ -6,8 +6,17 @@
 
 import { fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { Mutex } from 'async-mutex';
-import { RootState } from '@/app/store';
 import { setAccessToken } from '@/features/auth/slices/authSlice';
+
+interface MinimalAuthState {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  user?: any;
+}
+
+interface BaseQueryRootState {
+  auth?: MinimalAuthState;
+}
 
 /**
  * Global mutex instance to synchronize concurrent 401 token refresh requests.
@@ -33,7 +42,7 @@ export const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   credentials: 'include', // Ensures httpOnly session cookies are transmitted
   prepareHeaders: (headers, { getState, arg }) => {
-    const state = getState() as RootState;
+    const state = getState() as BaseQueryRootState;
     let token = state.auth?.accessToken;
 
     // Fallback to localStorage or sessionStorage if Redux state is hydrating
@@ -149,8 +158,8 @@ export const baseQueryWithReauth: BaseQueryFn<
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
       try {
-        const state = api.getState() as RootState;
-        let currentRefreshToken = state.auth.refreshToken;
+        const state = api.getState() as BaseQueryRootState;
+        let currentRefreshToken = state.auth?.refreshToken;
         if (!currentRefreshToken) {
           try {
             currentRefreshToken =
@@ -360,8 +369,8 @@ export const baseQueryWithReauth: BaseQueryFn<
     }
 
     if (url === '/auth/passkey/register/options') {
-      const state = api.getState() as RootState;
-      const user = state.auth.user;
+      const state = api.getState() as BaseQueryRootState;
+      const user = state.auth?.user;
       return {
         data: {
           options: {
@@ -448,8 +457,8 @@ export const baseQueryWithReauth: BaseQueryFn<
     }
 
     if (url === '/auth/me') {
-      const state = api.getState() as RootState;
-      let currentUser = state.auth.user;
+      const state = api.getState() as BaseQueryRootState;
+      let currentUser = state.auth?.user;
       if (!currentUser) {
         try {
           const stored = localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');
@@ -465,8 +474,8 @@ export const baseQueryWithReauth: BaseQueryFn<
   // Final fallback: if /auth/me failed over the wire, prevent breaking UI by returning active session user
   const effectiveUrl = typeof args === 'string' ? args : args.url;
   if (effectiveUrl === '/auth/me' && result.error) {
-    const state = api.getState() as RootState;
-    let currentUser = state.auth.user;
+    const state = api.getState() as BaseQueryRootState;
+    let currentUser = state.auth?.user;
     if (!currentUser) {
       try {
         const stored = localStorage.getItem('ofc360_user_session') || sessionStorage.getItem('ofc360_user_session');

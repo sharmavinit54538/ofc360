@@ -16,9 +16,6 @@ export interface DashboardSidebarProps {
   onMobileClose?: () => void;
 }
 
-const SIDEBAR_WIDTH = 'w-64';
-const SIDEBAR_COLLAPSED_WIDTH = 'w-16';
-
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeTab = 'overview',
   onTabChange,
@@ -298,7 +295,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <aside
-      className={`${collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH} shrink-0 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out overflow-hidden`}
+      className={`shrink-0 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#171717] flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out overflow-hidden`}
+      style={{
+        width: collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
+      }}
       aria-label="Dashboard navigation"
     >
       {!collapsed ? (

@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { Badge } from '@/shared/ui/Badge';
 import { Select } from '@/shared/ui/Select';
 import { Input } from '@/shared/ui/Input';
 import { cn } from '@/shared/lib/utils';

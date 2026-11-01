@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import {
   LayoutDashboard,
   UserMinus,
@@ -175,21 +176,23 @@ export const ExitManagementLayout: React.FC = () => {
         })}
       </nav>
 
-      {/* Page Content with Skeleton Fallback */}
-      <Suspense
-        fallback={
-          <div className="p-8 space-y-4">
-            <div className="flex items-center justify-center space-y-3">
-              <div className="w-10 h-10 border-3 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
-              <span className="text-sm font-medium text-gray-500 dark:text-zinc-400">Loading exit management...</span>
+      {/* Page Content with Error Boundary & Skeleton Fallback */}
+      <ErrorBoundary title="Exit Management Tab Error" message="An error occurred while loading this section.">
+        <Suspense
+          fallback={
+            <div className="p-8 space-y-4">
+              <div className="flex items-center justify-center space-y-3">
+                <div className="w-10 h-10 border-3 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
+                <span className="text-sm font-medium text-gray-500 dark:text-zinc-400">Loading exit management...</span>
+              </div>
+              <div className="h-32 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
+              <div className="h-64 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
             </div>
-            <div className="h-32 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
-            <div className="h-64 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
-          </div>
-        }
-      >
-        <Outlet />
-      </Suspense>
+          }
+        >
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 };
