@@ -53,6 +53,8 @@ import { MyProfileSection } from '@/features/settings/components/MyProfileSectio
 
 // Exit Management Module (14-Stage Workflow)
 const ExitManagementPage = React.lazy(() => import('@/features/exit-management/pages/ExitManagementPage'));
+const ExitStagePage = React.lazy(() => import('@/features/exit-management/pages/ExitStagePage'));
+const DashboardExitStageRoute = React.lazy(() => import('@/routes/dashboard.exit-stage'));
 const MyExitPage = React.lazy(() => import('@/features/exit-management/pages/MyExitPage'));
 const ExitApprovalsPage = React.lazy(() => import('@/features/exit-management/pages/ExitApprovalsPage'));
 const ExitNoticePeriodPage = React.lazy(() => import('@/features/exit-management/pages/ExitNoticePeriodPage'));
@@ -343,10 +345,39 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="stage/:stageSlug" element={<ExitStagePage />} />
+        <Route path="stages" element={<Navigate to="/exit-management/stages" replace />} />
+        <Route path="resignation-submitted" element={<Navigate to="/exit-management/resignation-submitted" replace />} />
+        <Route path="manager-review" element={<Navigate to="/exit-management/manager-review" replace />} />
+        <Route path="hr-review" element={<Navigate to="/exit-management/hr-review" replace />} />
+        <Route path="clearance-pending" element={<Navigate to="/exit-management/clearance-pending" replace />} />
+        <Route path="fnf-settlement" element={<Navigate to="/exit-management/fnf-settlement" replace />} />
+        <Route path="exit-interview" element={<Navigate to="/exit-management/exit-interview" replace />} />
+        <Route path="documents-pending" element={<Navigate to="/exit-management/documents-pending" replace />} />
+        <Route path="access-revocation" element={<Navigate to="/exit-management/access-revocation" replace />} />
+        <Route path="completed" element={<Navigate to="/exit-management/completed" replace />} />
+        <Route path="rejected" element={<Navigate to="/exit-management/rejected" replace />} />
+        <Route path="withdrawn" element={<Navigate to="/exit-management/withdrawn" replace />} />
       </Route>
       <Route
         path="/dashboard/my-exit"
         element={<Navigate to="/dashboard/exit-management/my-exit" replace />}
+      />
+
+      {/* Dedicated Exit Management Stage Pages (All 14 KPI Routes) */}
+      <Route
+        path="/exit-management/:stageSlug"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardExitStageRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/exit-management"
+        element={<Navigate to="/exit-management/stages" replace />}
       />
 
       {/* Employee Onboarding Checklist & Progress */}

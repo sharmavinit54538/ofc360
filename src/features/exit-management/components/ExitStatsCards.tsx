@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useInRouterContext } from 'react-router-dom';
 import {
   LogOut,
   Clock,
@@ -6,18 +7,9 @@ import {
   CheckCircle2,
   Calendar,
   AlertCircle,
-  Layers,
-  FileText,
-  UserCheck,
-  FileCode,
-  CreditCard,
-  MessageSquare,
-  FileCheck,
-  UserX,
-  XCircle,
-  RotateCcw,
 } from 'lucide-react';
 import type { ExitAnalyticsMetrics, ExitStage } from '../types/exit.types';
+import { STAGE_CONFIGS } from '../config/stageConfig';
 
 export interface StageKpiCardConfig {
   id: ExitStage | 'ALL';
@@ -27,136 +19,21 @@ export interface StageKpiCardConfig {
   bg: string;
   activeBorder: string;
   description: string;
+  slug: string;
+  routePath: string;
 }
 
-export const STAGE_KPI_CONFIGS: StageKpiCardConfig[] = [
-  {
-    id: 'ALL',
-    label: 'All Stages',
-    icon: Layers,
-    color: 'text-indigo-600 dark:text-indigo-400',
-    bg: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200/60 dark:border-indigo-900/40',
-    activeBorder: 'border-indigo-500 ring-2 ring-indigo-500/30 bg-indigo-50/60 dark:bg-indigo-950/40',
-    description: 'All separations',
-  },
-  {
-    id: 'RESIGNATION_SUBMITTED',
-    label: 'Resignation Submitted',
-    icon: FileText,
-    color: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/60 dark:border-blue-900/40',
-    activeBorder: 'border-blue-500 ring-2 ring-blue-500/30 bg-blue-50/60 dark:bg-blue-950/40',
-    description: 'Newly submitted',
-  },
-  {
-    id: 'MANAGER_REVIEW',
-    label: 'Manager Review',
-    icon: Clock,
-    color: 'text-amber-600 dark:text-amber-400',
-    bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-900/40',
-    activeBorder: 'border-amber-500 ring-2 ring-amber-500/30 bg-amber-50/60 dark:bg-amber-950/40',
-    description: 'Awaiting manager',
-  },
-  {
-    id: 'HR_REVIEW',
-    label: 'HR Review',
-    icon: UserCheck,
-    color: 'text-purple-600 dark:text-purple-400',
-    bg: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/60 dark:border-purple-900/40',
-    activeBorder: 'border-purple-500 ring-2 ring-purple-500/30 bg-purple-50/60 dark:bg-purple-950/40',
-    description: 'HR policy review',
-  },
-  {
-    id: 'NOTICE_PERIOD',
-    label: 'Notice Period',
-    icon: Calendar,
-    color: 'text-sky-600 dark:text-sky-400',
-    bg: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200/60 dark:border-sky-900/40',
-    activeBorder: 'border-sky-500 ring-2 ring-sky-500/30 bg-sky-50/60 dark:bg-sky-950/40',
-    description: 'Serving notice',
-  },
-  {
-    id: 'KNOWLEDGE_TRANSFER',
-    label: 'Knowledge Transfer',
-    icon: FileCode,
-    color: 'text-teal-600 dark:text-teal-400',
-    bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-200/60 dark:border-teal-900/40',
-    activeBorder: 'border-teal-500 ring-2 ring-teal-500/30 bg-teal-50/60 dark:bg-teal-950/40',
-    description: 'Handover & docs',
-  },
-  {
-    id: 'CLEARANCE_PENDING',
-    label: 'Clearance Pending',
-    icon: ShieldAlert,
-    color: 'text-cyan-600 dark:text-cyan-400',
-    bg: 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200/60 dark:border-cyan-900/40',
-    activeBorder: 'border-cyan-500 ring-2 ring-cyan-500/30 bg-cyan-50/60 dark:bg-cyan-950/40',
-    description: '5 depts sign-off',
-  },
-  {
-    id: 'FNF_SETTLEMENT',
-    label: 'FnF Settlement',
-    icon: CreditCard,
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-900/40',
-    activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/40',
-    description: 'Payroll settlement',
-  },
-  {
-    id: 'EXIT_INTERVIEW',
-    label: 'Exit Interview',
-    icon: MessageSquare,
-    color: 'text-violet-600 dark:text-violet-400',
-    bg: 'bg-violet-50 dark:bg-violet-950/40 border-violet-200/60 dark:border-violet-900/40',
-    activeBorder: 'border-violet-500 ring-2 ring-violet-500/30 bg-violet-50/60 dark:bg-violet-950/40',
-    description: 'Exit feedback',
-  },
-  {
-    id: 'DOCUMENTS_PENDING',
-    label: 'Documents Pending',
-    icon: FileCheck,
-    color: 'text-orange-600 dark:text-orange-400',
-    bg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200/60 dark:border-orange-900/40',
-    activeBorder: 'border-orange-500 ring-2 ring-orange-500/30 bg-orange-50/60 dark:bg-orange-950/40',
-    description: 'Relieving package',
-  },
-  {
-    id: 'ACCESS_REVOCATION',
-    label: 'Access Revocation',
-    icon: UserX,
-    color: 'text-rose-600 dark:text-rose-400',
-    bg: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-900/40',
-    activeBorder: 'border-rose-500 ring-2 ring-rose-500/30 bg-rose-50/60 dark:bg-rose-950/40',
-    description: 'IT access revocation',
-  },
-  {
-    id: 'COMPLETED',
-    label: 'Completed',
-    icon: CheckCircle2,
-    color: 'text-green-600 dark:text-green-400',
-    bg: 'bg-green-50 dark:bg-green-950/40 border-green-200/60 dark:border-green-900/40',
-    activeBorder: 'border-green-500 ring-2 ring-green-500/30 bg-green-50/60 dark:bg-green-950/40',
-    description: 'Successfully exited',
-  },
-  {
-    id: 'REJECTED',
-    label: 'Rejected',
-    icon: XCircle,
-    color: 'text-red-600 dark:text-red-400',
-    bg: 'bg-red-50 dark:bg-red-950/40 border-red-200/60 dark:border-red-900/40',
-    activeBorder: 'border-red-500 ring-2 ring-red-500/30 bg-red-50/60 dark:bg-red-950/40',
-    description: 'Separation rejected',
-  },
-  {
-    id: 'WITHDRAWN',
-    label: 'Withdrawn',
-    icon: RotateCcw,
-    color: 'text-slate-600 dark:text-slate-400',
-    bg: 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700',
-    activeBorder: 'border-slate-500 ring-2 ring-slate-500/30 bg-slate-50/60 dark:bg-zinc-800/60',
-    description: 'Request retracted',
-  },
-];
+export const STAGE_KPI_CONFIGS: StageKpiCardConfig[] = STAGE_CONFIGS.map((c) => ({
+  id: c.stage,
+  label: c.title,
+  icon: c.icon,
+  color: c.color,
+  bg: c.bg,
+  activeBorder: c.activeBorder,
+  description: c.shortDescription,
+  slug: c.slug,
+  routePath: c.routePath,
+}));
 
 export interface ExitStatsCardsProps {
   summary?: ExitAnalyticsMetrics;
@@ -164,6 +41,7 @@ export interface ExitStatsCardsProps {
   selectedStage?: ExitStage | 'ALL';
   onSelectStage?: (stage: ExitStage | 'ALL') => void;
   isLoading?: boolean;
+  enableNavigation?: boolean;
 }
 
 export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
@@ -172,8 +50,12 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
   selectedStage = 'ALL',
   onSelectStage,
   isLoading = false,
+  enableNavigation = true,
 }) => {
+  const inRouter = useInRouterContext();
+  const navigate = inRouter ? useNavigate() : undefined;
   const activeCount = summary?.activeExits ?? (summary as any)?.totalActiveExits ?? 0;
+
   const pendingMgrCount = summary?.pendingManagerReviews ?? 0;
   const pendingClearancesCount =
     summary?.pendingClearances ?? (summary as any)?.clearancesPending ?? 0;
@@ -308,7 +190,12 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
               <button
                 key={stage.id}
                 type="button"
-                onClick={() => onSelectStage?.(stage.id)}
+                onClick={() => {
+                  onSelectStage?.(stage.id);
+                  if (enableNavigation && navigate) {
+                    navigate(stage.routePath);
+                  }
+                }}
                 aria-selected={isSelected}
                 className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between group cursor-pointer ${
                   isSelected

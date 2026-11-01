@@ -35,6 +35,9 @@ import { ExitInterviewPage } from '../pages/ExitInterviewPage';
 import { ExitNoticePeriodPage } from '../pages/ExitNoticePeriodPage';
 import { ExitAccessDeactivationPage } from '../pages/ExitAccessDeactivationPage';
 import { ExitSettingsPage } from '../pages/ExitSettingsPage';
+import { ExitStagePage } from '../pages/ExitStagePage';
+import { STAGE_CONFIGS, getStageConfigBySlug } from '../config/stageConfig';
+import { Routes, Route } from 'react-router-dom';
 import type { ExitCase } from '../types/exit.types';
 
 // Mock user state
@@ -552,6 +555,88 @@ describe('OFC360 Exit Management: Full 14-Stage Workflow Test Suite', () => {
       expect(screen.getAllByText('/api/v1/exits/settings').length).toBeGreaterThan(0);
       expect(screen.getByText('/api/v1/exits/settings/templates')).toBeInTheDocument();
       expect(screen.getByText('BACKEND ROUTES PENDING')).toBeInTheDocument();
+    });
+  });
+
+  describe('6. Dedicated Stage Pages & KPI Card Navigation (All 14 Stages)', () => {
+    it('verifies all 14 stages have valid config, slugs, titles, and /exit-management/ routes', () => {
+      expect(STAGE_CONFIGS).toHaveLength(14);
+      const expectedSlugs = [
+        'stages',
+        'resignation-submitted',
+        'manager-review',
+        'hr-review',
+        'notice-period',
+        'knowledge-transfer',
+        'clearance-pending',
+        'fnf-settlement',
+        'exit-interview',
+        'documents-pending',
+        'access-revocation',
+        'completed',
+        'rejected',
+        'withdrawn',
+      ];
+      expectedSlugs.forEach((slug) => {
+        const config = getStageConfigBySlug(slug);
+        expect(config).toBeDefined();
+        expect(config.slug).toBe(slug);
+        expect(config.routePath).toBe(`/exit-management/${slug}`);
+        expect(config.title).toBeTruthy();
+        expect(config.shortDescription).toBeTruthy();
+      });
+    });
+
+    it('ExitStagePage: renders breadcrumb, matching stage title, description, and employee table', () => {
+      render(
+        <MemoryRouter initialEntries={['/exit-management/clearance-pending']}>
+          <Routes>
+            <Route path="/exit-management/:stageSlug" element={<ExitStagePage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Breadcrumb navigation
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Exit Management')).toBeInTheDocument();
+      expect(screen.getAllByText('Clearance Pending').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Back to Exit Management')).toBeInTheDocument();
+
+      // Stage header & short description
+      expect(screen.getByRole('heading', { name: 'Clearance Pending' })).toBeInTheDocument();
+      expect(screen.getAllByText(/Department-wise clearance tracking/i).length).toBeGreaterThanOrEqual(1);
+
+      // Employee table columns
+      expect(screen.getByText('Employee ID')).toBeInTheDocument();
+      expect(screen.getByText('Employee Name')).toBeInTheDocument();
+      expect(screen.getByText('Department')).toBeInTheDocument();
+      expect(screen.getByText('Designation')).toBeInTheDocument();
+      expect(screen.getByText('Manager')).toBeInTheDocument();
+      expect(screen.getByText('Resignation Date')).toBeInTheDocument();
+      expect(screen.getByText('Last Working Day')).toBeInTheDocument();
+      expect(screen.getAllByText('Notice Period').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Current Status')).toBeInTheDocument();
+
+      // Row data
+      expect(screen.getByText('Rahul Verma')).toBeInTheDocument();
+      expect(screen.getByText('emp-101')).toBeInTheDocument();
+      expect(screen.getByText('EXIT-2026-001')).toBeInTheDocument();
+      expect(screen.getByText('View Details')).toBeInTheDocument();
+    });
+
+    it('ExitStagePage: confidential protection blocks manager from exit interview data', () => {
+      currentUserRole = 'MANAGER';
+      render(
+        <MemoryRouter initialEntries={['/exit-management/exit-interview']}>
+          <Routes>
+            <Route path="/exit-management/:stageSlug" element={<ExitStagePage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      expect(
+        screen.getByText(/Confidential HR Records: Manager Access Restricted/i)
+      ).toBeInTheDocument();
     });
   });
 });
