@@ -8,34 +8,28 @@ import {
   XCircle,
   Eye,
   ShieldAlert,
-  ArrowRight,
   UserX,
-  Laptop,
-  Building,
   CreditCard,
   FileCheck,
+  Building,
+  Laptop,
 } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
+import { Button } from '@/shared/ui/Button';
 import type { ExitCase, ExitStage, ClearanceDepartment } from '../types/exit.types';
 
 interface ExitRequestsTableProps {
   cases: ExitCase[];
   isLoading: boolean;
   onViewDetails: (exitCase: ExitCase) => void;
-  onAdvanceStage: (exitCase: ExitCase) => void;
-  onReject: (exitCase: ExitCase) => void;
-  onDeactivate: (exitCase: ExitCase) => void;
-  isActionLoading?: boolean;
+  onReject?: (exitCase: ExitCase) => void;
 }
 
 export const ExitRequestsTable: React.FC<ExitRequestsTableProps> = ({
   cases,
   isLoading,
   onViewDetails,
-  onAdvanceStage,
   onReject,
-  onDeactivate,
-  isActionLoading = false,
 }) => {
   const getStageBadge = (stage: ExitStage) => {
     switch (stage) {
@@ -60,6 +54,27 @@ export const ExitRequestsTable: React.FC<ExitRequestsTableProps> = ({
             Clearance Pending
           </Badge>
         );
+      case 'NOTICE_PERIOD':
+        return (
+          <Badge variant="brand" size="sm" className="font-semibold flex items-center gap-1 bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+            <Calendar className="w-3 h-3" />
+            Notice Period
+          </Badge>
+        );
+      case 'KNOWLEDGE_TRANSFER':
+        return (
+          <Badge variant="brand" size="sm" className="font-semibold flex items-center gap-1 bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+            <FileCheck className="w-3 h-3" />
+            Knowledge Transfer
+          </Badge>
+        );
+      case 'HR_REVIEW':
+        return (
+          <Badge variant="warning" size="sm" className="font-semibold flex items-center gap-1 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+            <Clock className="w-3 h-3" />
+            HR Review
+          </Badge>
+        );
       case 'MANAGER_REVIEW':
         return (
           <Badge variant="warning" size="sm" className="font-semibold flex items-center gap-1">
@@ -69,318 +84,236 @@ export const ExitRequestsTable: React.FC<ExitRequestsTableProps> = ({
         );
       case 'RESIGNATION_SUBMITTED':
         return (
-          <Badge variant="warning" size="sm" className="font-semibold flex items-center gap-1 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-            <Clock className="w-3 h-3" />
-            Submitted
+          <Badge variant="neutral" size="sm" className="font-semibold flex items-center gap-1">
+            <LogOut className="w-3 h-3" />
+            Resignation Submitted
+          </Badge>
+        );
+      case 'EXIT_INTERVIEW':
+        return (
+          <Badge variant="brand" size="sm" className="font-semibold flex items-center gap-1">
+            <User className="w-3 h-3" />
+            Exit Interview
+          </Badge>
+        );
+      case 'DOCUMENTS_PENDING':
+        return (
+          <Badge variant="neutral" size="sm" className="font-semibold flex items-center gap-1">
+            <FileCheck className="w-3 h-3" />
+            Documents Pending
+          </Badge>
+        );
+      case 'ACCESS_REVOCATION':
+        return (
+          <Badge variant="error" size="sm" className="font-semibold flex items-center gap-1">
+            <Laptop className="w-3 h-3" />
+            Access Revocation
           </Badge>
         );
       case 'REJECTED':
         return (
-          <Badge variant="danger" size="sm" className="font-semibold flex items-center gap-1">
+          <Badge variant="error" size="sm" className="font-semibold flex items-center gap-1">
             <XCircle className="w-3 h-3" />
             Rejected
           </Badge>
         );
-      default:
+      case 'WITHDRAWN':
         return (
-          <Badge variant="slate" size="sm" className="font-semibold">
-            {stage}
+          <Badge variant="neutral" size="sm" className="font-semibold flex items-center gap-1 text-gray-500">
+            <UserX className="w-3 h-3" />
+            Withdrawn
           </Badge>
         );
+      default:
+        return <Badge variant="neutral" size="sm">{stage}</Badge>;
     }
-  };
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const getDaysRemaining = (expectedLWD: string) => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const target = new Date(expectedLWD);
-      target.setHours(0, 0, 0, 0);
-      const diffTime = target.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays < 0) return `${Math.abs(diffDays)}d past LWD`;
-      if (diffDays === 0) return 'Last day today';
-      return `${diffDays}d remaining`;
-    } catch {
-      return '';
-    }
-  };
-
-  const formatReason = (reason: string) => {
-    return reason
-      .toLowerCase()
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
   };
 
   const getDepartmentIcon = (dept: ClearanceDepartment) => {
     switch (dept) {
+      case 'MANAGER':
+        return <User className="w-3 h-3" title="Manager" />;
       case 'IT':
-        return <Laptop className="w-3 h-3" />;
-      case 'HR':
-        return <FileCheck className="w-3 h-3" />;
+        return <Laptop className="w-3 h-3" title="IT" />;
       case 'FINANCE':
-        return <CreditCard className="w-3 h-3" />;
+        return <CreditCard className="w-3 h-3" title="Finance" />;
       case 'ADMIN':
-        return <Building className="w-3 h-3" />;
+        return <Building className="w-3 h-3" title="Admin" />;
+      case 'HR':
+        return <FileCheck className="w-3 h-3" title="HR" />;
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200 dark:border-zinc-800 animate-pulse">
-          <div className="h-4 w-48 bg-gray-200 dark:bg-zinc-800 rounded" />
-        </div>
-        <div className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="p-4 flex items-center justify-between gap-4 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-zinc-800" />
-                <div className="space-y-1.5">
-                  <div className="h-4 w-32 bg-gray-200 dark:bg-zinc-800 rounded" />
-                  <div className="h-3 w-24 bg-gray-200 dark:bg-zinc-800 rounded" />
-                </div>
-              </div>
-              <div className="h-4 w-28 bg-gray-200 dark:bg-zinc-800 rounded hidden md:block" />
-              <div className="h-4 w-20 bg-gray-200 dark:bg-zinc-800 rounded hidden sm:block" />
-              <div className="h-6 w-20 bg-gray-200 dark:bg-zinc-800 rounded-full" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (cases.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#171717] p-12 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
-          <LogOut className="w-7 h-7" />
-        </div>
-        <h3 className="text-base font-bold text-gray-900 dark:text-[#ececec]">
-          No Exit Cases Found
-        </h3>
-        <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mt-1">
-          No employee resignation or offboarding cases match your active filters. You can initiate a new exit case or reset filters.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#171717] overflow-hidden shadow-sm">
+    <div className="overflow-hidden rounded-2xl bg-white dark:bg-[#171717] border border-gray-200 dark:border-zinc-800 shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-zinc-800 bg-gray-50/75 dark:bg-[#1f1f1f]/50 text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider select-none">
-              <th className="py-3 px-4">Case # & Employee</th>
-              <th className="py-3 px-4">Exit Type & Reason</th>
-              <th className="py-3 px-4 hidden md:table-cell">Resignation Date</th>
-              <th className="py-3 px-4">Last Working Day</th>
-              <th className="py-3 px-4 hidden lg:table-cell">Clearance Sign-offs</th>
-              <th className="py-3 px-4">Stage</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+            <tr className="border-b border-gray-200 dark:border-zinc-800 bg-gray-50/75 dark:bg-zinc-900/50 text-gray-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
+              <th className="py-3.5 px-4">Case & Employee</th>
+              <th className="py-3.5 px-4">Department & Role</th>
+              <th className="py-3.5 px-4">Notice & LWD</th>
+              <th className="py-3.5 px-4">Workflow Stage</th>
+              <th className="py-3.5 px-4">Clearances (5 Depts)</th>
+              <th className="py-3.5 px-4">F&F Settlement</th>
+              <th className="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/80">
-            {cases.map((exitCase) => {
-              const daysRemaining = getDaysRemaining(exitCase.expectedLastWorkingDay);
-              const isSubmitted = exitCase.stage === 'RESIGNATION_SUBMITTED';
-              const isManagerReview = exitCase.stage === 'MANAGER_REVIEW';
-              const isClearance = exitCase.stage === 'CLEARANCE_PENDING';
-              const isCompleted = exitCase.stage === 'COMPLETED';
-
-              // Clearance stats
-              const clearances = exitCase.clearances || [];
-              const clearedCount = clearances.filter((c) => c.status === 'CLEARED').length;
-              const totalDepts = clearances.length || 4;
-
-              return (
-                <tr
-                  key={exitCase.id}
-                  className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group"
-                >
-                  {/* Case # & Employee */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-indigo-500 p-0.5 shadow-sm shadow-rose-500/10 flex-shrink-0">
-                        <div className="w-full h-full bg-white dark:bg-[#171717] rounded-[10px] flex items-center justify-center font-bold text-xs text-rose-600 dark:text-rose-400">
-                          {exitCase.employee?.name ? exitCase.employee.name[0] : <User className="w-4 h-4" />}
-                        </div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-gray-900 dark:text-[#ececec] text-sm truncate">
-                          {exitCase.employee?.name || 'Employee'}
-                        </div>
-                        <div className="text-[11px] text-gray-500 dark:text-zinc-400 flex items-center gap-1.5 truncate">
-                          <span className="font-mono text-brand-600 dark:text-brand-400 font-medium">
-                            {exitCase.caseNumber || `EXT-${exitCase.id.slice(0, 6)}`}
-                          </span>
-                          <span>&bull;</span>
-                          <span>{exitCase.employee?.department || 'Department'}</span>
-                        </div>
-                      </div>
-                    </div>
+          <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <tr key={idx} className="animate-pulse">
+                  <td className="py-4 px-4">
+                    <div className="h-4 w-32 bg-gray-200 dark:bg-zinc-800 rounded mb-1.5" />
+                    <div className="h-3 w-24 bg-gray-100 dark:bg-zinc-800/60 rounded" />
                   </td>
-
-                  {/* Exit Type & Reason */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="space-y-0.5">
-                      <div className="font-medium text-gray-900 dark:text-[#ececec] text-xs">
-                        {formatReason(exitCase.reason)}
+                  <td className="py-4 px-4">
+                    <div className="h-4 w-28 bg-gray-200 dark:bg-zinc-800 rounded mb-1.5" />
+                    <div className="h-3 w-20 bg-gray-100 dark:bg-zinc-800/60 rounded" />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-800 rounded mb-1.5" />
+                    <div className="h-3 w-16 bg-gray-100 dark:bg-zinc-800/60 rounded" />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="h-6 w-28 bg-gray-200 dark:bg-zinc-800 rounded-full" />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-800 rounded" />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="h-4 w-20 bg-gray-200 dark:bg-zinc-800 rounded" />
+                  </td>
+                  <td className="py-4 px-4 text-right">
+                    <div className="h-7 w-20 bg-gray-200 dark:bg-zinc-800 rounded float-right" />
+                  </td>
+                </tr>
+              ))
+            ) : cases.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-zinc-400">
+                  <LogOut className="w-8 h-8 mx-auto text-gray-300 dark:text-zinc-600 mb-2" />
+                  <p className="font-medium text-sm">No exit cases found matching criteria</p>
+                  <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
+                    Try adjusting search query or active filter chips
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              cases.map((exitCase) => {
+                const clearedCount = (exitCase.clearances || []).filter((c) => c.status === 'CLEARED').length;
+                return (
+                  <tr
+                    key={exitCase.id}
+                    className="hover:bg-gray-50/60 dark:hover:bg-zinc-800/30 transition-colors"
+                  >
+                    {/* Case ID & Employee */}
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        {exitCase.employeeName}
                       </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 font-medium">
-                        {exitCase.exitType}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Resignation Date */}
-                  <td className="py-3.5 px-4 whitespace-nowrap hidden md:table-cell">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-zinc-300">
-                      <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{formatDate(exitCase.resignationDate)}</span>
-                    </div>
-                    <div className="text-[11px] text-gray-400 dark:text-zinc-500">
-                      {exitCase.noticePeriodDays} days notice
-                    </div>
-                  </td>
-
-                  {/* Last Working Day */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-semibold text-gray-900 dark:text-zinc-200">
-                        {formatDate(exitCase.expectedLastWorkingDay)}
+                      <div className="text-[11px] font-mono text-gray-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                        <span className="bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                          {exitCase.caseNumber}
+                        </span>
+                        <span>{exitCase.employeeEmail}</span>
                       </div>
-                      {daysRemaining && (
-                        <div className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                          {daysRemaining}
-                        </div>
-                      )}
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Department Clearance Progress */}
-                  <td className="py-3.5 px-4 whitespace-nowrap hidden lg:table-cell">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-emerald-500 h-full rounded-full transition-all"
-                            style={{ width: `${(clearedCount / totalDepts) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">
-                          {clearedCount}/{totalDepts}
+                    {/* Department & Role */}
+                    <td className="py-3.5 px-4">
+                      <div className="text-gray-900 dark:text-gray-100 font-medium">
+                        {exitCase.designation}
+                      </div>
+                      <div className="text-[11px] text-gray-500 dark:text-zinc-400">
+                        {exitCase.department} • Mgr: {exitCase.managerName}
+                      </div>
+                    </td>
+
+                    {/* Notice & LWD */}
+                    <td className="py-3.5 px-4">
+                      <div className="text-gray-900 dark:text-gray-100 font-medium flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                        <span>
+                          {exitCase.expectedLastWorkingDay
+                            ? new Date(exitCase.expectedLastWorkingDay).toLocaleDateString()
+                            : 'TBD'}
                         </span>
                       </div>
-                      {/* Department badges */}
-                      <div className="flex items-center gap-1">
-                        {(['IT', 'HR', 'FINANCE', 'ADMIN'] as ClearanceDepartment[]).map((dept) => {
-                          const item = clearances.find((c) => c.department === dept);
-                          const isCleared = item?.status === 'CLEARED';
-                          const isFlagged = item?.status === 'FLAGGED';
+                      <div className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">
+                        {exitCase.noticeDays} days notice
+                      </div>
+                    </td>
+
+                    {/* Stage */}
+                    <td className="py-3.5 px-4">
+                      {getStageBadge(exitCase.stage)}
+                    </td>
+
+                    {/* Department Clearances */}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-1 mb-1">
+                        {(exitCase.clearances || []).map((c) => {
+                          let badgeBg = 'bg-gray-100 text-gray-400 border-gray-200 dark:bg-zinc-800 dark:text-zinc-500';
+                          if (c.status === 'CLEARED') badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800';
+                          else if (c.status === 'ON_HOLD') badgeBg = 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800';
+                          else if (c.status === 'REJECTED') badgeBg = 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800';
 
                           return (
                             <span
-                              key={dept}
-                              title={`${dept}: ${item?.status || 'PENDING'}`}
-                              className={`
-                                p-1 rounded-md text-[10px] flex items-center justify-center font-bold
-                                ${
-                                  isCleared
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                                    : isFlagged
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'
-                                    : 'bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400'
-                                }
-                              `}
+                              key={c.department}
+                              className={`p-1 rounded-md border text-[10px] ${badgeBg}`}
+                              title={`${c.department}: ${c.status}`}
                             >
-                              {getDepartmentIcon(dept)}
+                              {getDepartmentIcon(c.department)}
                             </span>
                           );
                         })}
                       </div>
-                    </div>
-                  </td>
+                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                        {clearedCount}/5 Cleared
+                      </span>
+                    </td>
 
-                  {/* Stage */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    {getStageBadge(exitCase.stage)}
-                  </td>
+                    {/* F&F Settlement */}
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        ₹{(exitCase.settlement?.netPayable ?? 0).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">
+                        Status: {exitCase.fnfStatus}
+                      </div>
+                    </td>
 
-                  {/* Actions */}
-                  <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      {/* View / Sheet */}
-                      <button
-                        type="button"
-                        onClick={() => onViewDetails(exitCase)}
-                        className="p-1.5 rounded-lg text-gray-600 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-                        title="View details & clearances sheet"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-
-                      {/* Advance Stage (Manager review -> Clearance -> FnF) */}
-                      {(isSubmitted || isManagerReview || isClearance) && (
-                        <button
-                          type="button"
-                          onClick={() => onAdvanceStage(exitCase)}
-                          disabled={isActionLoading}
-                          className="p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors disabled:opacity-50"
-                          title="Advance to next workflow stage"
+                    {/* Actions */}
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onViewDetails(exitCase)}
+                          className="h-8 text-xs gap-1"
                         >
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Details</span>
+                        </Button>
 
-                      {/* Reject Exit Case */}
-                      {(isSubmitted || isManagerReview) && (
-                        <button
-                          type="button"
-                          onClick={() => onReject(exitCase)}
-                          disabled={isActionLoading}
-                          className="p-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50"
-                          title="Reject resignation"
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </button>
-                      )}
-
-                      {/* Deactivate Employee (if completed or final stage and not yet deactivated) */}
-                      {(isCompleted || exitCase.stage === 'FNF_SETTLEMENT') && !exitCase.isDeactivated && (
-                        <button
-                          type="button"
-                          onClick={() => onDeactivate(exitCase)}
-                          disabled={isActionLoading}
-                          className="p-1.5 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors disabled:opacity-50"
-                          title="Deactivate employee access & revoke accounts"
-                        >
-                          <UserX className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                        {exitCase.stage !== 'COMPLETED' && exitCase.stage !== 'REJECTED' && onReject && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onReject(exitCase)}
+                            className="h-8 text-xs text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                          >
+                            Reject
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

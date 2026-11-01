@@ -3,8 +3,7 @@ import { ErrorDisplay } from '@/shared/ui/ErrorDisplay';
 import { useToast } from '@/shared/ui/Toast';
 import {
   useGetExitCasesQuery,
-  useGetExitAnalyticsQuery,
-  useUpdateExitStageMutation,
+  useGetExitStatsQuery,
 } from '../api/exitsApi';
 import type { ExitCase, ExitStage, ExitFilters as ExitFiltersType } from '../types/exit.types';
 import { ExitStatsCards } from '../components/ExitStatsCards';
@@ -13,7 +12,6 @@ import { ExitRequestsTable } from '../components/ExitRequestsTable';
 import { ExitDetailSheet } from '../components/ExitDetailSheet';
 import { CreateExitModal } from '../components/CreateExitModal';
 import { RejectExitModal } from '../components/RejectExitModal';
-import { DeactivateEmployeeModal } from '../components/DeactivateEmployeeModal';
 
 export const ExitManagementPage: React.FC = () => {
   const toast = useToast();
@@ -29,8 +27,6 @@ export const ExitManagementPage: React.FC = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedCaseForReject, setSelectedCaseForReject] = useState<ExitCase | null>(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [selectedCaseForDeactivate, setSelectedCaseForDeactivate] = useState<ExitCase | null>(null);
-  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
 
   // RTK Query Filters Payload
   const queryFilters: ExitFiltersType = useMemo(
@@ -52,17 +48,14 @@ export const ExitManagementPage: React.FC = () => {
   } = useGetExitCasesQuery(queryFilters);
 
   const {
-    data: analyticsData,
-    isLoading: isAnalyticsLoading,
-    refetch: refetchAnalytics,
-  } = useGetExitAnalyticsQuery();
-
-  // Mutations
-  const [updateStage, { isLoading: isUpdatingStage }] = useUpdateExitStageMutation();
+    data: statsData,
+    isLoading: isStatsLoading,
+    refetch: refetchStats,
+  } = useGetExitStatsQuery();
 
   const handleRefreshAll = () => {
     refetchCases();
-    refetchAnalytics();
+    refetchStats();
     toast.info('Refreshed exit management data from server', 'Syncing Data');
   };
 
@@ -71,36 +64,9 @@ export const ExitManagementPage: React.FC = () => {
     setIsDetailSheetOpen(true);
   };
 
-  const handleAdvanceStage = async (exitCase: ExitCase) => {
-    let nextStage: ExitStage = 'MANAGER_REVIEW';
-    if (exitCase.stage === 'RESIGNATION_SUBMITTED') nextStage = 'MANAGER_REVIEW';
-    else if (exitCase.stage === 'MANAGER_REVIEW') nextStage = 'CLEARANCE_PENDING';
-    else if (exitCase.stage === 'CLEARANCE_PENDING') nextStage = 'FNF_SETTLEMENT';
-    else if (exitCase.stage === 'FNF_SETTLEMENT') nextStage = 'COMPLETED';
-
-    try {
-      await updateStage({
-        id: exitCase.id,
-        stage: nextStage,
-      }).unwrap();
-
-      toast.success(
-        `Case ${exitCase.caseNumber || exitCase.id} advanced to ${nextStage.replace('_', ' ')}!`,
-        'Stage Updated'
-      );
-    } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to update workflow stage', 'Action Error');
-    }
-  };
-
   const handleOpenReject = (exitCase: ExitCase) => {
     setSelectedCaseForReject(exitCase);
     setIsRejectModalOpen(true);
-  };
-
-  const handleOpenDeactivate = (exitCase: ExitCase) => {
-    setSelectedCaseForDeactivate(exitCase);
-    setIsDeactivateModalOpen(true);
   };
 
   const handleResetFilters = () => {
@@ -115,8 +81,8 @@ export const ExitManagementPage: React.FC = () => {
     <div className="space-y-6">
       {/* KPI Stats Cards */}
       <ExitStatsCards
-        summary={analyticsData || casesData?.summary}
-        isLoading={isAnalyticsLoading || isCasesLoading}
+        summary={statsData || casesData?.summary}
+        isLoading={isStatsLoading || isCasesLoading}
       />
 
       {/* Real-time Filters & Actions */}
@@ -148,10 +114,7 @@ export const ExitManagementPage: React.FC = () => {
           cases={items}
           isLoading={isCasesLoading}
           onViewDetails={handleViewDetails}
-          onAdvanceStage={handleAdvanceStage}
           onReject={handleOpenReject}
-          onDeactivate={handleOpenDeactivate}
-          isActionLoading={isUpdatingStage}
         />
       )}
 
@@ -177,15 +140,6 @@ export const ExitManagementPage: React.FC = () => {
         onClose={() => {
           setIsRejectModalOpen(false);
           setSelectedCaseForReject(null);
-        }}
-      />
-
-      <DeactivateEmployeeModal
-        exitCase={selectedCaseForDeactivate}
-        isOpen={isDeactivateModalOpen}
-        onClose={() => {
-          setIsDeactivateModalOpen(false);
-          setSelectedCaseForDeactivate(null);
         }}
       />
     </div>

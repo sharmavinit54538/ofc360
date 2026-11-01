@@ -1,8 +1,7 @@
 /**
  * @file exitsApi.ts
- * @description Enterprise RTK Query API service for Employee Exit Management,
- * Resignations, Clearances, Exit Interviews, and FnF Settlements.
- * Plugs directly into OFC360 backend using baseQueryWithReauth.
+ * @description Enterprise RTK Query API service for Exit Management (14-Stage Workflow).
+ * Backed by live /api/v1/exits/* routes, defensive response mappers, and robust tag invalidation.
  */
 
 import { createApi } from '@reduxjs/toolkit/query/react';
@@ -11,30 +10,49 @@ import type {
   ExitCase,
   ExitCaseListResponse,
   ExitFilters,
-  CreateExitCasePayload,
-  UpdateExitStagePayload,
-  SubmitClearancePayload,
-  SubmitExitInterviewPayload,
-  ProcessFnFPayload,
-  RejectExitPayload,
-  DeactivateEmployeePayload,
   ExitAnalyticsMetrics,
+  ResignPayload,
+  ManagerApprovePayload,
+  ManagerRejectPayload,
+  HrApprovePayload,
+  HrRejectPayload,
+  StartNoticePeriodPayload,
+  KtCompletePayload,
+  AssetReturnPayload,
+  ClearanceSignoffPayload,
+  FnFUpdatePayload,
+  ExitInterviewPayload,
+  GenerateDocumentsPayload,
+  CompleteExitPayload,
+  ExitAssetItem,
+  ExitDocumentItem,
+  FnFSettlement,
 } from '../types/exit.types';
-
-const transformResponse = <T>(response: any): T => {
-  if (response && typeof response === 'object' && 'data' in response && response.data !== undefined) {
-    return response.data as T;
-  }
-  return response as T;
-};
+import {
+  mapExitCase,
+  mapExitCaseListResponse,
+  mapExitAnalyticsMetrics,
+  mapExitAssets,
+  mapExitDocuments,
+  mapFnFSettlement,
+  unwrapApiResponse,
+} from '../mappers/exitMappers';
 
 export const exitsApi = createApi({
   reducerPath: 'exitsApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['ExitCases', 'ExitAnalytics'],
+  tagTypes: [
+    'ExitCases',
+    'ExitStats',
+    'MyExitRequest',
+    'ExitAssets',
+    'ExitDocuments',
+    'ExitFnF',
+  ],
   endpoints: (builder) => ({
     /**
-     * Retrieve paginated exit cases with filtering by search, stage, department, date.
+     * Retrieve paginated exit cases with search, stage, department, and status filters.
+     * Route: GET /api/v1/exits
      */
     getExitCases: builder.query<ExitCaseListResponse, ExitFilters | void>({
       query: (filters) => {
@@ -42,28 +60,18 @@ export const exitsApi = createApi({
         if (filters?.search) params.append('search', filters.search);
         if (filters?.stage && filters.stage !== 'ALL') params.append('stage', filters.stage);
         if (filters?.department && filters.department !== 'ALL') params.append('department', filters.department);
-        if (filters?.exitType && filters.exitType !== 'ALL') params.append('exitType', filters.exitType);
-        if (filters?.startDate) params.append('startDate', filters.startDate);
-        if (filters?.endDate) params.append('endDate', filters.endDate);
+        if (filters?.exitStatus && filters.exitStatus !== 'ALL') params.append('status', filters.exitStatus);
+        if (filters?.fnfStatus && filters.fnfStatus !== 'ALL') params.append('fnf_status', filters.fnfStatus);
+        if (filters?.startDate) params.append('start_date', filters.startDate);
+        if (filters?.endDate) params.append('end_date', filters.endDate);
         if (filters?.page) params.append('page', String(filters.page));
         if (filters?.limit) params.append('limit', String(filters.limit));
 
         const queryString = params.toString();
-        return `/offboarding/cases${queryString ? `?${queryString}` : ''}`;
+        return `/exits${queryString ? `?${queryString}` : ''}`;
       },
-      transformResponse: (response: any): ExitCaseListResponse => {
-        const data = transformResponse<any>(response);
-        if (Array.isArray(data)) {
-          return { items: data, total: data.length, page: 1, limit: data.length };
-        }
-        return {
-          items: data.items || data.cases || [],
-          total: data.total || data.count || (data.items ? data.items.length : 0),
-          page: data.page || 1,
-          limit: data.limit || 20,
-          summary: data.summary,
-        };
-      },
+      transformResponse: (response: unknown): ExitCaseListResponse =>
+        mapExitCaseListResponse(response),
       providesTags: (result) =>
         result?.items
           ? [
@@ -74,66 +82,201 @@ export const exitsApi = createApi({
     }),
 
     /**
-     * Fetch KPI metrics for Exit Overview (Active exits, pending clearances, FnF pending, completed).
+     * Fetch KPI metrics summary for Exit Overview.
+     * Route: GET /api/v1/exits/stats
      */
-    getExitAnalytics: builder.query<ExitAnalyticsMetrics, void>({
-      query: () => '/offboarding/analytics',
-      transformResponse: (response: any) => transformResponse<ExitAnalyticsMetrics>(response),
-      providesTags: [{ type: 'ExitAnalytics', id: 'METRICS' }],
+    getExitStats: builder.query<ExitAnalyticsMetrics, void>({
+      query: () => '/exits/stats',
+      transformResponse: (response: unknown): ExitAnalyticsMetrics =>
+        mapExitAnalyticsMetrics(response),
+      providesTags: [{ type: 'ExitStats', id: 'METRICS' }],
     }),
 
     /**
-     * Retrieve specific exit case with full clearance checklist and interview details.
+     * Retrieve specific exit case by ID with full details.
+     * Route: GET /api/v1/exits/{id}
      */
     getExitCaseById: builder.query<ExitCase, string>({
-      query: (id) => `/offboarding/cases/${encodeURIComponent(id)}`,
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      query: (id) => `/exits/${encodeURIComponent(id)}`,
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       providesTags: (_result, _error, id) => [{ type: 'ExitCases', id }],
     }),
 
     /**
-     * Initiate a new exit case / submit resignation.
+     * Retrieve the currently logged-in employee's active exit request.
+     * Route: GET /api/v1/exits/my-request
      */
-    createExitCase: builder.mutation<ExitCase, CreateExitCasePayload>({
+    getMyExitRequest: builder.query<ExitCase | null, void>({
+      query: () => '/exits/my-request',
+      transformResponse: (response: unknown): ExitCase | null => {
+        const unwrapped = unwrapApiResponse(response);
+        if (!unwrapped || (typeof unwrapped === 'object' && Object.keys(unwrapped).length === 0)) {
+          return null;
+        }
+        return mapExitCase(unwrapped);
+      },
+      providesTags: [{ type: 'MyExitRequest', id: 'CURRENT' }],
+    }),
+
+    /**
+     * Submit an employee resignation (ESS).
+     * Route: POST /api/v1/exits/resign
+     */
+    submitResignation: builder.mutation<ExitCase, ResignPayload>({
       query: (payload) => ({
-        url: '/offboarding/cases',
+        url: '/exits/resign',
         method: 'POST',
-        body: payload,
+        body: {
+          reason: payload.reason,
+          comments: payload.comments,
+          proposed_last_working_day: payload.proposedLastWorkingDay,
+          resignation_date: payload.resignationDate,
+          notice_period_days: payload.noticePeriodDays,
+        },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       invalidatesTags: [
+        { type: 'MyExitRequest', id: 'CURRENT' },
         { type: 'ExitCases', id: 'LIST' },
-        { type: 'ExitAnalytics', id: 'METRICS' },
+        { type: 'ExitStats', id: 'METRICS' },
       ],
     }),
 
     /**
-     * Update exit stage (e.g. advance to Manager Review, Clearance Pending, FnF Settlement, Completed).
+     * Withdraw currently active resignation request (ESS).
+     * Route: DELETE /api/v1/exits/my-request
      */
-    updateExitStage: builder.mutation<ExitCase, UpdateExitStagePayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/stage`,
+    withdrawMyRequest: builder.mutation<{ success: boolean; message?: string }, void>({
+      query: () => ({
+        url: '/exits/my-request',
+        method: 'DELETE',
+      }),
+      invalidatesTags: [
+        { type: 'MyExitRequest', id: 'CURRENT' },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+      ],
+    }),
+
+    /**
+     * Manager approval of resignation request.
+     * Route: PATCH /api/v1/exits/{id}/manager-approve
+     */
+    managerApprove: builder.mutation<ExitCase, ManagerApprovePayload>({
+      query: ({ id, comments }) => ({
+        url: `/exits/${encodeURIComponent(id)}/manager-approve`,
         method: 'PATCH',
-        body,
+        body: { comments },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'ExitCases', id },
         { type: 'ExitCases', id: 'LIST' },
-        { type: 'ExitAnalytics', id: 'METRICS' },
+        { type: 'ExitStats', id: 'METRICS' },
+        { type: 'MyExitRequest', id: 'CURRENT' },
       ],
     }),
 
     /**
-     * Submit departmental clearance sign-off (IT, HR, Finance, Admin).
+     * Manager rejection of resignation request.
+     * Route: PATCH /api/v1/exits/{id}/manager-reject
      */
-    submitClearanceSignoff: builder.mutation<ExitCase, SubmitClearancePayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/clearance`,
-        method: 'POST',
-        body,
+    managerReject: builder.mutation<ExitCase, ManagerRejectPayload>({
+      query: ({ id, rejectionReason }) => ({
+        url: `/exits/${encodeURIComponent(id)}/manager-reject`,
+        method: 'PATCH',
+        body: { rejection_reason: rejectionReason },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+        { type: 'MyExitRequest', id: 'CURRENT' },
+      ],
+    }),
+
+    /**
+     * HR approval of exit case.
+     * Route: PATCH /api/v1/exits/{id}/approve
+     */
+    hrApprove: builder.mutation<ExitCase, HrApprovePayload>({
+      query: ({ id, comments, lastWorkingDay }) => ({
+        url: `/exits/${encodeURIComponent(id)}/approve`,
+        method: 'PATCH',
+        body: {
+          comments,
+          last_working_day: lastWorkingDay,
+        },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+        { type: 'MyExitRequest', id: 'CURRENT' },
+      ],
+    }),
+
+    /**
+     * HR rejection of exit case.
+     * Route: PATCH /api/v1/exits/{id}/reject
+     */
+    hrReject: builder.mutation<ExitCase, HrRejectPayload>({
+      query: ({ id, rejectionReason }) => ({
+        url: `/exits/${encodeURIComponent(id)}/reject`,
+        method: 'PATCH',
+        body: { rejection_reason: rejectionReason },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+        { type: 'MyExitRequest', id: 'CURRENT' },
+      ],
+    }),
+
+    /**
+     * Formally initiate notice period tracking.
+     * Route: PATCH /api/v1/exits/{id}/start-notice-period
+     */
+    startNoticePeriod: builder.mutation<ExitCase, StartNoticePeriodPayload>({
+      query: ({ id, lastWorkingDay, remarks }) => ({
+        url: `/exits/${encodeURIComponent(id)}/start-notice-period`,
+        method: 'PATCH',
+        body: {
+          last_working_day: lastWorkingDay,
+          remarks,
+        },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+      ],
+    }),
+
+    /**
+     * Sign off Knowledge Transfer (KT) completion.
+     * Route: PATCH /api/v1/exits/{id}/knowledge-transfer-complete
+     */
+    completeKnowledgeTransfer: builder.mutation<ExitCase, KtCompletePayload>({
+      query: ({ id, remarks }) => ({
+        url: `/exits/${encodeURIComponent(id)}/knowledge-transfer-complete`,
+        method: 'PATCH',
+        body: { remarks },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'ExitCases', id },
         { type: 'ExitCases', id: 'LIST' },
@@ -141,15 +284,121 @@ export const exitsApi = createApi({
     }),
 
     /**
-     * Submit exit interview answers & ratings.
+     * Retrieve assigned assets for an exit case.
+     * Route: GET /api/v1/exits/{id}/assets
      */
-    submitExitInterview: builder.mutation<ExitCase, SubmitExitInterviewPayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/interview`,
-        method: 'POST',
-        body,
+    getExitAssets: builder.query<ExitAssetItem[], string>({
+      query: (id) => `/exits/${encodeURIComponent(id)}/assets`,
+      transformResponse: (response: unknown): ExitAssetItem[] =>
+        mapExitAssets(unwrapApiResponse(response)),
+      providesTags: (_result, _error, id) => [{ type: 'ExitAssets', id }],
+    }),
+
+    /**
+     * Mark an assigned asset as returned or condition verified.
+     * Route: PATCH /api/v1/exits/{id}/asset-return
+     */
+    returnExitAsset: builder.mutation<ExitCase, AssetReturnPayload>({
+      query: ({ id, assetId, condition, recoveryAmount, remarks }) => ({
+        url: `/exits/${encodeURIComponent(id)}/asset-return`,
+        method: 'PATCH',
+        body: {
+          asset_id: assetId,
+          condition,
+          recovery_amount: recoveryAmount,
+          remarks,
+        },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitAssets', id },
+      ],
+    }),
+
+    /**
+     * Submit departmental clearance signoff (Manager, IT, Finance, Admin, HR).
+     * Route: PATCH /api/v1/exits/{id}/clearance
+     */
+    submitClearanceSignoff: builder.mutation<ExitCase, ClearanceSignoffPayload>({
+      query: ({ id, department, status, remarks, reason }) => ({
+        url: `/exits/${encodeURIComponent(id)}/clearance`,
+        method: 'PATCH',
+        body: {
+          department,
+          status,
+          remarks,
+          reason,
+        },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitCases', id: 'LIST' },
+        { type: 'ExitStats', id: 'METRICS' },
+      ],
+    }),
+
+    /**
+     * Retrieve Full & Final calculation preview.
+     * Route: GET /api/v1/exits/{id}/fnf-preview
+     */
+    getFnFPreview: builder.query<FnFSettlement, string>({
+      query: (id) => `/exits/${encodeURIComponent(id)}/fnf-preview`,
+      transformResponse: (response: unknown): FnFSettlement =>
+        mapFnFSettlement(unwrapApiResponse(response)),
+      providesTags: (_result, _error, id) => [{ type: 'ExitFnF', id }],
+    }),
+
+    /**
+     * Process or update Full & Final settlement.
+     * Route: PATCH /api/v1/exits/{id}/fnf
+     */
+    updateFnFSettlement: builder.mutation<ExitCase, FnFUpdatePayload>({
+      query: ({ id, status, earnings, deductions, holdReason, transactionId, remarks }) => ({
+        url: `/exits/${encodeURIComponent(id)}/fnf`,
+        method: 'PATCH',
+        body: {
+          status,
+          earnings,
+          deductions,
+          hold_reason: holdReason,
+          transaction_id: transactionId,
+          remarks,
+        },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ExitCases', id },
+        { type: 'ExitFnF', id },
+        { type: 'ExitStats', id: 'METRICS' },
+      ],
+    }),
+
+    /**
+     * Submit exit interview feedback.
+     * Route: POST /api/v1/exits/{id}/exit-interview
+     */
+    submitExitInterview: builder.mutation<ExitCase, ExitInterviewPayload>({
+      query: ({ id, ...body }) => ({
+        url: `/exits/${encodeURIComponent(id)}/exit-interview`,
+        method: 'POST',
+        body: {
+          reason_for_leaving: body.reasonForLeaving,
+          work_environment_rating: body.workEnvironmentRating,
+          manager_behaviour_rating: body.managerBehaviourRating,
+          salary_benefits_rating: body.salaryBenefitsRating,
+          career_growth_rating: body.careerGrowthRating,
+          what_should_improve: body.whatShouldImprove,
+          would_rejoin: body.wouldRejoin,
+          additional_comments: body.additionalComments,
+        },
+      }),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'ExitCases', id },
         { type: 'ExitCases', id: 'LIST' },
@@ -157,53 +406,52 @@ export const exitsApi = createApi({
     }),
 
     /**
-     * Process Full and Final (FnF) Settlement.
+     * Retrieve generated exit documents.
+     * Route: GET /api/v1/exits/{id}/documents
      */
-    settleFnF: builder.mutation<ExitCase, ProcessFnFPayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/settlement`,
+    getExitDocuments: builder.query<ExitDocumentItem[], string>({
+      query: (id) => `/exits/${encodeURIComponent(id)}/documents`,
+      transformResponse: (response: unknown): ExitDocumentItem[] =>
+        mapExitDocuments(unwrapApiResponse(response)),
+      providesTags: (_result, _error, id) => [{ type: 'ExitDocuments', id }],
+    }),
+
+    /**
+     * Trigger generation of exit documents.
+     * Route: POST /api/v1/exits/{id}/generate-documents
+     */
+    generateExitDocuments: builder.mutation<ExitDocumentItem[], GenerateDocumentsPayload>({
+      query: ({ id, documentTypes }) => ({
+        url: `/exits/${encodeURIComponent(id)}/generate-documents`,
         method: 'POST',
-        body,
+        body: {
+          document_types: documentTypes,
+        },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitDocumentItem[] =>
+        mapExitDocuments(unwrapApiResponse(response)),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'ExitCases', id },
-        { type: 'ExitCases', id: 'LIST' },
-        { type: 'ExitAnalytics', id: 'METRICS' },
+        { type: 'ExitDocuments', id },
       ],
     }),
 
     /**
-     * Reject or cancel an exit case.
+     * Mark an exit case as fully completed.
+     * Route: PATCH /api/v1/exits/{id}/complete
      */
-    rejectExit: builder.mutation<ExitCase, RejectExitPayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/reject`,
-        method: 'POST',
-        body,
+    completeExit: builder.mutation<ExitCase, CompleteExitPayload>({
+      query: ({ id, remarks }) => ({
+        url: `/exits/${encodeURIComponent(id)}/complete`,
+        method: 'PATCH',
+        body: { remarks },
       }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
+      transformResponse: (response: unknown): ExitCase =>
+        mapExitCase(unwrapApiResponse(response)),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'ExitCases', id },
         { type: 'ExitCases', id: 'LIST' },
-        { type: 'ExitAnalytics', id: 'METRICS' },
-      ],
-    }),
-
-    /**
-     * Revoke employee credentials and deactivate system accounts upon departure.
-     */
-    deactivateEmployee: builder.mutation<ExitCase, DeactivateEmployeePayload>({
-      query: ({ id, ...body }) => ({
-        url: `/offboarding/cases/${encodeURIComponent(id)}/deactivate`,
-        method: 'POST',
-        body,
-      }),
-      transformResponse: (response: any) => transformResponse<ExitCase>(response),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'ExitCases', id },
-        { type: 'ExitCases', id: 'LIST' },
-        { type: 'ExitAnalytics', id: 'METRICS' },
+        { type: 'ExitStats', id: 'METRICS' },
       ],
     }),
   }),
@@ -211,13 +459,24 @@ export const exitsApi = createApi({
 
 export const {
   useGetExitCasesQuery,
-  useGetExitAnalyticsQuery,
+  useGetExitStatsQuery,
   useGetExitCaseByIdQuery,
-  useCreateExitCaseMutation,
-  useUpdateExitStageMutation,
+  useGetMyExitRequestQuery,
+  useSubmitResignationMutation,
+  useWithdrawMyRequestMutation,
+  useManagerApproveMutation,
+  useManagerRejectMutation,
+  useHrApproveMutation,
+  useHrRejectMutation,
+  useStartNoticePeriodMutation,
+  useCompleteKnowledgeTransferMutation,
+  useGetExitAssetsQuery,
+  useReturnExitAssetMutation,
   useSubmitClearanceSignoffMutation,
+  useGetFnFPreviewQuery,
+  useUpdateFnFSettlementMutation,
   useSubmitExitInterviewMutation,
-  useSettleFnFMutation,
-  useRejectExitMutation,
-  useDeactivateEmployeeMutation,
+  useGetExitDocumentsQuery,
+  useGenerateExitDocumentsMutation,
+  useCompleteExitMutation,
 } = exitsApi;

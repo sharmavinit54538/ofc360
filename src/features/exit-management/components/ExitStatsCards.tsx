@@ -15,10 +15,16 @@ interface ExitStatsCardsProps {
 }
 
 export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({ summary, isLoading }) => {
+  const activeCount = summary?.activeExits ?? (summary as any)?.totalActiveExits ?? 0;
+  const pendingMgrCount = summary?.pendingManagerReviews ?? 0;
+  const pendingClearancesCount = summary?.pendingClearances ?? (summary as any)?.clearancesPending ?? 0;
+  const completedCount = summary?.completedThisMonth ?? 0;
+  const avgNotice = summary?.averageNoticeDays ?? 30;
+
   const cards = [
     {
-      title: 'Active Offboardings',
-      value: summary?.totalActiveExits ?? 0,
+      title: 'Active Exits',
+      value: activeCount,
       icon: LogOut,
       color: 'text-indigo-600 dark:text-indigo-400',
       bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200/60 dark:border-indigo-900/30',
@@ -26,31 +32,31 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({ summary, isLoadi
     },
     {
       title: 'Pending Manager Review',
-      value: summary?.pendingManagerReviews ?? 0,
+      value: pendingMgrCount,
       icon: Clock,
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/30',
       description: 'Awaiting manager approval & sign-off',
-      badge: (summary?.pendingManagerReviews ?? 0) > 0 ? 'Action Required' : undefined,
+      badge: pendingMgrCount > 0 ? 'Action Required' : undefined,
     },
     {
       title: 'Clearances In Progress',
-      value: summary?.clearancesPending ?? 0,
+      value: pendingClearancesCount,
       icon: ShieldAlert,
       color: 'text-blue-600 dark:text-blue-400',
       bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-900/30',
-      description: 'IT, HR, Finance, or Admin sign-offs pending',
+      description: 'Manager, IT, Finance, Admin, or HR signoffs',
     },
     {
-      title: 'FnF Settled / Completed',
-      value: summary?.completedThisMonth ?? 0,
+      title: 'Completed Exits',
+      value: completedCount,
       icon: CheckCircle2,
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-900/30',
-      description: 'Successfully offboarded this cycle',
-      extra: summary?.averageNoticeDays ? (
+      description: 'Successfully exited this cycle',
+      extra: avgNotice ? (
         <span className="flex items-center gap-1 text-[11px] text-gray-400">
-          <Calendar className="w-3 h-3" /> Avg {summary.averageNoticeDays}d notice
+          <Calendar className="w-3 h-3" /> Avg {avgNotice}d notice
         </span>
       ) : undefined,
     },
