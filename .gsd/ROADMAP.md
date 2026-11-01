@@ -1,33 +1,34 @@
-# ROADMAP: Digital Signatures & E-Signs Module
+# ROADMAP: Exit Management (Full 14-Stage Workflow)
 
-## Waves
+## Work Packages & Execution Plan
 
-- [ ] **Wave 1: Foundation (Data Layer, API, Utils & Tests)**
-  - [x] Finalize `SPEC.md` and `ROADMAP.md`
-  - [ ] Fix `prepareHeaders` in `src/shared/api/baseQuery.ts` for `FormData` and add unit test
-  - [ ] Implement `types/signatures.types.ts` and `schemas/signatures.schemas.ts`
-  - [ ] Implement `utils/signatureUtils.ts` (business rules, sequential order, expiration, decline, reminder throttling) with comprehensive Vitest tests
-  - [ ] Implement `api/signaturesMock.ts` with seeded realistic fixtures (12 requests, 7 statuses, audit events)
-  - [ ] Implement `api/signaturesApi.ts` with robust normalizers (envelope/raw, camel/snake) and register in `src/app/store.ts`
-  - [ ] Add unit tests for `signaturesApi.ts` normalizers and error fallbacks
+- [ ] **Wave 1: Contract Baseline, Types, Mappers & API Layer**
+  - [x] EXIT-00: Contract baseline, diffing, `docs/EXIT_CONTRACT.md`, baseline audit
+  - [ ] EXIT-01: Data layer rewrite (`exitsApi.ts`), `mappers/exitMappers.ts`, types, Zod schemas, unit tests
 
-- [ ] **Wave 2: Tracking & Hub Integration (Dashboard, Requests, Timeline)**
-  - [ ] Integrate into `DocumentsComplianceHubPage.tsx`: remove hardcoded '14' counters, add 'esign' category, hero button, and deep-link routing
-  - [ ] Implement `SignatureStatsCards.tsx` (KPI metrics)
-  - [ ] Implement `SignatureRequestsTable.tsx` with filter bar (search, status, type, date range, scope), countdowns, and action menus
-  - [ ] Implement `SignatureAuditTimeline.tsx` and `SignatureRequestDetailSheet.tsx`
-  - [ ] Implement `SignatureCenter.tsx` shell hosting Overview, Requests, To Sign, Templates & Settings tabs
-  - [ ] Add integration tests for `SignatureCenter.tsx` and `DocumentsComplianceHubPage.tsx`
+- [ ] **Wave 2: Module Shell, Routing, Navigation & ESS**
+  - [ ] EXIT-02: Nested routing under `/dashboard/exit-management/*`, layout with sub-nav, role guards, sidebar & audit-sidebar update
+  - [ ] EXIT-03: Employee Self-Service ("My Exit") screen with profile pre-fill, active request guard, withdrawal
 
-- [ ] **Wave 3: Creation, Signing & Document Generator Hook-in**
-  - [ ] Implement `SignaturePad.tsx` (Draw canvas with undo & stroke detection, Type with fonts, Upload) with unit tests
-  - [ ] Implement `NewSignatureRequestWizard.tsx` (4 steps: Document, Signers, Details, Review) with validation tests
-  - [ ] Implement `SignDocumentModal.tsx` (consent gating, optional OTP, confirmation screen)
-  - [ ] Implement action dialogs: `DeclineSignatureModal.tsx`, `CancelRequestModal.tsx`, `RemindSignersModal.tsx`, `ResendRequestModal.tsx`
-  - [ ] Add "Send for E-Sign" action in `GeneratedDocumentCard.tsx` with auto-send hint
+- [ ] **Wave 3: Core Lifecyle Queues (Approvals, Notice, KT, Assets)**
+  - [ ] EXIT-04: Approvals queue (Manager queue & HR queue, reason requirements, timeline audit)
+  - [ ] EXIT-05: Notice Period screen (Calculated days served/remaining, early release/buyout API gap banners)
+  - [ ] EXIT-06: Knowledge Transfer screen (7-task checklist fallback, manager verification)
+  - [ ] EXIT-07: Asset Recovery screen (GET assets, PATCH asset-return, IT/HR admin roles)
 
-- [ ] **Wave 4: External Signer Experience, Polish & Final Verification**
-  - [ ] Implement `/sign/:token` public route (`ExternalSignPage.tsx`) in `src/app/router/AppRoutes.tsx`
-  - [ ] Add `DigitalSignatureConfig` disabled banner & Settings link in Templates & Settings tab
-  - [ ] Mobile responsive (360px) and dark mode styling audit
-  - [ ] Final verification: full test suite, build check, and zero hardcoded '14' counters
+- [ ] **Wave 4: Clearances, Financial Settlement, Feedback & Documents**
+  - [ ] EXIT-08: Department Clearance screen (5 departments: Manager, IT, Finance, Admin, HR with Clear/Hold/Reject)
+  - [ ] EXIT-09: Full & Final (F&F) Settlement screen (earnings, deductions, payment statuses, statement download)
+  - [ ] EXIT-10: Exit Interview screen (Comprehensive questionnaire, strict HR/Admin visibility)
+  - [ ] EXIT-11: Documents screen (Generate documents, document history, secure blob download)
+
+- [ ] **Wave 5: Completion, Post-Exit, Analytics & Settings**
+  - [ ] EXIT-12: IT Access Revocation & Final Exit Completion (LWD timezone check, F&F independent completion)
+  - [ ] EXIT-13: Exited Employees & Post-Exit Archive (Completed cases history, document delivery status)
+  - [ ] EXIT-14: Exit Analytics & Reporting (Stats, attrition aggregation, SVG charts, CSV export)
+  - [ ] EXIT-15: Exit Dashboard & Audit Hub (KPI cards, role action lists, SLA highlights, audit timeline)
+  - [ ] EXIT-16: Exit Settings screen (Clean API gap banner with route requirements)
+
+- [ ] **Wave 6: Verification, Test Suite & Documentation Finalization**
+  - [ ] EXIT-17: Comprehensive Vitest test suite (4 states, mutations, RBAC gating, business constraints)
+  - [ ] EXIT-18: Documentation, dead code cleanup, role matrix, API gaps, final commit
