@@ -17,7 +17,6 @@ import {
   Settings,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { Badge } from '@/shared/ui/Badge';
 import type { UserRole } from '@/features/auth/types/auth.types';
 
 export interface ExitNavigationTab {
@@ -142,30 +141,6 @@ export const ExitManagementLayout: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-gray-200 dark:border-zinc-800">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-              Exit Management &amp; Offboarding
-            </h1>
-            <Badge variant="brand" size="sm" className="font-semibold text-[10px]">
-              14-STAGE WORKFLOW
-            </Badge>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            End-to-end offboarding pipeline: Resignation, approvals, notice tracking, KT, clearances, and settlement.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 dark:text-zinc-500 font-medium">Acting as:</span>
-          <Badge variant="neutral" size="sm" className="font-bold">
-            {userRole.replace('_', ' ')}
-          </Badge>
-        </div>
-      </div>
-
       {/* Sub-Navigation Tabs */}
       <nav
         aria-label="Exit Management Sub-Navigation"
@@ -217,3 +192,4 @@ export const ExitManagementLayout: React.FC = () => {
 };
 
 export default ExitManagementLayout;
+
