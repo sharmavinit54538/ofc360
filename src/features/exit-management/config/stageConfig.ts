@@ -249,3 +249,4 @@ export const getStageConfigBySlug = (slug?: string): ExitStageConfig => {
 export const getStageConfigByStage = (stage: ExitStage | 'ALL'): ExitStageConfig => {
   return STAGE_BY_ID[stage] || STAGE_CONFIGS[0];
 };
+

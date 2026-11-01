@@ -135,6 +135,7 @@ const DialogPanel = forwardRef<HTMLDivElement, DialogPanelProps>(
       variant = 'dialog',
       side = 'right',
       onMouseDown,
+      onKeyDown,
       ...props
     },
     forwardedRef,
@@ -166,11 +167,6 @@ const DialogPanel = forwardRef<HTMLDivElement, DialogPanelProps>(
       (focusable ?? panelRef.current).focus();
 
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape' && dismissible) {
-          event.preventDefault();
-          context.onOpenChange(false);
-          return;
-        }
         if (event.key !== 'Tab' || !panelRef.current) return;
 
         const items = Array.from(
@@ -244,6 +240,13 @@ const DialogPanel = forwardRef<HTMLDivElement, DialogPanelProps>(
           aria-describedby={describedBy}
           tabIndex={-1}
           data-state="open"
+          onKeyDown={(event) => {
+            onKeyDown?.(event);
+            if (!event.defaultPrevented && event.key === 'Escape' && dismissible) {
+              event.preventDefault();
+              context.onOpenChange(false);
+            }
+          }}
           onMouseDown={(event) => {
             onMouseDown?.(event);
             if (event.defaultPrevented) return;

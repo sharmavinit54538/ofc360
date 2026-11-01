@@ -33,7 +33,6 @@ interface SelectContextValue {
   contentId: string;
   /** Map from item value → item label, so the trigger can display the selected label. */
   registerItem: (value: string, label: string) => void;
-  unregisterItem: (value: string) => void;
   itemLabels: Record<string, string>;
 }
 
@@ -180,15 +179,6 @@ const SelectRoot: React.FC<SelectRootProps> = ({
     setItemLabels((prev) => (prev[itemValue] === label ? prev : { ...prev, [itemValue]: label }));
   }, []);
 
-  const unregisterItem = useCallback((itemValue: string) => {
-    setItemLabels((prev) => {
-      if (!(itemValue in prev)) return prev;
-      const next = { ...prev };
-      delete next[itemValue];
-      return next;
-    });
-  }, []);
-
   return (
     <SelectContext.Provider
       value={{
@@ -200,7 +190,6 @@ const SelectRoot: React.FC<SelectRootProps> = ({
         triggerId,
         contentId,
         registerItem,
-        unregisterItem,
         itemLabels,
       }}
     >
@@ -416,7 +405,7 @@ export interface SelectItemProps {
 export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
   ({ value, children, label, disabled, className, onSelect, selected: _selected }, ref) => {
     const ctx = useSelectContext();
-    const { value: selectedValue, onValueChange, registerItem, unregisterItem } = ctx;
+    const { value: selectedValue, onValueChange, registerItem } = ctx;
     const isSelected = selectedValue === value;
 
     // Derive the display text for this item
@@ -426,8 +415,7 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
     // Register / unregister label so the trigger can display it
     useEffect(() => {
       registerItem(value, labelStr);
-      return () => unregisterItem(value);
-    }, [value, labelStr, registerItem, unregisterItem]);
+    }, [value, labelStr, registerItem]);
 
     const handleSelect = () => {
       if (!disabled) {

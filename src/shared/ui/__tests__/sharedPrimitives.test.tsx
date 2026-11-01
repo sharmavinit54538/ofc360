@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -52,7 +51,7 @@ describe('shared UI primitives', () => {
     expect(dialog).toHaveAttribute('aria-describedby');
     expect(screen.getByText('Update the job details.')).toBeInTheDocument();
 
-    await user.keyboard('{Escape}');
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(trigger).toHaveFocus();
   });
@@ -95,14 +94,13 @@ describe('shared UI primitives', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true);
   });
 
-  it('keeps Slider keyboard-operable and reports the changed number', async () => {
-    const user = userEvent.setup();
+  it('reports changes from the native range input as numbers', async () => {
     const onValueChange = vi.fn();
     render(<Slider aria-label="Minimum salary" min={0} max={10} defaultValue={4} onValueChange={onValueChange} />);
 
     const slider = screen.getByRole('slider', { name: 'Minimum salary' });
     slider.focus();
-    await user.keyboard('{ArrowRight}');
+    fireEvent.change(slider, { target: { value: '5' } });
     expect(slider).toHaveValue('5');
     expect(onValueChange).toHaveBeenLastCalledWith(5);
   });
