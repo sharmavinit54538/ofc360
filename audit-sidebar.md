@@ -77,8 +77,7 @@
 - Expense Claims (Receipt) - ExpenseClaimsPage
 - Travel Requests (Plane) - TravelRequestsPage
 - Onboarding Checklist (UserCheck) - OnboardingChecklistPage
-- Offboarding (PackageMinus) - ExitManagementPage
-- Exit Management (LogOut) - ExitManagementPage **DUPLICATE**
+- Offboarding / Exit Management (LogOut) - `/dashboard/exit-management/*` (ExitManagementLayout with 14-stage workflow)
 - Settings (Settings) - ComingSoonView
 
 ## Actual Implemented Pages (with routes)

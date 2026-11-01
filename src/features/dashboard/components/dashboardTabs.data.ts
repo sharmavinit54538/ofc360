@@ -334,6 +334,8 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'rosters': 'attendance',
   'holidays': 'attendance',
   'timesheets': 'attendance',
+  'exit-management': 'hrops',
+  'offboarding': 'hrops',
 };
 
 /**

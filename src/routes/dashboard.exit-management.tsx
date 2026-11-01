@@ -1,14 +1,8 @@
-/**
- * @file dashboard.exit-management.tsx
- * @description Dedicated route component for Exit Management & Offboarding.
- * Integrates ExitManagementPage with the enterprise DashboardShell layout.
- */
-
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
-import { ExitManagementPage } from '@/features/exit-management/pages/ExitManagementPage';
+import { ExitManagementLayout } from '@/features/exit-management/layouts/ExitManagementLayout';
 
 export const DashboardExitManagementRoute: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +14,6 @@ export const DashboardExitManagementRoute: React.FC = () => {
 
   const handleTabChange = useCallback(
     (tabId: string) => {
-      // If clicking another tab from sidebar, navigate back to HR dashboard with hash
       navigate(`/dashboard/hr-admin#${tabId}`);
     },
     [navigate]
@@ -39,7 +32,7 @@ export const DashboardExitManagementRoute: React.FC = () => {
       sidebarCollapsed={sidebarCollapsed}
       onSidebarToggle={toggleSidebar}
     >
-      <ExitManagementPage />
+      <ExitManagementLayout />
     </DashboardShell>
   );
 };

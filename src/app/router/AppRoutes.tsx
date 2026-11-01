@@ -51,6 +51,22 @@ import { AssetsSection } from '@/features/settings/components/AssetsSection';
 import { NotificationsSection } from '@/features/settings/components/NotificationsSection';
 import { MyProfileSection } from '@/features/settings/components/MyProfileSection';
 
+// Exit Management Module (14-Stage Workflow)
+const ExitManagementPage = React.lazy(() => import('@/features/exit-management/pages/ExitManagementPage'));
+const MyExitPage = React.lazy(() => import('@/features/exit-management/pages/MyExitPage'));
+const ExitApprovalsPage = React.lazy(() => import('@/features/exit-management/pages/ExitApprovalsPage'));
+const ExitNoticePeriodPage = React.lazy(() => import('@/features/exit-management/pages/ExitNoticePeriodPage'));
+const ExitKnowledgeTransferPage = React.lazy(() => import('@/features/exit-management/pages/ExitKnowledgeTransferPage'));
+const ExitAssetRecoveryPage = React.lazy(() => import('@/features/exit-management/pages/ExitAssetRecoveryPage'));
+const ExitClearancePage = React.lazy(() => import('@/features/exit-management/pages/ExitClearancePage'));
+const ExitFnFPage = React.lazy(() => import('@/features/exit-management/pages/ExitFnFPage'));
+const ExitInterviewPage = React.lazy(() => import('@/features/exit-management/pages/ExitInterviewPage'));
+const ExitDocumentsPage = React.lazy(() => import('@/features/exit-management/pages/ExitDocumentsPage'));
+const ExitAccessDeactivationPage = React.lazy(() => import('@/features/exit-management/pages/ExitAccessDeactivationPage'));
+const ExitedEmployeesPage = React.lazy(() => import('@/features/exit-management/pages/ExitedEmployeesPage'));
+const ExitAnalyticsPage = React.lazy(() => import('@/features/exit-management/pages/ExitAnalyticsPage'));
+const ExitSettingsPage = React.lazy(() => import('@/features/exit-management/pages/ExitSettingsPage'));
+
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ROLE_DASHBOARD_ROUTES, normalizeRole } from '@/features/auth/types/auth.types';
@@ -210,16 +226,127 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Exit Management & Offboarding */}
+      {/* Exit Management & Offboarding 14-Stage Nested Workflow */}
       <Route
         path="/dashboard/exit-management"
         element={
           <ProtectedRoute
-            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <DashboardExitManagementRoute />
           </ProtectedRoute>
         }
+      >
+        <Route index element={<ExitManagementPage />} />
+        <Route path="overview" element={<ExitManagementPage />} />
+        <Route
+          path="my-exit"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}>
+              <MyExitPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="approvals"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+              <ExitApprovalsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="notice-period"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+              <ExitNoticePeriodPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="knowledge-transfer"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+              <ExitKnowledgeTransferPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="asset-recovery"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN']}>
+              <ExitAssetRecoveryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="clearance"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'IT_ADMIN']}>
+              <ExitClearancePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="fnf"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN']}>
+              <ExitFnFPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="interview"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN']}>
+              <ExitInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="documents"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+              <ExitDocumentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="access-deactivation"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN']}>
+              <ExitAccessDeactivationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="exited-employees"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'IT_ADMIN']}>
+              <ExitedEmployeesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="analytics"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+              <ExitAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN']}>
+              <ExitSettingsPage />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      <Route
+        path="/dashboard/my-exit"
+        element={<Navigate to="/dashboard/exit-management/my-exit" replace />}
       />
 
       {/* Employee Onboarding Checklist & Progress */}
