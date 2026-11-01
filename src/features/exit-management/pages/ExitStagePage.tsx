@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useTransition } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -41,9 +41,10 @@ import { calculateNoticeDays } from '../mappers/exitMappers';
 export const ExitStagePage: React.FC = () => {
   const { stageSlug } = useParams<{ stageSlug: string }>();
   const navigate = useNavigate();
+  const [, startTransition] = useTransition();
   const toast = useToast();
-  const { user } = useAuth();
-  const userRole = user?.role || 'EMPLOYEE';
+  const { user, activeRole } = useAuth();
+  const userRole = activeRole || (user?.roles?.[0] || 'EMPLOYEE');
 
   // Resolve Stage Configuration from URL slug
   const stageConfig: ExitStageConfig = useMemo(
@@ -264,7 +265,7 @@ export const ExitStagePage: React.FC = () => {
           </p>
           <Button
             variant="outline"
-            onClick={() => navigate('/dashboard/exit-management')}
+            onClick={() => startTransition(() => navigate('/dashboard/exit-management'))}
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -304,7 +305,7 @@ export const ExitStagePage: React.FC = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate('/dashboard/exit-management')}
+          onClick={() => startTransition(() => navigate('/dashboard/exit-management'))}
           className="gap-1.5 text-xs self-start sm:self-auto border-gray-200 dark:border-zinc-800"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -368,7 +369,9 @@ export const ExitStagePage: React.FC = () => {
         onSelectStage={(stage) => {
           const target = STAGE_CONFIGS.find((s) => s.stage === stage);
           if (target) {
-            navigate(target.routePath);
+            startTransition(() => {
+              navigate(target.routePath);
+            });
           }
         }}
         isLoading={isStatsLoading}

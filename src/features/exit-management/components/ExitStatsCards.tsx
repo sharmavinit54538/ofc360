@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useTransition } from 'react';
 import { useNavigate, useInRouterContext } from 'react-router-dom';
 import {
   LogOut,
@@ -54,6 +54,7 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
 }) => {
   const inRouter = useInRouterContext();
   const navigate = inRouter ? useNavigate() : undefined;
+  const [, startTransition] = useTransition();
   const activeCount = summary?.activeExits ?? (summary as any)?.totalActiveExits ?? 0;
 
   const pendingMgrCount = summary?.pendingManagerReviews ?? 0;
@@ -193,7 +194,9 @@ export const ExitStatsCards: React.FC<ExitStatsCardsProps> = ({
                 onClick={() => {
                   onSelectStage?.(stage.id);
                   if (enableNavigation && navigate) {
-                    navigate(stage.routePath);
+                    startTransition(() => {
+                      navigate(stage.routePath);
+                    });
                   }
                 }}
                 aria-selected={isSelected}

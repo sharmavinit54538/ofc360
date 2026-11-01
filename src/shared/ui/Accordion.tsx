@@ -1,118 +1,196 @@
-import React, { forwardRef } from 'react';
-import { cn } from '../lib/utils';
+import React, { forwardRef, useId, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { cn } from '../lib/utils';
 
-interface AccordionProps {
+type AccordionValue = string | string[];
+
+export interface AccordionProps extends React.HTMLAttributes<HTMLDivElement> {
   type?: 'single' | 'multiple';
-  value?: string | string[];
-  onValueChange?: (value: string | string[]) => void;
-  children: React.ReactNode;
-  className?: string;
+  value?: AccordionValue;
+  defaultValue?: AccordionValue;
+  collapsible?: boolean;
+  onValueChange?: (value: AccordionValue) => void;
 }
 
-const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
-  ({ type = 'multiple', value, onValueChange, children, className, ...props }, ref) => {
-    const values = Array.isArray(value) ? value : value ? [value] : [];
+interface AccordionItemCloneProps {
+  value: string;
+  isOpen?: boolean;
+  disabled?: boolean;
+  onToggle?: (open: boolean, itemValue: string) => void;
+}
+
+export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
+  (
+    {
+      type = 'multiple',
+      value: controlledValue,
+      defaultValue,
+      collapsible = false,
+      onValueChange,
+      children,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
+    const [uncontrolledValue, setUncontrolledValue] = useState<AccordionValue>(
+      defaultValue ?? (type === 'multiple' ? [] : ''),
+    );
+    const isControlled = controlledValue !== undefined;
+    const activeValue = isControlled ? controlledValue : uncontrolledValue;
+    const values = Array.isArray(activeValue) ? activeValue : activeValue ? [activeValue] : [];
+
+    const handleToggle = (open: boolean, itemValue: string) => {
+      let nextValue: AccordionValue;
+      if (type === 'single') {
+        const isOpen = values.includes(itemValue);
+        if (open) nextValue = itemValue;
+        else if (isOpen && collapsible) nextValue = '';
+        else return;
+      } else {
+        nextValue = open
+          ? [...values, itemValue]
+          : values.filter((valueItem) => valueItem !== itemValue);
+      }
+
+      if (!isControlled) setUncontrolledValue(nextValue);
+      onValueChange?.(nextValue);
+    };
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)} {...props}>
+      <div ref={ref} className={cn('space-y-2', className)} data-orientation="vertical" {...props}>
         {React.Children.map(children, (child) => {
           if (!React.isValidElement(child)) return child;
-          return React.cloneElement(child as React.ReactElement<any>, {
-            isOpen: values.includes((child.props as any).value),
-            onToggle: (open: boolean, itemValue: string) => {
-              if (type === 'single') {
-                onValueChange?.(open ? itemValue : '');
-              } else {
-                const newValues = open
-                  ? [...values, itemValue]
-                  : values.filter((v) => v !== itemValue);
-                onValueChange?.(newValues);
-              }
-            },
+          const item = child as React.ReactElement<AccordionItemCloneProps>;
+          return React.cloneElement(item, {
+            isOpen: values.includes(item.props.value),
+            onToggle: handleToggle,
           });
         })}
       </div>
     );
-  }
+  },
 );
 Accordion.displayName = 'Accordion';
 
-interface AccordionItemProps {
+export interface AccordionItemProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;
   isOpen?: boolean;
+  disabled?: boolean;
   onToggle?: (open: boolean, value: string) => void;
-  children: React.ReactNode;
-  className?: string;
 }
 
-const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
-  ({ value, isOpen = false, onToggle, children, className, ...props }, ref) => {
+interface AccordionPartCloneProps {
+  isOpen?: boolean;
+  disabled?: boolean;
+  onToggle?: (open: boolean) => void;
+  triggerId?: string;
+  contentId?: string;
+}
+
+export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
+  ({ value, isOpen = false, disabled = false, onToggle, children, className, ...props }, ref) => {
+    const itemId = useId();
+    const triggerId = `accordion-trigger-${itemId}`;
+    const contentId = `accordion-content-${itemId}`;
+
     return (
-      <div ref={ref} className={cn('border rounded-xl overflow-hidden', className)} {...props}>
+      <div
+        ref={ref}
+        className={cn('border rounded-xl overflow-hidden', className)}
+        data-state={isOpen ? 'open' : 'closed'}
+        data-disabled={disabled ? '' : undefined}
+        {...props}
+      >
         {React.Children.map(children, (child) => {
           if (!React.isValidElement(child)) return child;
-          return React.cloneElement(child as React.ReactElement<any>, {
+          const part = child as React.ReactElement<AccordionPartCloneProps>;
+          return React.cloneElement(part, {
             isOpen,
+            disabled,
+            triggerId,
+            contentId,
             onToggle: (open: boolean) => onToggle?.(open, value),
           });
         })}
       </div>
     );
-  }
+  },
 );
 AccordionItem.displayName = 'AccordionItem';
 
-interface AccordionTriggerProps {
+export interface AccordionTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isOpen?: boolean;
+  triggerId?: string;
+  contentId?: string;
   onToggle?: (open: boolean) => void;
-  children: React.ReactNode;
-  className?: string;
 }
 
-const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerProps>(
-  ({ isOpen = false, onToggle, children, className, ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        onClick={() => onToggle?.(!isOpen)}
-        className={cn(
-          'w-full flex items-center justify-between p-4 text-left',
-          'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset',
-          'hover:bg-neutral-50 dark:hover:bg-neutral-800',
-          className
-        )}
-        aria-expanded={isOpen}
-        {...props}
-      >
-        <span>{children}</span>
-        <ChevronDown className={cn('w-4 h-4 text-neutral-400 flex-shrink-0 ml-4 transition-transform', isOpen && 'rotate-180')} />
-      </button>
-    );
-  }
+export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerProps>(
+  (
+    {
+      isOpen = false,
+      disabled,
+      onToggle,
+      onClick,
+      triggerId,
+      contentId,
+      children,
+      className,
+      type = 'button',
+      ...props
+    },
+    ref,
+  ) => (
+    <button
+      {...props}
+      ref={ref}
+      id={triggerId}
+      type={type}
+      disabled={disabled}
+      aria-expanded={isOpen}
+      aria-controls={contentId}
+      data-state={isOpen ? 'open' : 'closed'}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented && !disabled) onToggle?.(!isOpen);
+      }}
+      className={cn(
+        'w-full flex items-center justify-between p-4 text-left',
+        'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset',
+        'hover:bg-neutral-50 dark:hover:bg-neutral-800',
+        className,
+      )}
+    >
+      <span>{children}</span>
+      <ChevronDown className={cn('w-4 h-4 text-neutral-400 flex-shrink-0 ml-4 transition-transform', isOpen && 'rotate-180')} aria-hidden="true" />
+    </button>
+  ),
 );
 AccordionTrigger.displayName = 'AccordionTrigger';
 
-interface AccordionContentProps {
+export interface AccordionContentProps extends React.HTMLAttributes<HTMLDivElement> {
   isOpen?: boolean;
-  children: React.ReactNode;
-  className?: string;
+  triggerId?: string;
+  contentId?: string;
 }
 
-const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps>(
-  ({ isOpen = false, children, className, ...props }, ref) => {
+export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps>(
+  ({ isOpen = false, children, className, triggerId, contentId, ...props }, ref) => {
     if (!isOpen) return null;
     return (
-      <div ref={ref} className={cn('overflow-hidden', className)} {...props}>
-        <div style={{ animation: 'accordion-down 200ms ease-out' }}>
-          {children}
-        </div>
+      <div
+        {...props}
+        ref={ref}
+        id={contentId}
+        role="region"
+        aria-labelledby={triggerId}
+        data-state="open"
+        className={cn('overflow-hidden', className)}
+      >
+        <div style={{ animation: 'accordion-down 200ms ease-out' }}>{children}</div>
       </div>
     );
-  }
+  },
 );
 AccordionContent.displayName = 'AccordionContent';
-
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
-export type { AccordionProps, AccordionItemProps, AccordionTriggerProps, AccordionContentProps };

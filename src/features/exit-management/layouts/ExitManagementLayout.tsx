@@ -179,7 +179,10 @@ export const ExitManagementLayout: React.FC = () => {
       <Suspense
         fallback={
           <div className="p-8 space-y-4">
-            <div className="h-8 w-48 bg-gray-200 dark:bg-zinc-800 rounded-lg animate-pulse" />
+            <div className="flex items-center justify-center space-y-3">
+              <div className="w-10 h-10 border-3 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
+              <span className="text-sm font-medium text-gray-500 dark:text-zinc-400">Loading exit management...</span>
+            </div>
             <div className="h-32 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
             <div className="h-64 w-full bg-gray-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
           </div>

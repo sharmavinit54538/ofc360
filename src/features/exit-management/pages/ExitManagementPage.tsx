@@ -32,8 +32,8 @@ import { calculateNoticeDays } from '../mappers/exitMappers';
 
 export const ExitManagementPage: React.FC = () => {
   const toast = useToast();
-  const { user } = useAuth();
-  const userRole = user?.role || 'EMPLOYEE';
+  const { user, activeRole } = useAuth();
+  const userRole = activeRole || (user?.roles?.[0] || 'EMPLOYEE');
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
@@ -87,7 +87,7 @@ export const getDashboardRouteForRole = (role?: string | null): string => {
 
 // Dynamic Index Root Redirection based on Auth State
 const RootRedirect: React.FC = () => {
-  const { isAuthenticated, activeRole, role, user, accessToken } = useAuth();
+  const { isAuthenticated, activeRole, role, user, accessToken, isInitialized } = useAuth();
 
   const storedToken =
     typeof window !== 'undefined'
@@ -95,6 +95,19 @@ const RootRedirect: React.FC = () => {
       : null;
   const hasToken = Boolean(accessToken) || Boolean(storedToken);
   const isAuthed = isAuthenticated || hasToken;
+
+  // Wait for auth initialization to complete before making redirect decisions
+  // This prevents redirect loops and premature navigation during hydration
+  if (!isInitialized) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-[#212121] p-6">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-3 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
+          <p className="text-sm font-medium text-gray-900 dark:text-[#ececec]">Initializing session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthed) {
     return <Navigate to="/auth/login" replace />;
@@ -130,8 +143,21 @@ const RootRedirect: React.FC = () => {
 };
 
 export const AppRoutes: React.FC = () => {
+  // Root-level Suspense boundary for all lazy-loaded route components
+  // This prevents "A component suspended while responding to synchronous input" errors
+  // when navigating between routes with React.lazy() components
+  const RouteSuspenseFallback = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-[#212121] p-6">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-12 h-12 border-3 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
+        <p className="text-sm font-medium text-gray-900 dark:text-[#ececec]">Loading page...</p>
+      </div>
+    </div>
+  );
+
   return (
-    <Routes>
+    <Suspense fallback={<RouteSuspenseFallback />}>
+      <Routes>
       {/* Root Redirection */}
       <Route path="/" element={<RootRedirect />} />
       <Route path="/dashboard" element={<RootRedirect />} />
@@ -836,7 +862,8 @@ export const AppRoutes: React.FC = () => {
       {/* 404 Catch-All */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-  );
+  </Suspense>
+);
 };
 
 export default AppRoutes;

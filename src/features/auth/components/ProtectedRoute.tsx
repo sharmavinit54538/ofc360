@@ -2,6 +2,13 @@
  * @file ProtectedRoute.tsx
  * @description Enterprise Route Guard verifying user session integrity, authentication state,
  * and role-based clearance before rendering protected route trees.
+ * 
+ * Authentication States:
+ * - initializing: Auth system is booting, session hydration in progress
+ * - authenticated: Valid session confirmed, user has access
+ * - unauthenticated: No valid session, redirect to login
+ * - refreshing: Silent token refresh in progress
+ * - error: Authentication system error occurred
  */
 
 import React from 'react';
@@ -9,6 +16,8 @@ import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole, Permission, ROLE_DASHBOARD_ROUTES, normalizeRole } from '../types/auth.types';
 import { AuthLoadingScreen } from '@/shared/layout/AuthLoadingScreen';
+
+export type AuthStatus = 'initializing' | 'authenticated' | 'unauthenticated' | 'refreshing' | 'error';
 
 export interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -30,7 +39,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectUnauthorizedTo = '/unauthorized',
 }) => {
   const location = useLocation();
-  const { user, isAuthenticated, accessToken, role, isInitialized, isLoading, hasRole, hasPermission } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    accessToken,
+    role,
+    isInitialized,
+    isLoading,
+    hasRole,
+    hasPermission,
+  } = useAuth();
 
   // Storage fallback verification to prevent premature kickout during hydration race condition
   const storedToken =
@@ -65,16 +83,29 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     (effectiveUser?.activeRole ? normalizeRole(effectiveUser.activeRole) : null) ||
     (storedRole ? normalizeRole(storedRole) : null);
 
-  // 1. Session Rehydration Screen
+  // Determine explicit authentication status
+  const getAuthStatus = (): AuthStatus => {
+    if (!isInitialized) return 'initializing';
+    if (isLoading && !isAuthed) return 'initializing';
+    if (isLoading && isAuthed) return 'refreshing';
+    if (!isAuthed) return 'unauthenticated';
+    if (!effectiveUser && !effectiveRole) return 'initializing';
+    return 'authenticated';
+  };
+
+  const authStatus = getAuthStatus();
+
+  // 1. Session Initialization / Rehydration Screen
   // Prevent premature redirection while authentication or session hydration is in flight
-  if (!isInitialized || (isLoading && !isAuthed) || (isAuthed && !effectiveUser && !effectiveRole)) {
+  // Show stable loading fallback during initialization to avoid Suspense conflicts with lazy routes
+  if (authStatus === 'initializing' || authStatus === 'refreshing') {
     return <AuthLoadingScreen />;
   }
 
   // 2. Authentication Check
   // Allow access if isAuthenticated is true OR if a valid access token exists in localStorage / sessionStorage.
   // Never prematurely kick out users to /auth/login if a valid session/token is present.
-  if (!isAuthed) {
+  if (authStatus === 'unauthenticated') {
     console.warn('[ProtectedRoute] Access blocked -> redirecting to login.', {
       isAuthenticated,
       hasValidToken,
