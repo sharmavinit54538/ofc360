@@ -1,27 +1,36 @@
 import React, { forwardRef } from 'react';
 import { cn } from '../lib/utils';
 
-interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'type'> {
   className?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Switch = forwardRef<HTMLInputElement, SwitchProps>(
-  ({ className, checked, disabled, id, onCheckedChange, onChange, ...props }, ref) => {
+  ({ className, checked, defaultChecked = false, disabled, id, onCheckedChange, onChange, ...props }, ref) => {
     const generatedId = React.useId();
     const checkboxId = id || generatedId;
+    const [uncontrolledChecked, setUncontrolledChecked] = React.useState(defaultChecked);
+    const isControlled = checked !== undefined;
+    const checkedValue = isControlled ? checked : uncontrolledChecked;
 
     return (
       <label className="inline-flex items-center cursor-pointer">
         <input
+          {...props}
           ref={ref}
           type="checkbox"
           id={checkboxId}
-          checked={checked}
+          role="switch"
+          checked={checkedValue}
+          aria-checked={checkedValue}
           disabled={disabled}
           onChange={(e) => {
             onChange?.(e);
+            if (!isControlled) setUncontrolledChecked(e.target.checked);
             onCheckedChange?.(e.target.checked);
           }}
           className={cn(
@@ -30,7 +39,6 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2'
           )}
-          {...props}
         />
         <span
           className={cn(

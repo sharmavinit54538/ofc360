@@ -26,6 +26,11 @@ import {
   SheetTitle,
   SheetTrigger,
   Slider,
+  Switch,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from '..';
 
 describe('shared UI primitives', () => {
@@ -73,6 +78,29 @@ describe('shared UI primitives', () => {
     expect(sheet.className).toContain('left-0');
   });
 
+  it('supports roving focus and arrow-key activation in Tabs', () => {
+    render(
+      <Tabs defaultValue="overview">
+        <TabsList aria-label="Recruitment sections">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="candidates">Candidates</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">Overview panel</TabsContent>
+        <TabsContent value="candidates">Candidates panel</TabsContent>
+      </Tabs>,
+    );
+
+    const overview = screen.getByRole('tab', { name: 'Overview' });
+    const candidates = screen.getByRole('tab', { name: 'Candidates' });
+    expect(overview).toHaveAttribute('tabindex', '0');
+    expect(candidates).toHaveAttribute('tabindex', '-1');
+
+    fireEvent.keyDown(overview, { key: 'ArrowRight', code: 'ArrowRight' });
+    expect(candidates).toHaveFocus();
+    expect(candidates).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Candidates panel');
+  });
+
   it('exposes determinate and indeterminate Progress semantics', () => {
     const { rerender } = render(<Progress value={42} label="Application completion" />);
     const progress = screen.getByRole('progressbar', { name: 'Application completion' });
@@ -94,11 +122,24 @@ describe('shared UI primitives', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true);
   });
 
-  it('reports changes from the native range input as numbers', async () => {
+  it('exposes the Switch role and supports uncontrolled Radix-style state', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(<Switch aria-label="Enable referrals" onCheckedChange={onCheckedChange} />);
+
+    const control = screen.getByRole('switch', { name: 'Enable referrals' });
+    expect(control).toHaveAttribute('aria-checked', 'false');
+    await user.click(control);
+    expect(control).toHaveAttribute('aria-checked', 'true');
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('reports changes from the keyboard-operable native range input as numbers', async () => {
     const onValueChange = vi.fn();
     render(<Slider aria-label="Minimum salary" min={0} max={10} defaultValue={4} onValueChange={onValueChange} />);
 
     const slider = screen.getByRole('slider', { name: 'Minimum salary' });
+    expect(slider).toHaveAttribute('type', 'range');
     slider.focus();
     fireEvent.change(slider, { target: { value: '5' } });
     expect(slider).toHaveValue('5');
