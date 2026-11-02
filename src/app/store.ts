@@ -25,6 +25,7 @@ import { connectApi } from '../features/connect/api/connectApi';
 import { announcementsApi } from '../features/announcements/api/announcementsApi';
 import { documentGeneratorApi } from '../features/document-generator/api/documentGeneratorApi';
 import { signaturesApi } from '../features/documents/api/signaturesApi';
+import { aiToolsApi } from '../features/ai-tools/shared/api/aiToolsApi';
 
 export const store = configureStore({
   reducer: {
@@ -53,6 +54,7 @@ export const store = configureStore({
     [announcementsApi.reducerPath]: announcementsApi.reducer,
     [documentGeneratorApi.reducerPath]: documentGeneratorApi.reducer,
     [signaturesApi.reducerPath]: signaturesApi.reducer,
+    [aiToolsApi.reducerPath]: aiToolsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -84,7 +86,8 @@ export const store = configureStore({
       connectApi.middleware,
       announcementsApi.middleware,
       documentGeneratorApi.middleware,
-      signaturesApi.middleware
+      signaturesApi.middleware,
+      aiToolsApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });

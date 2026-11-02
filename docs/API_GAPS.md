@@ -1,259 +1,136 @@
-# API_GAPS.md — Exit Management Missing Backend Endpoints
+# API Gaps for Reports & Analytics Hub
 
-The following features and actions are disabled or presented with informational banners in the UI because no corresponding backend endpoints exist in the OFC360 API. They are documented here with the exact required HTTP method, path, request fields, and expected response fields.
+This document tracks backend endpoints/fields needed by the 9 reports that are **missing or unverified**. Each gap results in a UI gap banner on the affected report, and the specific KPI/chart/column is disabled with a tooltip explaining why.
 
----
-
-## 1. Request Discussion with Resigning Employee
-
-- **Feature Area**: Approvals (Manager / HR Queue)
-- **Desired Method**: `POST`
-- **Desired Path**: `/api/v1/exits/{id}/request-discussion`
-- **Required Request Fields**:
-  ```json
-  {
-    "discussion_topic": "string",
-    "proposed_date": "YYYY-MM-DDTHH:mm:ssZ",
-    "notes": "string"
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "success": true,
-    "discussion_id": "string",
-    "status": "SCHEDULED",
-    "message": "Discussion invitation sent to employee"
-  }
-  ```
-- **UI Treatment**: "Request Discussion" button is disabled with tooltip "Backend pending" and banner displayed on Approvals page.
+Format: `Report → Missing Data → Evidence (grep result) → UI Treatment`
 
 ---
 
-## 2. Forward Exit Case to HR / Department Head
+## 1. Workforce & Headcount Analytics (`workforce-analytics`)
 
-- **Feature Area**: Approvals (Manager Queue)
-- **Desired Method**: `POST`
-- **Desired Path**: `/api/v1/exits/{id}/forward`
-- **Required Request Fields**:
-  ```json
-  {
-    "forward_to": "HR" | "DEPT_HEAD" | "MANAGEMENT",
-    "target_user_id": "string?",
-    "comments": "string"
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "success": true,
-    "stage": "string",
-    "forwarded_at": "string"
-  }
-  ```
-- **UI Treatment**: Forwarding action disabled with tooltip "Backend pending".
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Age / demographic bands (for age histogram) | `employee.date_of_birth` / `employee.dob` | ❌ MISSING | `workforceApi.ts` normalizes `date_of_birth` but `EmployeeItem` type doesn't include it; `getEmployees` doesn't return it | Hide age histogram chart; show gap banner "Age data requires DOB field — not available in current API" |
+| Exit reason breakdown | `exitsApi.getExitStats()` → `reasonBreakdown` | ⚠️ UNVERIFIED | `ExitAnalyticsMetrics` in `exit.types.ts` not inspected; `getExitStats` returns `ExitAnalyticsMetrics` but fields unknown | If missing: show "Attrition by reason" chart with gap banner |
+| Tenure buckets (0–1, 1–3, 3–5, 5+ yrs) | Computed from `joiningDate` | ✅ AVAILABLE | `normalizeEmployee` returns `joiningDate` | Compute client-side |
+| Work mode split (office/remote/hybrid) | `getWorkforceStats().workModeSplit` | ✅ AVAILABLE | `workforceApi.ts:1167-1171` | Use directly |
 
 ---
 
-## 3. Notice Period Adjustment (Early Release, Extension, Waiver, Buyout)
+## 2. Recruitment Funnel & Sourcing (`recruitment-reports`)
 
-- **Feature Area**: Notice Period Management
-- **Desired Method**: `PATCH`
-- **Desired Path**: `/api/v1/exits/{id}/notice-adjustment`
-- **Required Request Fields**:
-  ```json
-  {
-    "adjustment_type": "EARLY_RELEASE" | "WAIVER" | "EXTENSION" | "BUYOUT",
-    "revised_last_working_day": "YYYY-MM-DD",
-    "waiver_days": 15,
-    "buyout_amount": 25000,
-    "approval_reason": "string"
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "id": "string",
-    "revised_lwd": "YYYY-MM-DD",
-    "buyout_status": "APPROVED",
-    "notice_days_served": 15,
-    "notice_days_remaining": 0
-  }
-  ```
-- **UI Treatment**: "Early Release" and "Buyout" tabs on the Notice Period screen display an informational banner: *"Notice period waiver, early release, and buyout adjustments are pending backend route implementation. Date adjustments are currently read-only."*
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Candidate `source` field | `CandidateItem.source` | ❌ MISSING | `recruitment.types.ts:96` — `CandidateItem` has no `source`; only `AddCandidatePayload` has optional `source` (line 116) | Show "Source effectiveness (hire rate)" instead of "Source ROI"; gap banner "Source attribution requires `source` field on candidate — backend returns null" |
+| Stage-history timestamps (for time-in-stage) | `CandidateItem.stageHistory[]` | ❌ MISSING | `CandidateItem` only has `currentStage` and `appliedDate` (line 92-95) | Show "Days in current stage" only; gap banner "Stage history timestamps not available — cannot compute time-in-stage per stage" |
+| Cost-per-hire | `RecruitmentStats.costPerHire` | ❌ MISSING | `RecruitmentStats` (line 24-31) has no cost field | Hide cost-per-hire KPI/chart; gap banner "Cost-per-hire requires financial data not in recruitment stats" |
+| Open requisition ageing | Computed from `JobOpening.targetDate` / `createdAt` | ⚠️ PARTIAL | `JobOpening` has `targetDate` (line 47) but no `createdAt` | Compute from `targetDate` if available; otherwise gap banner |
 
 ---
 
-## 4. Task-Level Knowledge Transfer Tracking
+## 3. Attendance & Shift Utilization (`attendance-reports`)
 
-- **Feature Area**: Knowledge Transfer
-- **Desired Method**: `POST` / `PATCH`
-- **Desired Path**: `/api/v1/exits/{id}/kt-tasks` and `/api/v1/exits/{id}/kt-tasks/{taskId}`
-- **Required Request Fields**:
-  ```json
-  {
-    "title": "string",
-    "category": "PROJECT" | "REPO" | "DOCS" | "CLIENT" | "TASKS" | "TRAINING" | "FINAL",
-    "assignee_id": "string",
-    "status": "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "VERIFIED" | "REJECTED",
-    "notes": "string"
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "tasks": [
-      {
-        "id": "string",
-        "title": "string",
-        "status": "COMPLETED",
-        "verified_by": "string?"
-      }
-    ]
-  }
-  ```
-- **UI Treatment**: If case payload does not carry task-level items, a standard 7-task reference checklist is rendered for guidance with a single "Mark KT Complete" button (`PATCH /exits/{id}/knowledge-transfer-complete`).
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Company-scoped attendance records | `getAttendanceRecords({ scope: 'ALL' })` | ✅ AVAILABLE | `attendanceApi.ts:879-889` tries `/attendance/company` first | Use company scope |
+| Geofence / verification method | `AttendanceRecord.verificationMethod` | ✅ AVAILABLE | `normalizeAttendanceRecord` line 208-212 returns `verificationMethod` | Include in table if present |
+| Shift adherence (punch-in ≤ shift start + grace) | Computed from `punchIn` + `Shift.gracePeriodMinutes` | ✅ AVAILABLE | `getShifts` returns `gracePeriodMinutes` (line 1124); attendance has `punchIn` | Compute client-side |
+| Overtime by department | `AttendanceRecord.overtimeHours` + `department` | ✅ AVAILABLE | `normalizeAttendanceRecord` returns both | Aggregate client-side |
+| Late arrivals weekday × hour heatmap | Computed from `punchIn` + `shift.startTime` | ✅ AVAILABLE | Both fields available | Compute client-side |
 
 ---
 
-## 5. Scheduled IT Access Revocation
+## 4. Payroll Variance & Compensation (`payroll-reports`)
 
-- **Feature Area**: IT Access Revocation
-- **Desired Method**: `POST`
-- **Desired Path**: `/api/v1/exits/{id}/schedule-revocation`
-- **Required Request Fields**:
-  ```json
-  {
-    "scheduled_timestamp": "YYYY-MM-DDTHH:mm:ssZ",
-    "scope": ["EMAIL", "VPN", "GITHUB", "DATABASE", "SLACK"],
-    "notify_manager": true
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "status": "SCHEDULED",
-    "scheduled_time": "string"
-  }
-  ```
-- **UI Treatment**: Revocation actions must strictly enforce the employee's Last Working Day (comparing with company timezone). Immediate button is disabled if today < LWD.
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Prior-month payroll run (for MoM variance) | `getPayrollRuns` with year filter + find previous month | ✅ AVAILABLE | `payrollApi.ts:234-258` returns runs with `month`, `year`, `total_gross_paise`, `total_net_paise` | Compute MoM client-side |
+| Paise → Rupees normalization | `total_gross_paise` / 100 | ✅ AVAILABLE | `PayrollRunItem` has `total_gross_paise` (line 267); `PayrollRunEmployeeItem` has `gross_earnings_paise` (line 299) | Normalize in `buildDataset` |
+| PAN / UAN / Bank masking | `PayslipItem.panNumber`, `uan`, `bankAccountMasked` | ✅ AVAILABLE | `PayslipItem` lines 362-366 | Mask by default; toggle for SUPER_ADMIN/HR_ADMIN |
+| Salary bands for histogram | `SalaryStructureItem.annualCtc` or `monthlyGross` | ✅ AVAILABLE | `SalaryStructureItem` lines 409-411 | Use `annualCtc` or `monthlyGross` |
+| Statutory breakdown (PF/ESI/PT/TDS) | `PayrollStats.statutoryBreakdown` | ✅ AVAILABLE | `PayrollStats` lines 242-247 | Use directly |
+| Department-wise payroll cost | `PayrollRunEmployeeItem.department` + `gross_earnings_paise` | ✅ AVAILABLE | `PayrollRunEmployeeItem` line 297-298 | Aggregate client-side |
 
 ---
 
-## 6. Post-Exit Alumni & Rehire Eligibility
+## 5. Leave Balances & Absence Liability (`leave-liability`)
 
-- **Feature Area**: Exited Employees / Post-Exit
-- **Desired Method**: `POST` / `PUT`
-- **Desired Path**: `/api/v1/exits/{id}/rehire-eligibility` and `/api/v1/exits/{id}/alumni-profile`
-- **Required Request Fields**:
-  ```json
-  {
-    "rehire_eligible": true,
-    "rehire_category": "RECOMMENDED" | "CONDITIONAL" | "NOT_ELIGIBLE",
-    "reason": "string",
-    "alumni_opt_in": true,
-    "personal_email": "string"
-  }
-  ```
-- **Expected Response Fields**:
-  ```json
-  {
-    "id": "string",
-    "rehire_status": "RECOMMENDED"
-  }
-  ```
-- **UI Treatment**: Exited Employees screen displays a read-only badge and banner: *"Post-exit alumni portal sync and formal rehire rating criteria require backend route implementation."*
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| **Org-wide per-employee leave balances** | `GET /leaves/balances?scope=ALL` or similar | ❌ MISSING | `getLeaveBalances` takes **no args** (line 362-399); returns `DEFAULT_LEAVE_BALANCES` for Super Admin; self-scoped only | **CRITICAL GAP** — show gap banner "Org-wide leave balances endpoint not implemented — showing current user only"; disable liability-by-dept chart & table |
+| Employee salary (for daily rate = monthly gross ÷ 26) | `SalaryStructureItem.monthlyGross` per employee | ⚠️ PARTIAL | `getSalaryStructures` exists but may not cover all employees; no direct "salary per employee" endpoint | If missing: show liability in **days only** + gap banner "Estimated liability (₹) requires salary data — not available for all employees" |
+| Leave type expiry dates | `LeaveBalance.expiresOn` | ✅ AVAILABLE | `normalizeLeaveBalance` line 223 returns `expiresOn` | Use for "expiring ≤90 days" chart |
+| Holiday calendar | `getHolidays` | ✅ AVAILABLE | `attendanceApi.ts:1377-1422` | Use for peak-absence heatmap |
 
 ---
 
-## 7. Exit Management Settings & Policies
+## 6. Performance & 9-Box Talent Grid (`performance-matrix`)
 
-- **Feature Area**: Settings
-- **Desired Method**: `GET` / `PUT`
-- **Desired Path**: `/api/v1/exits/settings`
-- **Required Request Fields**:
-  ```json
-  {
-    "default_notice_period_days": 60,
-    "mandatory_clearance_departments": ["MANAGER", "IT", "FINANCE", "ADMIN", "HR"],
-    "require_exit_interview": true,
-    "auto_generate_relieving_letter": true
-  }
-  ```
-- **UI Treatment**: `/dashboard/exit-management/settings` displays a clean unavailable banner describing the required configuration schema and API routes.
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| **`potential` field** | `AppraisalReview.potential` or similar | ❌ MISSING | `performance.types.ts` — no `potential` anywhere; `AppraisalReview` has `selfRating`, `managerRating`, `finalScore` only | **CRITICAL GAP** — derive "Potential (derived)" = blend of goal completion % + peer feedback avg; show visible note in UI & XLSX Summary: "Potential is derived (goal completion + peer feedback), not assessed" |
+| 9-box grid data | Computed from performance + potential | ⚠️ DERIVED | Performance axis = `finalScore`/`managerRating` bucketed: low<3, mid 3–<4, high≥4 | Compute client-side with derived potential |
+| High-performer retention (high performers still active) | Cross-ref `AppraisalReview.finalScore ≥ 4` with `workforceApi.getEmployees` status | ✅ AVAILABLE | Both sources exist | Compute client-side |
+| Goal completion by department | `GoalItem.progressPercentage` + `employee.department` | ⚠️ PARTIAL | `GoalItem` has `progressPercentage` but `employee` ref only has `id`, `name` (line 199) — no department | Need to join with workforce data; gap banner if join fails |
 
 ---
 
-## 8. Supporting Document Upload on Resignation
+## 7. Travel & Expense Spending Audit (`expenses-travel`)
 
-- **Feature Area**: ESS My Exit Form
-- **Desired Method**: `POST` (multipart/form-data)
-- **Desired Path**: `/api/v1/exits/resign` or `/api/v1/exits/my-request/attachments`
-- **Required Request Fields**:
-  Multipart `files`: array of document files (PDF/DOCX/PNG)
-- **UI Treatment**: File upload input in ESS resignation form is conditionally hidden until backend multipart attachment route is verified; user is guided to submit standard resignation details.
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Department budgets | `TravelSummaryMetrics.budgetByDepartment` or similar | ❌ MISSING | `TravelSummaryMetrics` (travel.types.ts:83-90) has only aggregate totals | Hide "spend vs budget" chart; gap banner "Department budgets not available in travel summary" |
+| Receipt flag (has receipt Y/N) | `ExpenseClaim.receiptUrls.length > 0` | ✅ AVAILABLE | `ExpenseClaim` line 53 has `receiptUrls: string[]` | Compute client-side |
+| Turnaround days (submit → reimbursed) | `ExpenseClaim.createdAt` → `paidAt` | ✅ AVAILABLE | `ExpenseClaim` lines 59, 57 | Compute client-side |
+| Weekend/holiday claim detection | `ExpenseLineItem.date` + holiday calendar | ✅ AVAILABLE | `ExpenseLineItem` has `date` (line 31); holidays from `attendanceApi.getHolidays` | Compute client-side |
+| Duplicate detection (same emp + amount + date) | `ExpenseClaim.employeeId` + `items[].amount` + `items[].date` | ✅ AVAILABLE | All fields present | Compute client-side |
+| Category limits (for "amount above category limit" flag) | Config endpoint | ❌ MISSING | No category limit config in expenses API | Use hardcoded config constant with gap banner "Category limits from config — not backend-driven" |
 
+---
 
-## Recruitment API gaps (2026-11-01)
+## 8. Asset Inventory & Depreciation (`asset-audit`)
 
-The user-specified route-list-only contract is expected at docs/openapi.json, but that file is absent from this checkout. The public URL https://api.ofc360.com/openapi.json returned 404. Do not infer route existence from the frontend contract. The field payloads in docs/RECRUITMENT_CONTRACT.md remain the source of request/response shapes, but every route+method comparison is pending until the local JSON is supplied.
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| Purchase date, cost, warranty expiry | `Asset.purchaseDate`, `cost`, `warrantyExpiry` | ✅ AVAILABLE | `Asset` lines 61-64 | Use directly |
+| Maintenance records with cost | `Asset.maintenanceRecords[].cost` | ✅ AVAILABLE | `MaintenanceRecord` line 40 has `cost` | Use for maintenance cost chart |
+| Depreciation config (useful life per category) | Config constant (not backend) | ⚠️ CLIENT-SIDE | Not in API — will use hardcoded map: LAPTOP 3y, DESKTOP 4y, MOBILE 3y, SERVER 5y, FURNITURE 8y | Label clearly: "Management estimate, not statutory (Companies Act / Income-Tax Act) depreciation" |
+| Asset age distribution | Computed from `purchaseDate` | ✅ AVAILABLE | `Asset.purchaseDate` | Compute client-side |
+| Depreciation schedule next 5 years | Computed | ✅ DERIVED | Straight-line from purchase date + useful life | Compute client-side |
 
-### Contract rows requiring route-list comparison
+---
 
-- All paths and methods in docs/RECRUITMENT_CONTRACT.md section 4.4: existence is unverified because the JSON is unavailable. This is not evidence that any of those routes is missing.
-- Interview reschedule, cancel, reminder, no-show, interviewer lookup, candidate booking, and interview-bot paths are explicitly called out by the contract as possibly absent. Confirm each exact method/path against the route list before wiring.
-- Task toggle and POST admin employee onboarding may be absent; verify method/path before enabling those actions.
-- Document-template GET/POST may exist but their category/body fit is not established by the route list alone; payload shape must come from the provided prompt contract.
+## 9. Statutory Registers & Audit Exports (`statutory-compliance`)
 
-### Features with no backend route in the supplied contract
+| Needed Data | Endpoint / Field | Exists? | Evidence | UI Treatment |
+|-------------|------------------|---------|----------|--------------|
+| PF register (ECR format) | `getPfEcr(periodId)` | ✅ AVAILABLE | `payrollApi.ts:511-523` returns `PfEcrResponse` with `records[]` | Use for PF register table |
+| ESI register | `getPayslips` → filter `esiNumber` | ⚠️ PARTIAL | `PayslipItem.esiNumber` (line 366) | Build from payslips; gap banner if incomplete |
+| PT register | `getPayslips` → `professionalTax` | ✅ AVAILABLE | `PayslipItem.deductions.professionalTax` (line 384) | Build from payslips |
+| TDS summary | `PayrollStats.statutoryBreakdown.tdsTotal` + per-employee TDS | ✅ AVAILABLE | `PayslipItem.deductions.tds` (line 385) | Build from payslips |
+| Filing tracker (PF/ESI/PT/TDS) | `getStatutoryFilingCalendar` | ✅ AVAILABLE | `payrollApi.ts:537-548` returns `StatutoryFilingCalendarItem[]` | Use directly |
+| Audit logs | `hrDashboardApi.getAuditLogs` | ✅ AVAILABLE | `hrDashboardApi.ts:240-247` | Use with filters |
+| **Labour-law registers (wage / muster-roll)** | Dedicated endpoints | ❌ MISSING | No endpoints found in any API | Gap banner "Wage register / Muster roll — no backend endpoint"; render only what exists |
+| **Safety incident logs** | Dedicated endpoints | ❌ MISSING | No endpoints found | Gap banner "Safety incident logs — no backend endpoint" |
+| **Form 16 / 24Q status** | Dedicated endpoints | ❌ MISSING | No endpoints found | Gap banner "Form 16 / 24Q — no backend endpoint" |
+| UAN validation % | `getUanValidationAudit` | ✅ AVAILABLE | `payrollApi.ts:576-580` returns `UanValidationSummary` | Use for KPI |
 
-For these items, the backend contract gives no endpoint, so no path, method, request fields, or response fields are invented here. Use Backend pending UI and disabled mutations until the backend owner supplies the concrete contract.
+---
 
-| Feature | Needed route/method | Request and response fields | Exact question for backend owner |
-|---|---|---|---|
-| Candidate Email/WhatsApp/SMS dispatch and template test-send | Not specified | Not specified | What path and method should dispatch a candidate message, and what request/response fields does it accept? |
-| Requisition reject | Not specified | Not specified | Is requisition rejection supported? If so, what path, method, and response shape should the UI use? |
-| Background verification cases and actions | Not specified | Not specified | What routes and request/response fields support BGV case list, detail, manual override, and audit history? |
-| Preboarding readiness and tasks | Not specified | Not specified | What routes and request/response fields support candidate preboarding status and task updates? |
-| Cross-department onboarding tasks | Not specified | Not specified | Which route returns department-tagged onboarding tasks, and what fields identify department, status, and task updates? |
-| Knowledge transfer and probation reviews | Not specified | Not specified | What routes and fields support KT curriculum, mentor pairing, Day 30/60/90 reviews, confirmation, or extension? |
-| Rehire/alumni | Not specified | Not specified | Is a rehire/alumni endpoint planned? If so, what path, method, and schemas should be used? |
-| Excel/PDF hiring summary export | Not specified | Not specified | Do /analytics/export or /reports/export return these files? If not, what exact endpoint and file response metadata are supported? |
-| Vendor spend/hires metrics | Not specified | Not specified | Which API response fields, if any, provide vendor hires and spend metrics? |
-| GDPR/EEO compliance data | Not specified | Not specified | Which existing API returns consent, retention, gender, and ethnicity data, and what fields may be displayed? |
-| Workflow canvas persistence | Not specified | Not specified | Are automation rules the only persisted workflow representation? If not, what endpoint and fields support a canvas? |
+## Cross-Cutting Gaps
 
-Do not reuse /exits/{id}/knowledge-transfer-complete for onboarding knowledge transfer.
+| Area | Gap | Impact |
+|------|-----|--------|
+| **Audit log write for exports** | No `POST /audit-logs/export` endpoint found | Cannot record export events; log gap, show toast only |
+| **Analytics export endpoint** | `POST /analytics/export` returns report URL but backend unconfirmed | Don't depend on it; use client-side export only |
+| **FYTD date range (India FY Apr–Mar)** | No backend support; compute client-side | Implement in `ReportFilterBar` |
+| **Role-scoped data for MANAGER** | Backend must enforce team scope; client-side filtering is not security | Rely on backend; if data leaks, it's a backend bug |
 
+---
 
+## Legend
 
-## Route-list result supplied by the user (2026-11-01)
-
-The user completed a route/method check against the route-list-only OpenAPI contract: 100 of 119 operations from Prompt 0 section 4.4 exist and 19 are absent. This result supersedes the earlier note that the comparison was pending; the JSON file itself is not required to continue. Treat the 19 source operations below as unconfirmed. Do not switch to alternate paths unless the user approves. Request and response fields remain governed by section 4 of docs/RECRUITMENT_CONTRACT.md; undocumented fields stay blocked.
-
-| Source operation absent from route list | Affected UI | Handling |
-|---|---|---|
-| POST /resume-parser/upload-and-parse | P15 Resume Intelligence | Show Backend pending and disable upload. |
-| GET /interviews/interviewers | P11/P12 Interview Calendar and Interviews | Do not schedule without a confirmed interviewer source; show Backend pending. |
-| POST /interviews/{interviewId}/rounds/{roundId}/schedule | P11/P12 | Do not switch to the different existing POST /api/v1/interviews/{id}/schedule; keep scheduling disabled pending approval/contract. |
-| PATCH /interviews/schedules/{id}/reschedule | P11/P12 | Disable reschedule and drag rescheduling. |
-| POST /interviews/schedules/{id}/cancel | P12 | Disable cancel. |
-| POST /interviews/schedules/{id}/reminder | P12 | Disable reminders. |
-| PATCH /interviews/schedules/{id}/no-show | P12 | Disable no-show action. |
-| GET /interviews/book/{token} | PUB2 Interview Booking | Render public Backend pending state; do not substitute. |
-| POST /interviews/book/{token} | PUB2 Interview Booking | Disable booking confirmation. |
-| GET /api/v2/interview-bot/public/{token} | PUB3 Candidate AI Interview | Render Backend pending state. |
-| POST /api/v2/interview-bot/public/{token}/start | PUB3 Candidate AI Interview | Disable start. |
-| POST /api/v2/interview-bot/public/{token}/answer | PUB3 Candidate AI Interview | Disable answer submission. |
-| POST /api/v2/interview-bot/public/{token}/finish | PUB3 Candidate AI Interview | Disable finish. |
-| POST /api/v2/interview-bot/public/{token}/request-human | PUB3 Candidate AI Interview | Disable request-human action. |
-| POST /api/v2/interview-bot/invite | P17/P18 AI Interview | Disable invitations. |
-| GET /api/v2/interview-bot/results | P18 AI Interview Results | Show Backend pending; do not substitute. |
-| POST /api/v2/interview-bot/results/{id}/decision | P18 AI Interview Results | Disable human decision submission. |
-| POST /admin/employee-onboarding | P42 Admin Onboarding | Disable start-onboarding action. |
-| PATCH /admin/employee-onboarding/{id}/tasks/{taskKey} | P35/P42 onboarding task actions | Keep tasks read-only; disable toggles. |
-
-Different existing routes must not be silently substituted: POST /api/v1/interviews/{id}/schedule; POST /api/v2/interview-bot/sessions and /sessions/{id}/start|answer|finalize|proctor-alert; and PATCH /api/v1/interviews/rounds/{round_id}/pass|hold|reject. These route differences need user approval before use.
-
-Confirmed route families include jobs, candidates, applications, CRM notes, interviews listing, scorecards, offers, requisitions, vendors, referrals, automations, screening, ranking, recruiter AI, analytics metrics/exports, recruitment notifications, document templates, offer letters, employee onboarding list/detail/document verification, employee onboarding steps, and public careers. A route-list confirmation does not define payload or response schemas.
-
+- ✅ **AVAILABLE** — Endpoint exists and returns the field (verified by grep)
+- ⚠️ **PARTIAL / DERIVED** — Data can be computed or joined client-side from multiple endpoints
+- ❌ **MISSING** — No endpoint or field found; will show gap banner and disable affected UI element
+- 🔴 **CRITICAL GAP** — Core report functionality blocked; report shows limited data with prominent banner

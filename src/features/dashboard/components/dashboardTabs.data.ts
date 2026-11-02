@@ -315,6 +315,7 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'meeting-intelligence': 'aihub',
   'ai-recruiter': 'aihub',
   'workforce-insights': 'aihub',
+  'autonomous-workflows': 'aihub',
   'analytics-center': 'reports',
   'hiring-reports': 'reports',
   'recruitment-analytics': 'reports',

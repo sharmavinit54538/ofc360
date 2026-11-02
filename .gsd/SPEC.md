@@ -1,82 +1,74 @@
-# Specification: Exit Management (Full 14-Stage Workflow) in OFC360 Frontend
+# Specification: 4 Production AI Hub Tools (OFC360 Frontend)
 
 Status: FINALIZED
-Date: 2026-11-01
+Date: 2026-11-02
 Author: Senior Frontend Engineer
+Target Module: AI Hub Tools (`src/features/ai-tools/`)
 
 ---
 
 ## 1. Executive Summary
 
-This specification establishes the full, end-to-end Exit Management module for OFC360 (`ofc360-frontend`), replacing the legacy 7-stage `/offboarding/*` prototype with the real, multi-stage, enterprise-grade Exit Management workflow backed by `/api/v1/exits/*` routes.
+This specification establishes production implementations for the four unbacked AI Hub cards in `src/features/ai-hub/pages/AIHubPage.tsx`:
+1. **Payroll Audit Scanner** (`payroll-insights`) -> `/ai/payroll-audit` & `/dashboard/ai-hub/payroll-audit`
+2. **Shift AI Monitor** (`attendance-monitor`) -> `/ai/shift-monitor` & `/dashboard/ai-hub/shift-monitor`
+3. **Capacity Planner** (`workforce-planning`) -> `/ai/capacity-planner` & `/dashboard/ai-hub/capacity-planner`
+4. **Resume & Talent Matcher** (`ai-recruiter`) -> `/ai/talent-matcher` & `/dashboard/ai-hub/talent-matcher`
 
-This is a **FRONTEND ONLY** initiative. No backend code or mock servers will be created or modified. All missing endpoints, missing request/response fields, or unconfirmed backend behaviors will be documented as honest API gaps in `docs/API_GAPS.md`, disabled in the UI with tooltips/banners, and tracked in `docs/EXIT_TRACKER.md`.
+### Non-Negotiable Architecture Principles:
+1. **Facts from code, words from AI**: Every metric, flag, currency amount (INR), and anomaly is deterministically derived from live API datasets using unit-tested rule engines (`engine.ts` / `rules.ts`). The LLM generates narrative explanations, priority ranking, and exploratory questions, never computing numbers.
+2. **No fake AI**: When backend AI explain endpoints (`/api/v1/ai-hub/{tool}/explain`) return 404/405/501/503 or fail, the tools display full deterministic findings alongside an honest "AI narrative: Backend pending / unavailable" chip. No canned text is ever passed off as live AI.
+3. **Human-in-the-loop**: Purely advisory and non-destructive. Never mutates payroll runs, rejects candidates, changes rosters, or disciplines employees automatically. Actions follow standard governance approvals.
+4. **Explainable & Auditable**: Every finding displays evidence (rule ID, thresholds, inputs, source endpoints, and suggested review action).
+5. **Privacy First**: Payloads dispatched to AI explain endpoints are pseudonymized (`emp_XXXX` or department ref). PII (names, PAN, bank details, UAN, phone, email, biometric coordinates) is strictly scrubbed.
+6. **Visible Assumptions & Statutory Grounding**: Thresholds live in central `config.ts` per tool and render in an interactive Assumptions Drawer. Statutory thresholds (PF, ESI, PT, TDS) are fetched dynamically via `getStatutoryConfig` — never hardcoded.
 
 ---
 
 ## 2. Baseline Verification Evidence
 
-- **Typecheck Baseline**: `npm run typecheck` (`tsc -b`) currently fails due to pre-existing TypeScript errors across existing modules (`src/app/store.ts` circular type reference, `src/features/settings`, `src/features/analytics`, `src/features/workforce`). Any new code added in `src/features/exit-management` must be strictly typed and introduce zero new diagnostics.
-- **Test Baseline**: `npm run test` (`vitest run`) executes 22 test files with 230 passing tests and 1 pre-existing failure (`src/features/documents/__tests__/SignatureCenter.test.tsx` React element child object mismatch). All exit management tests will run green.
-- **Lint Baseline**: `npm run lint` executes an echo stub: `"ESLint setup scheduled for Phase 4"`. No linter currently enforces rules.
-- **OpenAPI & Network Contract Baseline**: Attempted retrieval of `https://api.ofc360.com/openapi.json` and `/api/v1/openapi.json` returned HTTP 404 `{"detail":"Not Found"}`. Standard sandbox has no outbound network; live probing requires user elevation. Request/response schemas for `/api/v1/exits/*` are documented defensively in `docs/EXIT_CONTRACT.md` using the sibling repository's defensive envelope mapper patterns.
-- **Subagents**: In accordance with `PROJECT_RULES.md` lines 78-79 and 97-98, subagents are unavailable in this environment (individual quota exhausted 429), so execution degrades cleanly to sequential in-context execution without claiming delegation.
+- **Test Baseline**: `npm run test` (`vitest run`) reports 31 test files, 306 passing tests, 5 pre-existing failures in `src/features/documents/__tests__/SignatureCenter.test.tsx` and `signatureUtils.test.ts`. Zero new test failures permitted.
+- **Typecheck Baseline**: `npm run typecheck` (`tsc -b`) reports pre-existing unused variable warnings in unrelated files (`src/features/settings`, `src/features/analytics`, `src/features/workforce`). Zero new typecheck errors permitted.
+- **Dependency Guard**: No new npm packages installed; utilizes existing Recharts, Papaparse, Lucide-React, and `@/shared/ui` primitives.
+- **Build Baseline**: `npx vite build` verified green (`built in 21.43s`, 0 errors).
 
 ---
 
-## 3. Scope & Workflow Stages
+## 3. Verified API Gap Table
 
-The exit lifecycle covers a 14-stage workflow:
-1. **Resignation Submission (ESS)**: Employee self-service submission (`POST /exits/resign`, `GET /exits/my-request`, `DELETE /exits/my-request`).
-2. **Manager Review & Approval**: Manager queue with employee context, notice period validation, `PATCH /exits/{id}/manager-approve` or `manager-reject`.
-3. **HR Review & Approval**: HR queue with verification checklist guidance, `PATCH /exits/{id}/approve` or `reject`.
-4. **Notice Period Management**: `PATCH /exits/{id}/start-notice-period`. Calculated served vs remaining days. Early release/waiver/buyout displayed with API gap banners.
-5. **Knowledge Transfer (KT)**: 7-task checklist rendered if present in payload, otherwise single action `PATCH /exits/{id}/knowledge-transfer-complete`.
-6. **Asset Recovery**: `GET /exits/{id}/assets` and `PATCH /exits/{id}/asset-return`. Independent from clearance. IT Admin / HR Admin sign-off.
-7. **Department Clearances**: 5 departments (Manager, IT, Finance, Admin, HR) with `PATCH /exits/{id}/clearance` (`CLEARED`, `ON_HOLD`, `REJECTED`). Hold/Reject requires reason.
-8. **Exit Interview**: `POST /exits/{id}/exit-interview`. Sensitive responses viewable strictly by `HR_ADMIN` and `SUPER_ADMIN`.
-9. **Full & Final (F&F) Settlement**: `GET /exits/{id}/fnf-preview` and `PATCH /exits/{id}/fnf`. Earnings and deductions line items, net payable display, status workflow.
-10. **Document Generation & Issuance**: `POST /exits/{id}/generate-documents` and `GET /exits/{id}/documents`. Relieving letter, experience letter, F&F statement, no-dues certificate.
-11. **System Access Revocation**: IT revocation checklist with company timezone comparison against actual LWD; premature revocation blocked in UI.
-12. **Final Exit Completion**: `PATCH /exits/{id}/complete`. Enabled only when mandatory clearances and criteria are satisfied; F&F settlement pending does not block exit completion.
-13. **Post-Exit & Exited Employees**: History table of completed exits with document delivery status and F&F follow-up.
-14. **Exit Analytics & Settings**: Attrition metrics, reason breakdown, average notice days, CSV export, and Settings route (clean API gap banner).
+| Tool | Required Data / Capability | Existing Endpoint / Slice | Gap Status & UI Treatment |
+|---|---|---|---|
+| **Shared** | AI Narrative & Prioritization | `POST /api/v1/ai-hub/{tool}/explain` | Backend Pending; gracefully shows deterministic findings + status chip |
+| **Shared** | Persistent Finding Status | `PATCH /api/v1/ai-hub/{tool}/findings/{id}` | Backend Pending; status changes stored in session/local state and exported |
+| **Payroll Audit** | Salary structures & components | `GET /payroll/salary-structures` | Backend verified (`payrollApi`); components mapped in hook |
+| **Payroll Audit** | Statutory rules & slabs | `GET /payroll/statutory-config` | Backend verified (`payrollApi`); missing values mark rule "not evaluable" |
+| **Payroll Audit** | Payslip details & identifiers | `GET /payroll/payslips` | Backend verified (`payrollApi`); PAN/UAN/Bank masked by default |
+| **Shift Monitor** | Punch details (lat/long/IP/device) | `GET /attendance/records` | Device/IP unpopulated in standard feed; R8 flagged as "Signal unavailable" |
+| **Capacity Planner** | Approved Headcount Target | `GET /workforce/departments` | `employeeCapacity` used as approved target; local scenario override supported |
+| **Capacity Planner** | Approved Requisitions | `GET /recruitment/requisitions` | Verified in `recruitmentApi`; planned quarters mapped to demand pipeline |
+| **Talent Matcher** | Multi-candidate resume parser | `POST /resume-parser/upload-and-parse` | Absent on backend per `docs/API_GAPS.md`; UI built but disabled with banner |
+| **Talent Matcher** | Reverse job matching | `GET /api/v2/ranking/jobs-for-candidate/{id}` | Absent on backend; logged in `API_GAPS.md` with banner |
 
 ---
 
-## 4. Architectural Rules
+## 4. Work Phases & Deliverables
 
-1. **No Fake Data / No Optimistic Persistence**: Base query dev mock fallback (`VITE_ENABLE_MOCK_FALLBACK`) remains `false`.
-2. **UI 4-State Architecture**: Every screen implements Loading (`Skeleton`), Error with Retry (`ErrorDisplay`), Empty (`EmptyState`), and Success.
-3. **Defensive Data Layer**: `mappers/exitMappers.ts` normalizes backend responses defensively (snake_case and camelCase tolerant, nullable/envelope handling).
-4. **Strict RBAC**: Roles = `SUPER_ADMIN | HR_ADMIN | MANAGER | EMPLOYEE | IT_ADMIN`.
-   - `EMPLOYEE`: Access to "My Exit" ESS screen only.
-   - `MANAGER`: Manager approval queue, KT signoff, Manager clearance signoff. Cannot view Exit Interview responses.
-   - `IT_ADMIN`: Asset recovery and IT clearance.
-   - `HR_ADMIN` & `SUPER_ADMIN`: Full access across all queues, interviews, documents, and completions.
-5. **Route Hierarchy**: Shared layout under `/dashboard/exit-management` with nested sub-routes:
-   - `/dashboard/exit-management` (redirects to `/dashboard/exit-management/overview`)
-   - `/dashboard/exit-management/overview` (Dashboard & KPI summary)
-   - `/dashboard/exit-management/my-exit` (Employee Self-Service)
-   - `/dashboard/exit-management/approvals` (Manager & HR queues)
-   - `/dashboard/exit-management/notice-period` (Notice period tracking)
-   - `/dashboard/exit-management/knowledge-transfer` (KT handover)
-   - `/dashboard/exit-management/asset-recovery` (Asset return tracking)
-   - `/dashboard/exit-management/clearance` (Department clearances)
-   - `/dashboard/exit-management/fnf` (Full & final settlement)
-   - `/dashboard/exit-management/interview` (Exit interview)
-   - `/dashboard/exit-management/documents` (Exit documents)
-   - `/dashboard/exit-management/access-deactivation` (IT access revocation)
-   - `/dashboard/exit-management/exited-employees` (Alumni / post-exit archive)
-   - `/dashboard/exit-management/analytics` (Attrition analytics)
-   - `/dashboard/exit-management/settings` (Exit policies & templates banner)
+- **Phase 0: Shared Architecture & Wiring**
+  - `src/features/ai-tools/shared/types.ts`
+  - `src/features/ai-tools/shared/stats.ts`
+  - `src/features/ai-tools/shared/useExplain.ts`
+  - `src/features/ai-tools/shared/components/*`
+  - Update `AIHubPage.tsx` paths & aliases in `AppRoutes.tsx`.
+- **Phase 1: Payroll Audit Scanner**
+  - Pure rule engine `rules.ts` (P1 to P9) + `config.ts`
+  - `usePayrollAuditData.ts` (normalizing paise to rupees, statutory checks)
+  - Page & components (Summary cards, exposure ₹, waterfall charts, findings table)
+  - Unit tests for all 9 audit rules and negative/positive boundaries.
+- **Phase 2: Shift AI Monitor & Capacity Planner**
+  - Shift Monitor rules (R1 to R11, S1 robust z-scores) + views
+  - Capacity Planner engine (Supply waterfall, absence deductions, demand tolerance gap) + line/heatmap charts
+  - Unit tests for Shift rules & Capacity forecasting.
+- **Phase 3: Resume & Talent Matcher**
+  - Screening pipeline integration, blind mode, comparison matrix, disabled resume upload banner
+  - Final documentation in `docs/AI_TOOLS.md` and updated `docs/API_GAPS.md`.
 
----
-
-## 5. Verification & Acceptance Criteria
-
-- All work packages EXIT-00 through EXIT-18 tracked in `docs/EXIT_TRACKER.md`.
-- `docs/EXIT_CONTRACT.md`, `docs/EXIT_ROLE_MATRIX.md`, and `docs/API_GAPS.md` populated and maintained.
-- Unit and integration tests covering mappers, components, RBAC gating, validation rules, and error handling.
-- Zero regression against baseline test suite (`npm run test`).
-- Atomic commits per task with conventional commit format: `type(scope): description`.

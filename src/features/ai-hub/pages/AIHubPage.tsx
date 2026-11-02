@@ -90,6 +90,7 @@ const AI_MODULES: AIModuleCard[] = [
     id: 'ai-copilot',
     title: 'Autonomous Workflows',
     icon: Bot,
+    path: '/ai/autonomous-workflows',
     iconBg: 'bg-fuchsia-500/10 dark:bg-fuchsia-500/20',
     iconColor: 'text-fuchsia-600 dark:text-fuchsia-400',
   },

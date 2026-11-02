@@ -30,6 +30,7 @@ import { AIChatAssistantRoute } from '@/routes/ai.chat-assistant';
 import { AIMeetingIntelligenceRoute } from '@/routes/ai.meeting-intelligence';
 import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
 import { AIDocumentGeneratorRoute } from '@/routes/ai.document-generator';
+import { AIAutonomousWorkflowsRoute } from '@/routes/ai.autonomous-workflows';
 import { DashboardConnectRoute } from '@/routes/dashboard.connect';
 import { DashboardAttendanceRoute } from '@/routes/dashboard.attendance';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
@@ -741,6 +742,38 @@ export const AppRoutes: React.FC = () => {
             allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
           >
             <AIDocumentGeneratorRoute />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AI Hub Autonomous Workflows */}
+      <Route
+        path="/ai/autonomous-workflows"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAutonomousWorkflowsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/ai-hub/workflows"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAutonomousWorkflowsRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/autonomous-workflows"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <AIAutonomousWorkflowsRoute />
           </ProtectedRoute>
         }
       />
