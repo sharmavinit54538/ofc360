@@ -32,6 +32,72 @@ const transformResponse = <T>(response: any): T => {
   return response as T;
 };
 
+const normalizeJobItem = (item: any): JobOpening => {
+  const deptName =
+    typeof item.department === 'object' && item.department !== null
+      ? item.department.name || ''
+      : typeof item.department === 'string'
+      ? item.department
+      : item.departmentName || '';
+  const deptId =
+    typeof item.department === 'object' && item.department !== null
+      ? item.department.id || ''
+      : item.departmentId || '';
+  const minSal = Number(item.minSalary ?? item.min_salary ?? item.salaryRange?.min ?? 0);
+  const maxSal = Number(item.maxSalary ?? item.max_salary ?? item.salaryRange?.max ?? 0);
+  const curr = String(item.currency || item.salaryRange?.currency || 'INR');
+  const rawStatus = String(item.status || 'OPEN').toUpperCase();
+  const status = rawStatus === 'PUBLISHED' ? 'OPEN' : (rawStatus as any);
+
+  return {
+    id: String(item.id || ''),
+    jobCode: String(item.jobCode || item.job_code || item.slug || `JOB-${String(item.id || '').slice(0, 6)}`),
+    title: String(item.title || ''),
+    department: { id: deptId, name: deptName },
+    location: String(item.location || 'Remote'),
+    jobType: (item.jobType || item.employment_type || 'FULL_TIME') as any,
+    openingsCount: Number(item.openingsCount ?? item.vacancies ?? 1),
+    applicantsCount: Number(item.applicantsCount ?? item.application_count ?? item.applicants_count ?? 0),
+    experienceRequired: String(
+      item.experienceRequired ?? item.experience_required ?? `${item.min_experience || 0}-${item.max_experience || 0} years`
+    ),
+    salaryRange: { min: minSal, max: maxSal, currency: curr },
+    status,
+    hiringManager: {
+      id: String(item.hiringManagerId || item.hiring_manager?.id || ''),
+      name: String(item.hiringManagerName || item.hiring_manager?.name || 'Hiring Manager'),
+    },
+    targetDate: String(item.targetDate || item.application_deadline || item.targetCloseDate || ''),
+  };
+};
+
+const normalizeInterviewItem = (item: any): InterviewSchedule => {
+  return {
+    id: String(item.id || ''),
+    candidateId: String(item.candidateId || item.candidate_id || item.application_id || ''),
+    candidateName: String(
+      item.candidateName ||
+      item.candidate_name ||
+      (item.candidate ? `${item.candidate.first_name || ''} ${item.candidate.last_name || ''}`.trim() : '') ||
+      'Candidate'
+    ),
+    jobTitle: String(item.jobTitle || item.job_title || item.job?.title || 'Open Position'),
+    roundName: String(item.roundName || item.round_name || item.rounds?.[0]?.round_name || 'Interview Round'),
+    roundNumber: Number(item.roundNumber ?? item.round_number ?? item.current_round_index ?? 1),
+    interviewDate: String(item.interviewDate || item.interview_date || item.rounds?.[0]?.schedules?.[0]?.interview_date || ''),
+    startTime: String(item.startTime || item.start_time || item.rounds?.[0]?.schedules?.[0]?.interview_time || ''),
+    endTime: String(item.endTime || item.end_time || ''),
+    interviewers: Array.isArray(item.interviewers)
+      ? item.interviewers
+      : Array.isArray(item.interviewerIds)
+      ? item.interviewerIds.map((id: string) => ({ id, name: 'Interviewer' }))
+      : [],
+    meetingType: (item.meetingType || item.meeting_type || item.rounds?.[0]?.schedules?.[0]?.mode || 'ONLINE') as any,
+    meetingLink: item.meetingLink || item.meeting_link || item.meeting_url || item.rounds?.[0]?.schedules?.[0]?.meeting_url,
+    status: (item.status || 'SCHEDULED') as any,
+  };
+};
+
 export const recruitmentApi = createApi({
   reducerPath: 'recruitmentApi',
   baseQuery: baseQueryWithReauth,
@@ -74,11 +140,18 @@ export const recruitmentApi = createApi({
       },
       transformResponse: (response: any): JobListResponse => {
         const data = transformResponse<any>(response);
+        const rawList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.jobs)
+          ? data.jobs
+          : [];
         return {
-          items: data?.items || data?.jobs || [],
-          total: data?.total ?? (data?.items || data?.jobs || []).length,
-          page: data?.page ?? 1,
-          limit: data?.limit ?? 10,
+          items: rawList.map(normalizeJobItem),
+          total: Number(data?.total ?? rawList.length),
+          page: Number(data?.page ?? 1),
+          limit: Number(data?.limit ?? (rawList.length || 10)),
         };
       },
       providesTags: (result) =>
@@ -208,8 +281,14 @@ export const recruitmentApi = createApi({
       },
       transformResponse: (response: any): InterviewSchedule[] => {
         const data = transformResponse<any>(response);
-        if (Array.isArray(data)) return data;
-        return data?.items || data?.interviews || [];
+        const rawList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.interviews)
+          ? data.interviews
+          : [];
+        return rawList.map(normalizeInterviewItem);
       },
       providesTags: (result) =>
         result
@@ -218,6 +297,28 @@ export const recruitmentApi = createApi({
               { type: 'InterviewsList', id: 'LIST' },
             ]
           : [{ type: 'InterviewsList', id: 'LIST' }],
+    }),
+
+    /**
+     * Complete structured recruitment analytics (funnel, channels, conversion rates, departments).
+     */
+    getRecruitmentAnalytics: builder.query<any, void>({
+      query: () => '/recruitment/analytics',
+      transformResponse: (response: any) => transformResponse<any>(response),
+      providesTags: ['RecruitmentStats'],
+    }),
+
+    /**
+     * Recent recruitment activities and notifications feed.
+     */
+    getRecruitmentNotifications: builder.query<any[], void>({
+      query: () => '/recruitment/notifications',
+      transformResponse: (response: any) => {
+        const data = transformResponse<any>(response);
+        if (Array.isArray(data)) return data;
+        return data?.items || [];
+      },
+      providesTags: ['RecruitmentStats'],
     }),
 
     /**
@@ -246,5 +347,7 @@ export const {
   useAddCandidateMutation,
   useUpdateCandidateStageMutation,
   useGetInterviewsQuery,
+  useGetRecruitmentAnalyticsQuery,
+  useGetRecruitmentNotificationsQuery,
   useScheduleInterviewMutation,
 } = recruitmentApi;
