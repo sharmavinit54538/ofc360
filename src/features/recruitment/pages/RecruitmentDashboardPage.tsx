@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Briefcase,
@@ -9,9 +9,7 @@ import {
   ShieldCheck,
   BarChart3,
   ArrowUpRight,
-  AlertTriangle,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   useGetRecruitmentStatsQuery,
@@ -62,31 +60,25 @@ export const RecruitmentDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [activeView, setActiveView] = useState<'dashboard' | 'modules'>('dashboard');
   const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch real statistics from recruitment API endpoints
   const {
     data: stats,
     isLoading: isStatsLoading,
-    isError: isStatsError,
-    refetch: refetchStats,
   } = useGetRecruitmentStatsQuery();
 
   const {
     data: analyticsData,
     isLoading: isAnalyticsLoading,
-    refetch: refetchAnalytics,
   } = useGetRecruitmentAnalyticsQuery();
 
   const {
     data: notificationsData,
-    refetch: refetchNotifications,
   } = useGetRecruitmentNotificationsQuery();
 
   const {
     data: badges,
     isLoading: isBadgesLoading,
-    refetch: refetchBadges,
   } = useGetSidebarBadgesQuery(undefined, {
     skip: !user,
   });
@@ -94,37 +86,26 @@ export const RecruitmentDashboardPage: React.FC = () => {
   const {
     data: jobsData,
     isLoading: isJobsLoading,
-    isError: isJobsError,
-    error: jobsError,
-    refetch: refetchJobs,
   } = useGetJobOpeningsQuery({ limit: 100 });
 
   const {
     data: candidatesData,
     isLoading: isCandidatesLoading,
-    isError: isCandidatesError,
-    error: candidatesError,
-    refetch: refetchCandidates,
   } = useGetCandidatesQuery({ limit: 100 });
 
   const {
     data: interviewsData,
     isLoading: isInterviewsLoading,
-    isError: isInterviewsError,
-    error: interviewsError,
-    refetch: refetchInterviews,
   } = useGetInterviewsQuery();
 
   const {
     data: requisitionsData,
     isLoading: isReqsLoading,
-    refetch: refetchReqs,
   } = useGetRequisitionsQuery(undefined, { skip: false });
 
   const {
     data: offersData,
     isLoading: isOffersLoading,
-    refetch: refetchOffers,
   } = useGetAdminOffersQuery(undefined, { skip: false });
 
   // Workforce data for CreateJobModal
@@ -148,59 +129,15 @@ export const RecruitmentDashboardPage: React.FC = () => {
     [employeesData]
   );
 
-  const apiErrorMessage = useMemo(() => {
-    if (isStatsError) return 'Recruitment telemetry stats temporarily unavailable. Re-attempting sync...';
-    if (isJobsError) {
-      const err = jobsError as any;
-      return err?.data?.message || err?.error || 'Failed to load recruitment job openings.';
-    }
-    if (isInterviewsError) {
-      const err = interviewsError as any;
-      return err?.data?.message || err?.error || 'Failed to load scheduled interviews.';
-    }
-    if (isCandidatesError) {
-      const err = candidatesError as any;
-      return err?.data?.message || err?.error || 'Failed to load recruitment candidate pipeline.';
-    }
-    return null;
-  }, [isStatsError, isJobsError, jobsError, isInterviewsError, interviewsError, isCandidatesError, candidatesError]);
-
   const isLoading =
     isStatsLoading ||
     isBadgesLoading ||
     isJobsLoading ||
     isCandidatesLoading ||
     isInterviewsLoading ||
-    isAnalyticsLoading;
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.allSettled([
-        refetchStats(),
-        refetchBadges(),
-        refetchJobs(),
-        refetchCandidates(),
-        refetchInterviews(),
-        refetchReqs(),
-        refetchOffers(),
-        refetchAnalytics(),
-        refetchNotifications(),
-      ]);
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
-    }
-  }, [
-    refetchStats,
-    refetchBadges,
-    refetchJobs,
-    refetchCandidates,
-    refetchInterviews,
-    refetchReqs,
-    refetchOffers,
-    refetchAnalytics,
-    refetchNotifications,
-  ]);
+    isAnalyticsLoading ||
+    isReqsLoading ||
+    isOffersLoading;
 
   // Derived real KPI counts
   const requisitionsTotal = useMemo(
@@ -468,7 +405,7 @@ export const RecruitmentDashboardPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/70 dark:bg-zinc-950 p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="w-full space-y-6">
       {/* 1. Top Navigation: 3 Buttons */}
       <RecruitmentTopNav
         activeView={activeView}
@@ -476,30 +413,6 @@ export const RecruitmentDashboardPage: React.FC = () => {
         onCreateJobClick={() => setIsCreateJobModalOpen(true)}
       />
 
-      {/* Sync / Error Notice with Retry */}
-      {apiErrorMessage && (
-        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
-                Notice: Telemetry synchronization in progress
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-400">
-                {apiErrorMessage}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            className="text-xs bg-white dark:bg-zinc-900 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300"
-          >
-            {isRefreshing ? 'Syncing...' : 'Retry Sync'}
-          </Button>
-        </div>
-      )}
 
       {/* VIEW 1: Recruitment Dashboard (Exact Visual Reference Architecture) */}
       {activeView === 'dashboard' && (
