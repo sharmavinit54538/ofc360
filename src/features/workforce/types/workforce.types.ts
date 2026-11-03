@@ -114,7 +114,30 @@ export interface EmployeeItem {
   workLocation: string;
   avatarUrl?: string | null;
   role?: WorkforceRole | string;
+  dateOfBirth?: string;
+  maritalStatus?: string;
+  bloodGroup?: string;
+  currentAddress?: string;
+  permanentAddress?: string;
+  probationPeriod?: string;
+  confirmationDate?: string;
+  noticePeriod?: string;
+  tenureYears?: number | string;
+  monthlySalary?: number;
+  leaveBalanceDays?: number;
+  profileCompletionPercentage?: number;
+  rating?: number;
+  emergencyContactName?: string;
+  emergencyContactRelation?: string;
+  emergencyContactPhone?: string;
+  panNumber?: string;
+  aadhaarNumber?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
 }
+
+export type EmployeeProfileDetail = EmployeeItem;
 
 /**
  * Filters accepted by the employee directory listing endpoint.

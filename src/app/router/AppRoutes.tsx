@@ -21,6 +21,7 @@ import { DashboardAssetManagementRoute } from '@/routes/dashboard.asset-manageme
 import { DashboardTimelineRoute } from '@/routes/dashboard.timeline';
 import { DashboardHrOpsRoute } from '@/routes/dashboard.hr-ops';
 import { DashboardWorkforceRoute } from '@/routes/dashboard.workforce';
+import { DashboardEmployeeProfileRoute } from '@/routes/dashboard.employee-profile';
 import { DashboardTalentRoute } from '@/routes/dashboard.talent';
 import { DashboardDocumentsRoute } from '@/routes/dashboard.documents';
 import { DashboardPayrollRoute } from '@/routes/dashboard.payroll';
@@ -509,6 +510,26 @@ export const AppRoutes: React.FC = () => {
 
       {/* Workforce Management Hub (Employees, Managers, Departments) */}
       <Route
+        path="/dashboard/workforce/employees/:employeeId"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardEmployeeProfileRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/employees/:employeeId"
+        element={
+          <ProtectedRoute
+            allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}
+          >
+            <DashboardEmployeeProfileRoute />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/workforce"
         element={
           <ProtectedRoute
@@ -549,7 +570,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Talent Management Hub (Recruitment & Performance) */}
+      {/* Talent & Performance Management Hub */}
       <Route
         path="/dashboard/talent"
         element={

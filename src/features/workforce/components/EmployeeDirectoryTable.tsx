@@ -328,14 +328,23 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                       >
                         {/* Code */}
                         <td className="px-4 py-3.5">
-                          <span className="font-mono text-xs text-gray-600 dark:text-zinc-400">
+                          <button
+                            type="button"
+                            onClick={() => onView(emp)}
+                            className="font-mono text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium cursor-pointer"
+                            title={`View profile for ${emp.employeeCode}`}
+                          >
                             {emp.employeeCode}
-                          </span>
+                          </button>
                         </td>
 
                         {/* Employee Avatar + Name + Email */}
                         <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2.5">
+                          <div
+                            className="flex items-center gap-2.5 cursor-pointer group"
+                            onClick={() => onView(emp)}
+                            title={`View ${emp.firstName} ${emp.lastName}`}
+                          >
                             <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
                               {emp.avatarUrl ? (
                                 <img
@@ -348,7 +357,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-semibold text-gray-900 dark:text-[#ececec] truncate">
+                              <div className="font-semibold text-gray-900 dark:text-[#ececec] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                 {emp.firstName} {emp.lastName}
                               </div>
                               <div className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">

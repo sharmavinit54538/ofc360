@@ -1,6 +1,8 @@
 import React from 'react';
-import { X, User, Mail, Phone, MapPin, CalendarDays, Briefcase, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, User, Mail, Phone, MapPin, CalendarDays, Briefcase, Building2, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
+import { Button } from '@/shared/ui/Button';
 import { SkeletonListItem } from '@/shared/ui/Skeleton';
 import { useGetEmployeeByIdQuery, useGetEmployeesQuery } from '../api/workforceApi';
 import type { EmployeeItem } from '../types/workforce.types';
@@ -9,6 +11,7 @@ interface EmployeeProfileModalProps {
   employee: EmployeeItem | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (employee: EmployeeItem) => void;
 }
 
 type BadgeVariant = 'brand' | 'success' | 'warning' | 'danger' | 'slate' | 'role';
@@ -57,7 +60,13 @@ const DetailRow: React.FC<{ icon: IconType; label: string; value?: string | null
   </div>
 );
 
-export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ employee, isOpen, onClose }) => {
+export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
+  employee,
+  isOpen,
+  onClose,
+  onEdit,
+}) => {
+  const navigate = useNavigate();
   const { data: detail, isLoading } = useGetEmployeeByIdQuery(employee?.id ?? '', {
     skip: !isOpen || !employee,
   });
@@ -168,6 +177,47 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ empl
               <DetailRow icon={User} label="Gender" value={info.gender} />
             </div>
           )}
+        </div>
+
+        {/* Modal Footer with View Full Profile Action */}
+        <div className="px-6 py-4 bg-gray-50/80 dark:bg-zinc-900/60 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+          >
+            Close
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onEdit(info);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              onClick={() => {
+                onClose();
+                navigate(`/dashboard/workforce/employees/${encodeURIComponent(info.id || info.employeeCode || 'emp-1025')}`);
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>View Full Profile</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

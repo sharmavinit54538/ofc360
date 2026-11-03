@@ -656,6 +656,11 @@ export const WorkforceHubPage: React.FC = () => {
         isOpen={Boolean(profileTarget)}
         employee={profileTarget}
         onClose={() => setProfileTarget(null)}
+        onEdit={(emp) => {
+          setProfileTarget(null);
+          setEditTarget(emp);
+          setIsAddOpen(true);
+        }}
       />
     </div>
   );
