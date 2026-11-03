@@ -69,3 +69,4 @@ export const RecruitmentTopNav: React.FC<RecruitmentTopNavProps> = ({
     </div>
   );
 };
+

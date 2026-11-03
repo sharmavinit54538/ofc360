@@ -116,3 +116,4 @@ export const RecruitmentInsightsPanel: React.FC<RecruitmentInsightsPanelProps> =
     </div>
   );
 };
+

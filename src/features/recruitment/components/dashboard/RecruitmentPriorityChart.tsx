@@ -110,3 +110,4 @@ export const RecruitmentPriorityChart: React.FC<RecruitmentPriorityChartProps> =
     </div>
   );
 };
+

@@ -109,3 +109,4 @@ export const RecruitmentDepartmentChart: React.FC<RecruitmentDepartmentChartProp
     </div>
   );
 };
+

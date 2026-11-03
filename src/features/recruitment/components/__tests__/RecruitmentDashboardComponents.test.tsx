@@ -141,3 +141,4 @@ describe('Recruitment Dashboard Redesign Components', () => {
     expect(screen.getByText('Open Positions by Priority')).toBeDefined();
   });
 });
+

@@ -42,7 +42,6 @@ import { UnauthorizedPage } from '@/features/dashboard/pages/UnauthorizedPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
 // Recruitment Module (lazy loaded)
-const RecruitmentDashboardPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentDashboardPage'));
 const RequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/RequisitionsPage'));
 const JobOpeningsPage = React.lazy(() => import('@/features/recruitment/pages/JobOpeningsPage'));
 const CandidatePipelinePage = React.lazy(() => import('@/features/recruitment/pages/CandidatePipelinePage'));

@@ -165,3 +165,4 @@ export const RecruitmentRecentActivity: React.FC<RecruitmentRecentActivityProps>
     </div>
   );
 };
+

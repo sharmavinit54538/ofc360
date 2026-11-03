@@ -90,3 +90,4 @@ export const RecruitmentFunnelChart: React.FC<RecruitmentFunnelChartProps> = ({
     </div>
   );
 };
+

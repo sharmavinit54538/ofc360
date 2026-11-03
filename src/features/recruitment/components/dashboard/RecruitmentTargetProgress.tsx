@@ -89,3 +89,4 @@ export const RecruitmentTargetProgress: React.FC<RecruitmentTargetProgressProps>
     </div>
   );
 };
+

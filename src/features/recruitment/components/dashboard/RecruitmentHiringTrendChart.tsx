@@ -155,3 +155,4 @@ export const RecruitmentHiringTrendChart: React.FC<RecruitmentHiringTrendChartPr
     </div>
   );
 };
+

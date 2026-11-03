@@ -180,3 +180,4 @@ export const RecruitmentPerformanceRow: React.FC<RecruitmentPerformanceRowProps>
     </div>
   );
 };
+

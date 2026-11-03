@@ -108,3 +108,4 @@ export const RecruitmentSourcesChart: React.FC<RecruitmentSourcesChartProps> = (
     </div>
   );
 };
+
