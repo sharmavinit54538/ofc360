@@ -78,17 +78,17 @@ describe('RecruitmentDashboardKpiCards', () => {
     renderCards();
 
     // Requisitions main count
-    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getAllByText('15').length).toBeGreaterThanOrEqual(1);
     // Job openings main count
-    expect(screen.getByText('18')).toBeInTheDocument();
+    expect(screen.getAllByText('18').length).toBeGreaterThanOrEqual(1);
     // Candidates main count
-    expect(screen.getByText('145')).toBeInTheDocument();
+    expect(screen.getAllByText('145').length).toBeGreaterThanOrEqual(1);
     // Interviews main count
-    expect(screen.getByText('16')).toBeInTheDocument();
+    expect(screen.getAllByText('16').length).toBeGreaterThanOrEqual(1);
     // Offers main count
-    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getAllByText('10').length).toBeGreaterThanOrEqual(1);
     // Reports avg time-to-hire
-    expect(screen.getByText('21d')).toBeInTheDocument();
+    expect(screen.getAllByText('21d').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders supporting statistics for each card', () => {

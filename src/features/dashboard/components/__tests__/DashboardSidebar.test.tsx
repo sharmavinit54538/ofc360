@@ -78,10 +78,10 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       } as any);
 
       renderSidebar();
-      expect(screen.getByText('TALENT & RECRUITMENT')).toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
     });
 
-    it('should render all 8 HR tabs for HR_ADMIN', () => {
+    it('should house submenu modules inside Recruitment Dashboard, not in root sidebar', () => {
       vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('HR_ADMIN')),
         isSuperAdmin: false,
@@ -89,17 +89,14 @@ describe('DashboardSidebar - Recruitment Integration', () => {
 
       renderSidebar();
       
-      expect(screen.getByText('Overview Dashboard')).toBeInTheDocument();
-      expect(screen.getByText('Job Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Job Openings')).toBeInTheDocument();
-      expect(screen.getByText('Candidates & ATS')).toBeInTheDocument();
-      expect(screen.getByText('Interview Scheduler')).toBeInTheDocument();
-      expect(screen.getByText('Offer Management')).toBeInTheDocument();
-      expect(screen.getByText('BGV Management')).toBeInTheDocument();
-      expect(screen.getByText('Recruitment Reports')).toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
+      // Internal recruitment tabs are housed inside the dashboard page
+      expect(screen.queryByText('Overview Dashboard')).not.toBeInTheDocument();
+      expect(screen.queryByText('Job Requisitions')).not.toBeInTheDocument();
+      expect(screen.queryByText('Candidates & ATS')).not.toBeInTheDocument();
     });
 
-    it('should render only 4 MANAGER tabs for MANAGER role', () => {
+    it('should render recruitment section for MANAGER role', () => {
       vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('MANAGER')),
         isSuperAdmin: false,
@@ -112,18 +109,10 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       } as any);
 
       renderSidebar();
-      
-      expect(screen.getByText('Team Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Candidate Reviews')).toBeInTheDocument();
-      expect(screen.getByText('Panel Interviews')).toBeInTheDocument();
-      expect(screen.getByText('Offer Approvals')).toBeInTheDocument();
-      
-      // Should NOT see HR tabs
-      expect(screen.queryByText('Overview Dashboard')).not.toBeInTheDocument();
-      expect(screen.queryByText('Job Requisitions')).not.toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
     });
 
-    it('should render only 2 IT_ADMIN tabs for IT_ADMIN role', () => {
+    it('should render recruitment section for IT_ADMIN role', () => {
       vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('IT_ADMIN')),
         isSuperAdmin: false,
@@ -136,52 +125,15 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       } as any);
 
       renderSidebar();
-      
-      expect(screen.getByText('Onboarding IT Queue')).toBeInTheDocument();
-      expect(screen.getByText('Asset Allocation')).toBeInTheDocument();
-      
-      // Should NOT see HR or Manager tabs
-      expect(screen.queryByText('Overview Dashboard')).not.toBeInTheDocument();
-      expect(screen.queryByText('Team Requisitions')).not.toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
     });
 
-    it('should render only 3 EMPLOYEE tabs for EMPLOYEE role', () => {
+    it('should render recruitment section for EMPLOYEE role', () => {
       renderSidebar();
-      
-      expect(screen.getByText('Internal Careers (IJP)')).toBeInTheDocument();
-      expect(screen.getByText('My Referrals')).toBeInTheDocument();
-      expect(screen.getByText('Assigned Interviews')).toBeInTheDocument();
-      
-      // Should NOT see other role tabs
-      expect(screen.queryByText('Overview Dashboard')).not.toBeInTheDocument();
-      expect(screen.queryByText('Team Requisitions')).not.toBeInTheDocument();
-      expect(screen.queryByText('Onboarding IT Queue')).not.toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
     });
 
-    it('should NOT render Assigned Interviews tab when user.has_assigned_interviews is false', () => {
-      vi.mocked(useAuth).mockReturnValue({
-        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: false } as any,
-        activeRole: 'EMPLOYEE',
-        isAuthenticated: true,
-      } as any);
-
-      renderSidebar();
-      expect(screen.queryByText('Assigned Interviews')).not.toBeInTheDocument();
-    });
-
-    it('SHOULD render Assigned Interviews tab when user.has_assigned_interviews is true', () => {
-      vi.mocked(useAuth).mockReturnValue({
-        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: true } as any,
-        activeRole: 'EMPLOYEE',
-        isAuthenticated: true,
-      } as any);
-
-      renderSidebar();
-      
-      expect(screen.getByText('Assigned Interviews')).toBeInTheDocument();
-    });
-
-    it('should render all tabs for SUPER_ADMIN', () => {
+    it('should render recruitment section for SUPER_ADMIN', () => {
       vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn(() => true),
         isSuperAdmin: true,
@@ -194,12 +146,17 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       } as any);
 
       renderSidebar();
-      
-      expect(screen.getByText('Overview Dashboard')).toBeInTheDocument();
-      expect(screen.getByText('Job Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Team Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Onboarding IT Queue')).toBeInTheDocument();
-      expect(screen.getByText('Internal Careers (IJP)')).toBeInTheDocument();
+      expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
+    });
+
+    it('should NOT render recruitment section if role access check returns false', () => {
+      vi.mocked(useRBAC).mockReturnValue({
+        hasAnyRole: vi.fn(() => false),
+        isSuperAdmin: false,
+      } as any);
+
+      renderSidebar();
+      expect(screen.queryByText('Talent & Recruitment')).not.toBeInTheDocument();
     });
   });
 
@@ -212,7 +169,7 @@ describe('DashboardSidebar - Recruitment Integration', () => {
 
       const { container } = renderSidebar();
       
-      // Should show skeleton loaders for tabs with badge keys
+      // Should show skeleton loaders for badges
       const skeletons = container.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
     });
@@ -221,13 +178,12 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
         data: {
           pending_scorecards_count: 2,
-          active_referral_updates_count: 7,
+          pending_req_approvals_count: 5,
         },
         isLoading: false,
       } as any);
 
       renderSidebar();
-      expect(screen.getByText('2')).toBeInTheDocument();
       expect(screen.getByText('7')).toBeInTheDocument();
     });
 
@@ -254,15 +210,13 @@ describe('DashboardSidebar - Recruitment Integration', () => {
     });
   });
 
-  describe('Collapsible section', () => {
-    it('should collapse/expand recruitment section when clicked', () => {
-      renderSidebar({ collapsed: false });
+  describe('Collapsed mode', () => {
+    it('should render collapsed recruitment link with accessible label', () => {
+      renderSidebar({ collapsed: true });
       
-      const sectionHeader = screen.getByText('TALENT & RECRUITMENT').closest('button');
-      expect(sectionHeader).toBeInTheDocument();
-      
-      fireEvent.click(sectionHeader!);
-      // Section should collapse
+      const link = screen.getByTitle('Talent & Recruitment');
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/recruitment/dashboard');
     });
   });
 

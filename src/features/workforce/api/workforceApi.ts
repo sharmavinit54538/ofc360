@@ -175,17 +175,21 @@ export const normalizeEmployee = (raw: any): EmployeeItem => {
   );
 
   // Designation normalization
+  const rawDesgObj = typeof raw.designation === 'object' && raw.designation !== null ? raw.designation : null;
   const desgTitle = String(
-    raw.designation ??
-      raw.job_title ??
-      raw.role_title ??
-      (typeof raw.designation === 'object' ? raw.designation?.title : '') ??
+    rawDesgObj?.title ||
+      rawDesgObj?.name ||
+      (typeof raw.designation === 'string' ? raw.designation : '') ||
+      raw.designationTitle ||
+      raw.designation_title ||
+      raw.job_title ||
+      raw.role_title ||
       'Employee'
   );
   const desgId = String(
     raw.designationId ??
       raw.designation_id ??
-      (typeof raw.designation === 'object' ? raw.designation?.id : '') ??
+      rawDesgObj?.id ??
       `desg_${desgTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
   );
 

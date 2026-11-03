@@ -1,4 +1,7 @@
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardShell } from '@/shared/layout/DashboardShell';
+import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -19,10 +22,44 @@ export const RecruitmentPlaceholderPage: React.FC<RecruitmentPlaceholderPageProp
   roles,
   description,
 }) => {
-  const { user, activeRole } = useAuth();
+  const navigate = useNavigate();
+  const { user, role, activeRole } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, []);
+
+  const effectiveRole = (activeRole || role || 'HR_ADMIN').toUpperCase();
+
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      if (effectiveRole === 'SUPER_ADMIN') {
+        navigate(`/dashboard/super-admin#${tabId}`);
+      } else if (effectiveRole === 'MANAGER') {
+        navigate(`/dashboard/manager#${tabId}`);
+      } else {
+        navigate(`/dashboard/hr-admin#${tabId}`);
+      }
+    },
+    [navigate, effectiveRole]
+  );
 
   return (
-    <DashboardShell title={title} subtitle={subtitle}>
+    <DashboardShell
+      title={title}
+      subtitle={subtitle}
+      sidebar={
+        <DashboardSidebar
+          activeTab="recruitment"
+          onTabChange={handleTabChange}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
+      }
+      sidebarCollapsed={sidebarCollapsed}
+      onSidebarToggle={toggleSidebar}
+    >
       <div className="space-y-6">
         <Card className="p-6">
           <div className="flex items-center gap-4">

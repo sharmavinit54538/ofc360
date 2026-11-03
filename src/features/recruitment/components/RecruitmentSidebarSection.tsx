@@ -8,6 +8,7 @@ import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export interface RecruitmentSidebarSectionProps {
+  activeTab?: string;
   collapsed?: boolean;
   onTabChange?: (tabId: string) => void;
   onMobileClose?: () => void;
@@ -21,6 +22,7 @@ export interface RecruitmentSidebarSectionProps {
  * Interviews, Offers, BGV, Reports) are housed inside the Talent & Recruitment Dashboard.
  */
 export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps> = ({
+  activeTab,
   collapsed = false,
   onTabChange,
   onMobileClose,
@@ -68,8 +70,9 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
     return null;
   }
 
-  // Active state logic: Matches /recruitment and all sub-routes
+  // Active state logic: Matches /recruitment and all sub-routes, or when activeTab is recruitment
   const isRecruitmentActive =
+    activeTab === 'recruitment' ||
     location.pathname.startsWith('/recruitment') ||
     location.pathname === '/dashboard/recruitment';
 

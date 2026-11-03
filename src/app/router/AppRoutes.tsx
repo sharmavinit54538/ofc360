@@ -33,6 +33,7 @@ import { DashboardAIHubRoute } from '@/routes/dashboard.ai-hub';
 import { AIDocumentGeneratorRoute } from '@/routes/ai.document-generator';
 import { AIAutonomousWorkflowsRoute } from '@/routes/ai.autonomous-workflows';
 import { DashboardConnectRoute } from '@/routes/dashboard.connect';
+import { DashboardRecruitmentRoute } from '@/routes/dashboard.recruitment';
 import { DashboardAttendanceRoute } from '@/routes/dashboard.attendance';
 import { DashboardAttendanceShiftsRoute } from '@/routes/dashboard.attendance.shifts';
 import { DashboardAttendanceRostersRoute } from '@/routes/dashboard.attendance.rosters';
@@ -610,7 +611,7 @@ export const AppRoutes: React.FC = () => {
         path="/recruitment/dashboard"
         element={
           <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
-            <RecruitmentDashboardPage />
+            <DashboardRecruitmentRoute />
           </ProtectedRoute>
         }
       />

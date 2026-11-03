@@ -263,6 +263,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       return (
         <RecruitmentSidebarSection
           key="recruitment"
+          activeTab={activeTab}
           collapsed={isCollapsed}
           onTabChange={onTabChange}
           onMobileClose={onMobileClose}
