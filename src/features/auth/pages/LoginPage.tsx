@@ -75,14 +75,18 @@ export const LoginPage: React.FC = () => {
         }
       }
 
-      console.log('[LoginPage] Session already active -> navigating to destination:', dest);
+      if (import.meta.env.DEV) {
+        console.log('[LoginPage] Session already active -> navigating to destination:', dest);
+      }
       navigate(dest, { replace: true });
     }
   }, [isAuthenticated, isInitialized, user, redirectUrl, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log('[LoginPage] Submitting credentials for:', data.email);
+      if (import.meta.env.DEV) {
+        console.log('[LoginPage] Submitting credentials');
+      }
       const rawResponse = await login({
         email: data.email,
         identifier: data.email,
@@ -90,32 +94,100 @@ export const LoginPage: React.FC = () => {
         rememberMe: data.rememberMe,
       }).unwrap();
 
-      console.log('[LoginPage] Raw login response received from backend:', rawResponse);
-
       // Safely parse user profile & tokens across all API payload variants
       const normalized = normalizeAuthResponse(rawResponse, data.email);
-      console.log('[LoginPage] Normalized auth payload:', normalized);
 
-      // Backend may ask for an email OTP step (multi-step login).
-      // Go to verify-email when no token was issued, or when the user is still unverified.
       const verificationId =
-        rawResponse.data?.verification_id ||
-        rawResponse.verification_id ||
+        rawResponse?.data?.verification_id ||
+        rawResponse?.verification_id ||
         '';
 
-      if (
-        normalized.requiresEmailVerification &&
-        verificationId &&
-        (!normalized.tokens.accessToken || !normalized.user.isEmailVerified)
-      ) {
+      // DEV-only shape inspection log (booleans/flags only, zero tokens)
+      const rawUser =
+        rawResponse?.data?.user ??
+        rawResponse?.user ??
+        rawResponse?.data?.userData ??
+        rawResponse?.userData ??
+        (rawResponse?.data && typeof rawResponse.data === 'object' ? rawResponse.data : rawResponse);
+
+      const is_email_verified = rawUser?.is_email_verified;
+      const is_verified = rawUser?.is_verified;
+      const email_verified = rawUser?.email_verified;
+      const isEmailVerified = rawUser?.isEmailVerified;
+
+      if (import.meta.env.DEV) {
+        console.log('[LoginPage] login shape', {
+          hasAccessToken: Boolean(normalized.tokens.accessToken),
+          hasUser: Boolean(normalized.user),
+          requires_email_verification: Boolean(
+            rawResponse?.requires_email_verification ??
+            rawResponse?.data?.requires_email_verification ??
+            normalized.requiresEmailVerification
+          ),
+          hasVerificationId: Boolean(verificationId),
+          is_email_verified,
+          is_verified,
+          email_verified,
+          isEmailVerified,
+        });
+      }
+
+      // TOKEN WINS: If an access token exists, store credentials and go directly to dashboard.
+      // NEVER redirect to verify-email when a token was issued.
+      if (normalized.tokens.accessToken) {
+        // 1. Immediately store credentials into Redux state & localStorage synchronously
+        dispatch(
+          setCredentials({
+            user: normalized.user,
+            tokens: normalized.tokens,
+            rememberMe: data.rememberMe,
+          })
+        );
+
+        const displayName = normalized.user.fullName || normalized.user.firstName || 'User';
+
+        toast.success(
+          `Welcome back, ${displayName}!`,
+          'Authenticated Successfully'
+        );
+
+        // 2. Explicitly navigate to the correct target dashboard path immediately with replace: true
+        const canonicalRole = normalizeRole(
+          normalized.user.activeRole ||
+          (normalized.user as any).role ||
+          (normalized.user.roles && normalized.user.roles[0])
+        );
+        let dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
+
+        if (redirectUrl) {
+          try {
+            const decoded = decodeURIComponent(redirectUrl);
+            if (decoded && !decoded.startsWith('/auth') && decoded !== '/' && decoded !== '/dashboard') {
+              dest = decoded;
+            }
+          } catch {
+            // ignore malformed URI
+          }
+        }
+
+        if (import.meta.env.DEV) {
+          console.log('[LoginPage] Navigating to destination dashboard:', dest, 'Canonical role:', canonicalRole);
+        }
+
+        navigate(dest, { replace: true });
+        return;
+      }
+
+      // Redirect to verify-email only when there is NO access token AND a verification_id exists
+      if (verificationId) {
         const emailToVerify =
-          rawResponse.data?.email ||
-          rawResponse.email ||
-          rawResponse.data?.masked_email ||
+          rawResponse?.data?.email ||
+          rawResponse?.email ||
+          rawResponse?.data?.masked_email ||
           data.email;
 
         toast.info(
-          rawResponse.message || 'Email verification is required. An OTP has been dispatched to your email.',
+          rawResponse?.message || 'Email verification is required. An OTP has been dispatched to your email.',
           'Verification Required'
         );
         navigate(
@@ -125,54 +197,18 @@ export const LoginPage: React.FC = () => {
       }
 
       // Never navigate without a token: ProtectedRoute would just bounce back to /auth/login
-      if (!normalized.tokens.accessToken) {
+      if (import.meta.env.DEV) {
         console.error(
           '[LoginPage] 200 OK but no access token. Response keys:',
           Object.keys(rawResponse?.data ?? rawResponse ?? {})
         );
-        toast.error('Login succeeded but the server returned no access token.', 'Login Failed');
-        return;
       }
-
-      // 1. Immediately store credentials into Redux state & localStorage synchronously
-      dispatch(
-        setCredentials({
-          user: normalized.user,
-          tokens: normalized.tokens,
-          rememberMe: data.rememberMe,
-        })
-      );
-
-      const displayName = normalized.user.fullName || normalized.user.firstName || 'User';
-
-      toast.success(
-        `Welcome back, ${displayName}!`,
-        'Authenticated Successfully'
-      );
-
-      // 2. Explicitly navigate to the correct target dashboard path immediately with replace: true
-      const canonicalRole = normalizeRole(
-        normalized.user.activeRole ||
-        (normalized.user as any).role ||
-        (normalized.user.roles && normalized.user.roles[0])
-      );
-      let dest = ROLE_DASHBOARD_ROUTES[canonicalRole] || '/dashboard/employee';
-
-      if (redirectUrl) {
-        try {
-          const decoded = decodeURIComponent(redirectUrl);
-          if (decoded && !decoded.startsWith('/auth') && decoded !== '/' && decoded !== '/dashboard') {
-            dest = decoded;
-          }
-        } catch {
-          // ignore malformed URI
-        }
-      }
-
-      console.log('[LoginPage] Navigating to destination dashboard:', dest, 'Canonical role:', canonicalRole);
-      navigate(dest, { replace: true });
+      toast.error('Login succeeded but the server returned no access token.', 'Login Failed');
+      return;
     } catch (err: unknown) {
-      console.error('[LoginPage] Login mutation failed with error:', err);
+      if (import.meta.env.DEV) {
+        console.error('[LoginPage] Login mutation failed with error:', err);
+      }
       let errorMsg = 'Invalid credentials. Please verify your corporate email and password.';
       if (typeof err === 'object' && err !== null) {
         const e = err as any;

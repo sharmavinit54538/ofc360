@@ -40,6 +40,13 @@ export const VerifyEmailPage: React.FC = () => {
     }
   }, [pendingRedirect, isAuthenticated, isInitialized, user, navigate]);
 
+  // If there is no token param and no vid, redirect to login
+  useEffect(() => {
+    if (!token && !vid) {
+      navigate('/auth/login', { replace: true });
+    }
+  }, [token, vid, navigate]);
+
   // If token is in query params, verify automatically on mount
   useEffect(() => {
     if (token) {
@@ -61,8 +68,30 @@ export const VerifyEmailPage: React.FC = () => {
       await resendVerification({ email }).unwrap();
       toast.success('Verification code sent to your email.', 'Email Sent');
       setCountdown(60);
-    } catch {
-      toast.error('Unable to send verification email. Please try again.', 'Error');
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message ||
+        err?.data?.detail ||
+        err?.message ||
+        '';
+      const status = err?.status || err?.originalStatus;
+
+      if (
+        (status === 400 || String(status) === '400') &&
+        typeof errorMsg === 'string' &&
+        errorMsg.toLowerCase().includes('already verified')
+      ) {
+        toast.info('Email already verified, please sign in', 'Already Verified');
+        navigate('/auth/login', { replace: true });
+        return;
+      }
+
+      toast.error(
+        typeof errorMsg === 'string' && errorMsg
+          ? errorMsg
+          : 'Unable to send verification email. Please try again.',
+        'Error'
+      );
     }
   };
 
@@ -74,10 +103,16 @@ export const VerifyEmailPage: React.FC = () => {
       return;
     }
 
+    if (!vid) {
+      toast.error('Missing verification session ID. Please sign in again.', 'Verification Error');
+      navigate('/auth/login', { replace: true });
+      return;
+    }
+
     try {
       setOtpError(false);
       const res = await verifyEmailOtp({
-        verification_id: vid || '',
+        verification_id: vid,
         otp,
         email,
       }).unwrap();

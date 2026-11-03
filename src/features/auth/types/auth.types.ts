@@ -368,6 +368,35 @@ export const parseJwtPayload = (token?: string | null): any => {
 };
 
 /**
+ * Evaluates whether a user's email is verified.
+ * - Inspects ONLY the rawUser object (never reads verification flags from jwtPayload to avoid claim leakage).
+ * - Returns true if ANY of [is_email_verified, is_verified, email_verified, isEmailVerified] is true (accepts true, 'true', 1).
+ * - If none of the 4 fields are present, defaults to true.
+ */
+export const computeIsEmailVerified = (rawUser: any): boolean => {
+  if (!rawUser || typeof rawUser !== 'object') {
+    return true;
+  }
+
+  const flags = [
+    rawUser.is_email_verified,
+    rawUser.is_verified,
+    rawUser.email_verified,
+    rawUser.isEmailVerified,
+  ];
+
+  const isPresent = (v: any) => v !== undefined && v !== null;
+  const isTruthy = (v: any) => v === true || v === 'true' || v === 1 || v === '1';
+
+  const anyPresent = flags.some(isPresent);
+  if (!anyPresent) {
+    return true;
+  }
+
+  return flags.some(isTruthy);
+};
+
+/**
  * Safely parses and normalizes raw user objects from FastAPI backend or legacy mock structures.
  * NEVER returns null or incomplete user when authentication has succeeded.
  */
@@ -451,8 +480,14 @@ export const normalizeUser = (
     roles,
     activeRole: canonicalRole,
     permissions,
-    isEmailVerified: Boolean(merged.is_email_verified ?? merged.is_verified ?? merged.email_verified ?? merged.isEmailVerified ?? true),
-    isTwoFactorEnabled: Boolean(merged.isTwoFactorEnabled ?? merged.is_two_factor_enabled ?? false),
+    isEmailVerified: computeIsEmailVerified(rawUser),
+    isTwoFactorEnabled: Boolean(
+      rawUser?.isTwoFactorEnabled ??
+      rawUser?.is_two_factor_enabled ??
+      merged.isTwoFactorEnabled ??
+      merged.is_two_factor_enabled ??
+      false
+    ),
     lastLoginAt: merged.lastLoginAt || merged.last_login_at || undefined,
     createdAt: merged.createdAt || merged.created_at || new Date().toISOString(),
   };
@@ -507,15 +542,17 @@ export const normalizeAuthResponse = (
 
   const jwtPayload = parseJwtPayload(accessToken);
 
-  const requiresEmailVerification = Boolean(
+  const verificationId = dataObj.verification_id || raw?.verification_id || undefined;
+
+  const explicitBackendFlag =
     raw?.requires_email_verification ??
     raw?.requiresEmailVerification ??
     dataObj.requires_email_verification ??
-    dataObj.requiresEmailVerification ??
-    (!dataObj.user && !raw?.user && !jwtPayload && (dataObj.verification_id || raw?.verification_id))
-  );
+    dataObj.requiresEmailVerification;
 
-  const verificationId = dataObj.verification_id || raw?.verification_id || undefined;
+  const requiresEmailVerification = Boolean(
+    explicitBackendFlag || (!accessToken && Boolean(verificationId))
+  );
   const maskedEmail = dataObj.masked_email || raw?.masked_email || undefined;
   const email = dataObj.email || raw?.email || fallbackEmail || jwtPayload?.email || undefined;
   const message = raw?.message || dataObj.message || undefined;
