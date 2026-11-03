@@ -246,3 +246,4 @@ export const AtsPipelinePage: React.FC = () => {
 };
 
 export default AtsPipelinePage;
+

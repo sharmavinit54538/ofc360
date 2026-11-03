@@ -11,6 +11,14 @@ import { AtsKanbanBoard } from '../AtsKanbanBoard';
 import { MoveStageModal } from '../MoveStageModal';
 import type { ApplicationItem } from '../../types/ats.types';
 
+vi.mock('@/shared/ui/Toast', () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 const mockApp: ApplicationItem = {
   id: 'app-999',
   job_id: 'job-111',

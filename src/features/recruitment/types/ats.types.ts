@@ -86,3 +86,4 @@ export interface APIResponse<T> {
   errors: Array<{ field?: string | null; message: string }> | null;
   meta?: Record<string, unknown> | null;
 }
+

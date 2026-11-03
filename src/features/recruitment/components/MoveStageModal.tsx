@@ -194,3 +194,4 @@ export const MoveStageModal: React.FC<MoveStageModalProps> = ({
     </div>
   );
 };
+

@@ -269,3 +269,4 @@ export const AtsKanbanBoard: React.FC<AtsKanbanBoardProps> = ({
     </div>
   );
 };
+
