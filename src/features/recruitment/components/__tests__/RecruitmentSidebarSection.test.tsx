@@ -9,16 +9,16 @@ import { useGetSidebarBadgesQuery } from '@/features/recruitment/api/sidebarBadg
 // Mock hooks
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
-    user: { fullName: 'Test User', email: 'test@example.com', has_assigned_interviews: true },
-    activeRole: 'EMPLOYEE',
+    user: { fullName: 'Test User', email: 'test@example.com' },
+    activeRole: 'HR_ADMIN',
     isAuthenticated: true,
   })),
 }));
 
 vi.mock('@/features/auth/hooks/useRBAC', () => ({
   useRBAC: vi.fn(() => ({
-    hasAnyRole: vi.fn((roles: string[]) => roles.includes('EMPLOYEE')),
-    isSuperAdmin: false,
+    hasAnyRole: vi.fn(() => true),
+    isSuperAdmin: true,
   })),
 }));
 
@@ -37,17 +37,17 @@ const renderSection = (props: React.ComponentProps<typeof RecruitmentSidebarSect
   );
 };
 
-describe('RecruitmentSidebarSection', () => {
+describe('RecruitmentSidebarSection (Single Menu Item Redesign)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({
-      user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: true } as any,
-      activeRole: 'EMPLOYEE',
+      user: { fullName: 'HR Admin', email: 'hr@example.com' } as any,
+      activeRole: 'HR_ADMIN',
       isAuthenticated: true,
     } as any);
     vi.mocked(useRBAC).mockReturnValue({
-      hasAnyRole: vi.fn((roles: string[]) => roles.includes('EMPLOYEE')),
-      isSuperAdmin: false,
+      hasAnyRole: vi.fn(() => true),
+      isSuperAdmin: true,
     } as any);
     vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
       data: undefined,
@@ -55,121 +55,76 @@ describe('RecruitmentSidebarSection', () => {
     } as any);
   });
 
-  describe('Null safety & Object Child Prevention', () => {
-    it('does not throw when badges contains complex objects instead of primitives', () => {
-      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
-        data: {
-          pending_scorecards_count: { count: 4, label: 'Pending' },
-          active_referral_updates_count: '15',
-        } as any,
-        isLoading: false,
-      } as any);
+  it('renders ONLY the single "Talent & Recruitment" menu item in the sidebar', () => {
+    renderSection();
 
-      expect(() => renderSection()).not.toThrow();
-      expect(screen.getByText('4')).toBeInTheDocument();
-      expect(screen.getByText('15')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Talent & Recruitment')).toBeInTheDocument();
 
-    it('renders 99+ for badge counts greater than 99', () => {
-      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
-        data: {
-          pending_scorecards_count: 142,
-        } as any,
-        isLoading: false,
-      } as any);
-
-      renderSection();
-      expect(screen.getByText('99+')).toBeInTheDocument();
-    });
-
-    it('handles undefined user and null RBAC safely', () => {
-      vi.mocked(useAuth).mockReturnValue({
-        user: null,
-        activeRole: null,
-        isAuthenticated: false,
-      } as any);
-      vi.mocked(useRBAC).mockReturnValue({
-        hasAnyRole: undefined as any,
-        isSuperAdmin: false,
-      } as any);
-
-      expect(() => renderSection()).not.toThrow();
-    });
+    // Verify all 8 submenu modules are NOT rendered in the sidebar
+    expect(screen.queryByText('Overview Dashboard')).not.toBeInTheDocument();
+    expect(screen.queryByText('Job Requisitions')).not.toBeInTheDocument();
+    expect(screen.queryByText('Job Openings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Candidates & ATS')).not.toBeInTheDocument();
+    expect(screen.queryByText('Interview Scheduler')).not.toBeInTheDocument();
+    expect(screen.queryByText('Offer Management')).not.toBeInTheDocument();
+    expect(screen.queryByText('BGV Management')).not.toBeInTheDocument();
+    expect(screen.queryByText('Recruitment Reports')).not.toBeInTheDocument();
   });
 
-  describe('Role-based tab visibility', () => {
-    it('renders HR tabs for HR_ADMIN', () => {
-      vi.mocked(useRBAC).mockReturnValue({
-        hasAnyRole: vi.fn((roles: string[]) => roles.includes('HR_ADMIN')),
-        isSuperAdmin: false,
-      } as any);
+  it('renders a NavLink targeting /recruitment/dashboard', () => {
+    renderSection();
 
-      renderSection();
-      expect(screen.getByText('Overview Dashboard')).toBeInTheDocument();
-      expect(screen.getByText('Job Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Job Openings')).toBeInTheDocument();
-      expect(screen.getByText('Candidates & ATS')).toBeInTheDocument();
-      expect(screen.getByText('Interview Scheduler')).toBeInTheDocument();
-      expect(screen.getByText('Offer Management')).toBeInTheDocument();
-      expect(screen.getByText('BGV Management')).toBeInTheDocument();
-      expect(screen.getByText('Recruitment Reports')).toBeInTheDocument();
-    });
-
-    it('renders Manager tabs for MANAGER', () => {
-      vi.mocked(useRBAC).mockReturnValue({
-        hasAnyRole: vi.fn((roles: string[]) => roles.includes('MANAGER')),
-        isSuperAdmin: false,
-      } as any);
-
-      renderSection();
-      expect(screen.getByText('Team Requisitions')).toBeInTheDocument();
-      expect(screen.getByText('Candidate Reviews')).toBeInTheDocument();
-      expect(screen.getByText('Panel Interviews')).toBeInTheDocument();
-      expect(screen.getByText('Offer Approvals')).toBeInTheDocument();
-    });
-
-    it('filters out Assigned Interviews when user has no assigned interviews', () => {
-      vi.mocked(useAuth).mockReturnValue({
-        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: false } as any,
-        activeRole: 'EMPLOYEE',
-        isAuthenticated: true,
-      } as any);
-
-      renderSection();
-      expect(screen.queryByText('Assigned Interviews')).not.toBeInTheDocument();
-      expect(screen.getByText('Internal Careers (IJP)')).toBeInTheDocument();
-      expect(screen.getByText('My Referrals')).toBeInTheDocument();
-    });
+    const link = screen.getByText('Talent & Recruitment').closest('a');
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/recruitment/dashboard');
   });
 
-  describe('Navigation & Callbacks', () => {
-    it('triggers onTabChange and onMobileClose when a tab is clicked', () => {
-      const onTabChange = vi.fn();
-      const onMobileClose = vi.fn();
+  it('triggers onTabChange and onMobileClose when clicked', () => {
+    const onTabChange = vi.fn();
+    const onMobileClose = vi.fn();
 
-      renderSection({ onTabChange, onMobileClose });
+    renderSection({ onTabChange, onMobileClose });
 
-      const link = screen.getByText('Internal Careers (IJP)').closest('a');
-      expect(link).toBeInTheDocument();
-      fireEvent.click(link!);
+    const link = screen.getByText('Talent & Recruitment').closest('a');
+    expect(link).toBeInTheDocument();
+    fireEvent.click(link!);
 
-      expect(onTabChange).toHaveBeenCalledWith('employee-careers');
-      expect(onMobileClose).toHaveBeenCalled();
-    });
+    expect(onTabChange).toHaveBeenCalledWith('recruitment');
+    expect(onMobileClose).toHaveBeenCalled();
+  });
 
-    it('collapses and expands the section when header is clicked', () => {
-      renderSection({ collapsed: false });
+  it('renders total alert count badge when badges exist', () => {
+    vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
+      data: {
+        pending_req_approvals_count: 3,
+        new_applications_count: 5,
+      } as any,
+      isLoading: false,
+    } as any);
 
-      const toggleBtn = screen.getByText('TALENT & RECRUITMENT').closest('button');
-      expect(toggleBtn).toBeInTheDocument();
+    renderSection();
+    // 3 + 5 = 8 total alerts
+    expect(screen.getByText('8')).toBeInTheDocument();
+  });
 
-      expect(toggleBtn).toHaveAttribute('aria-expanded', 'true');
-      fireEvent.click(toggleBtn!);
-      expect(toggleBtn).toHaveAttribute('aria-expanded', 'false');
-    });
+  it('renders compact icon-only representation in collapsed mode with tooltip', () => {
+    renderSection({ collapsed: true });
 
-    it('renders compact icon-only representation in collapsed mode without crashing', () => {
-      expect(() => renderSection({ collapsed: true })).not.toThrow();
-    });
+    // In collapsed mode, text label is hidden, tooltip title is present
+    expect(screen.queryByText('Talent & Recruitment')).not.toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Talent & Recruitment' });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('title', 'Talent & Recruitment');
+    expect(link).toHaveAttribute('href', '/recruitment/dashboard');
+  });
+
+  it('hides sidebar entry when user role lacks clearance', () => {
+    vi.mocked(useRBAC).mockReturnValue({
+      hasAnyRole: vi.fn(() => false),
+      isSuperAdmin: false,
+    } as any);
+
+    const { container } = renderSection();
+    expect(container.firstChild).toBeNull();
   });
 });
