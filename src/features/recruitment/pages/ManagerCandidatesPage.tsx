@@ -1,14 +1,14 @@
-import { RecruitmentPlaceholderPage } from '../components/RecruitmentPlaceholderPage';
-import { UserCheck } from 'lucide-react';
+/**
+ * @file ManagerCandidatesPage.tsx
+ * @description Manager view for Candidate Applications & ATS.
+ * Re-exports the complete CandidatePipelinePage with department-scoped candidate reviews.
+ */
 
-export const ManagerCandidatesPage: React.FC = () => (
-  <RecruitmentPlaceholderPage
-    title="Candidate Reviews"
-    subtitle="Pending Profile Reviews"
-    icon={UserCheck}
-    roles={['MANAGER']}
-    description="Review candidate profiles assigned to your department, provide feedback, and advance pipelines."
-  />
-);
+import React from 'react';
+import { CandidatePipelinePage } from './CandidatePipelinePage';
+
+export const ManagerCandidatesPage: React.FC = () => {
+  return <CandidatePipelinePage />;
+};
 
 export default ManagerCandidatesPage;

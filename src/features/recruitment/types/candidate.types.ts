@@ -228,3 +228,4 @@ export interface CandidateScreeningResponse {
   };
   created_at?: string;
 }
+

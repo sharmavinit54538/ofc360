@@ -45,6 +45,7 @@ import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 const RequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/RequisitionsPage'));
 const JobOpeningsPage = React.lazy(() => import('@/features/recruitment/pages/JobOpeningsPage'));
 const CandidatePipelinePage = React.lazy(() => import('@/features/recruitment/pages/CandidatePipelinePage'));
+const AtsPipelinePage = React.lazy(() => import('@/features/recruitment/pages/AtsPipelinePage'));
 const InterviewSchedulerPage = React.lazy(() => import('@/features/recruitment/pages/InterviewSchedulerPage'));
 const OfferManagementPage = React.lazy(() => import('@/features/recruitment/pages/OfferManagementPage'));
 const BGVPage = React.lazy(() => import('@/features/recruitment/pages/BGVPage'));
@@ -635,6 +636,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
             <CandidatePipelinePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/ats"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE', 'MANAGER']}>
+            <AtsPipelinePage />
           </ProtectedRoute>
         }
       />
