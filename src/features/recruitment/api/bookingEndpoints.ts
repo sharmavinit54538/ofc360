@@ -35,3 +35,4 @@ export const {
   useGetBookingSlotInfoQuery,
   useBookInterviewSlotMutation,
 } = candidateBookingEndpoints;
+

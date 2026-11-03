@@ -30,7 +30,6 @@ export type SidebarSection =
   | 'documents'
   | 'hrops'
   | 'settings'
-  | 'recruitment'
   | 'leave'
   | 'performance';
 
@@ -177,7 +176,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
 
   // ==========================================
   // 3. TALENT (1 tab - links to /dashboard/talent)
-  // Combines Recruitment & Performance
+  // Performance & Appraisal Management
   // ==========================================
   {
     id: 'talent',

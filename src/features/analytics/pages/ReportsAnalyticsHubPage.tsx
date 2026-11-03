@@ -47,7 +47,7 @@ import {
 interface ReportCard {
   id: ReportModuleId;
   title: string;
-  category: 'workforce' | 'recruitment' | 'attendance' | 'payroll' | 'compliance';
+  category: 'workforce' | 'attendance' | 'payroll' | 'compliance';
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   tags: string[];
@@ -145,20 +145,6 @@ const REPORT_MODULES: ReportCard[] = [
     highlightBadge: 'One-Click Exports',
   },
   {
-    id: 'recruitment-reports',
-    title: 'Recruitment Funnel & Sourcing',
-    category: 'recruitment',
-    description: 'Application-to-hire funnel velocity, applicant source attribution ROI, and recruitment bottleneck stage drop-offs.',
-    icon: BarChart2,
-    tags: ['Pipeline Funnel', 'Channel ROI', 'Time-to-Hire', 'Drop-Offs'],
-    gradient: 'from-violet-500/10 via-purple-500/5 to-transparent',
-    iconBg: 'bg-violet-500/10 dark:bg-violet-500/20',
-    iconColor: 'text-violet-600 dark:text-violet-400',
-    exportFormat: ['CSV', 'XLSX', 'PDF'],
-    metric: { label: 'Time-to-Hire', value: '22 Days' },
-    highlightBadge: 'Conversion Funnel',
-  },
-  {
     id: 'attendance-reports',
     title: 'Attendance & Shift Utilization',
     category: 'attendance',
@@ -234,7 +220,6 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
     { id: 'attendance', label: 'Attendance & Leaves' },
     { id: 'workforce', label: 'Performance & Talent' },
     { id: 'compliance', label: 'Compliance & Assets' },
-    { id: 'recruitment', label: 'Talent Acquisition' },
   ];
 
   /* =========================================================================
@@ -304,14 +289,6 @@ export const ReportsAnalyticsHubPage: React.FC = () => {
 
         {activeReportId === 'statutory-compliance' && (
           <StatutoryComplianceReportView
-            filters={currentFilters}
-            onBack={() => handleSelectReport(null)}
-            onSelectModule={handleSelectReport}
-          />
-        )}
-
-        {activeReportId === 'recruitment-reports' && (
-          <RecruitmentFunnelReportView
             filters={currentFilters}
             onBack={() => handleSelectReport(null)}
             onSelectModule={handleSelectReport}

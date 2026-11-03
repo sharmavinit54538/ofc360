@@ -136,3 +136,4 @@ Direct cloud platform engineering and multi-region resilience.
     expect(normalized.markdown).toContain('# DevOps Engineer');
   });
 });
+

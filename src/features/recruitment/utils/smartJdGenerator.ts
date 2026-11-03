@@ -529,3 +529,4 @@ export function modifyJdWithInstruction(currentJd: string, instruction: string):
   // Fallback: append note
   return `${currentJd.trim()}\n\n> *Note: Updated per instruction: "${instruction.trim()}"*\n`;
 }
+

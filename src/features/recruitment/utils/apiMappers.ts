@@ -759,16 +759,16 @@ export const splitCtcToComponents = (annualCtc: number): CtcBreakdown => {
 };
 
 const mapRequisitionStatus = (value: unknown): RequisitionStatus => {
-  const normalized = normalizedKey(value);
+  const raw = asString(value).trim().toLowerCase().replace(/[\s-]+/g, '_');
   if (
-    normalized === 'submitted' ||
-    normalized === 'dept_head_approved' ||
-    normalized === 'finance_approved' ||
-    normalized === 'approved' ||
-    normalized === 'converted' ||
-    normalized === 'rejected'
+    raw === 'submitted' ||
+    raw === 'dept_head_approved' ||
+    raw === 'finance_approved' ||
+    raw === 'approved' ||
+    raw === 'converted' ||
+    raw === 'rejected'
   ) {
-    return normalized as RequisitionStatus;
+    return raw as RequisitionStatus;
   }
   return 'draft';
 };

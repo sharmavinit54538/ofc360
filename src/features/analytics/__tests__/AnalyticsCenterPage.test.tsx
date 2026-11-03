@@ -110,7 +110,6 @@ describe('AnalyticsCenterPage Integration', () => {
     expect(screen.getByText('T&E Audit')).toBeDefined();
     expect(screen.getByText('Assets & Capex')).toBeDefined();
     expect(screen.getByText('Statutory Registers')).toBeDefined();
-    expect(screen.getByText('Recruitment Funnel')).toBeDefined();
     expect(screen.getByText('Attendance & Shifts')).toBeDefined();
   });
 

@@ -15,8 +15,6 @@ const getGroupDisplayName = (group?: string): string => {
       return 'Core Module';
     case 'hr-ops':
       return 'HR Ops & Admin';
-    case 'recruitment':
-      return 'Recruitment Hub';
     case 'ai-hub':
       return 'AI Hub Intelligence';
     default:

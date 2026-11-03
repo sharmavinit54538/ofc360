@@ -1,4 +1,4 @@
-﻿import type { ToastType } from '@/shared/ui/Toast';
+import type { ToastType } from '@/shared/ui/Toast';
 
 export interface GlobalToastEvent {
   id: string;
@@ -15,7 +15,7 @@ const listeners = new Set<ToastListener>();
 let sequence = 0;
 
 function publish(type: ToastType, message: string, options: ToastOptions = {}): string {
-  const id = options.id ?? `recruitment-toast-${Date.now()}-${++sequence}`;
+  const id = options.id ?? `app-toast-${Date.now()}-${++sequence}`;
   const event: GlobalToastEvent = {
     id,
     type,

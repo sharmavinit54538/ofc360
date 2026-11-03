@@ -37,7 +37,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     documents: true,
     hrops: true,
     settings: true,
-    recruitment: true,
     leave: true,
     performance: true,
   });
@@ -75,7 +74,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       documents: [],
       hrops: [],
       settings: [],
-      recruitment: [],
       leave: [],
       performance: [],
     };

@@ -71,12 +71,12 @@ const STATIC_PAGES: StaticNavOption[] = [
     keywords: ['attendance', 'punch', 'clock in', 'clock out', 'shifts', 'roster', 'biometric', 'face attendance', 'regularization'],
   },
   {
-    title: 'Talent Management Hub',
-    subtitle: 'Unified talent acquisition, candidate pipeline & performance appraisals',
+    title: 'Talent & Performance',
+    subtitle: 'Performance appraisals, review cycles, goals and OKRs',
     url: '/dashboard/talent',
     category: 'pages',
     icon: Sparkles,
-    keywords: ['talent', 'recruitment', 'performance', 'hiring', 'candidates', 'reviews', 'appraisals', 'goals'],
+    keywords: ['talent', 'performance', 'reviews', 'appraisals', 'goals', 'okr'],
   },
   {
     title: 'Leave & Time Off',
@@ -97,18 +97,10 @@ const STATIC_PAGES: StaticNavOption[] = [
   {
     title: 'Performance & Appraisals',
     subtitle: 'Review cycles, goals, OKRs & 360° feedback under Talent',
-    url: '/dashboard/talent?tab=performance',
+    url: '/dashboard/talent',
     category: 'pages',
     icon: Target,
     keywords: ['performance', 'appraisal', 'review', 'goal', 'okr', 'rating', 'feedback', 'kpi'],
-  },
-  {
-    title: 'Recruitment & Candidates',
-    subtitle: 'Job openings, applicants pipeline & interview stages under Talent',
-    url: '/dashboard/talent?tab=recruitment',
-    category: 'pages',
-    icon: Briefcase,
-    keywords: ['recruitment', 'jobs', 'hiring', 'candidates', 'interviews', 'applicants', 'openings'],
   },
   {
     title: 'AI Hub',

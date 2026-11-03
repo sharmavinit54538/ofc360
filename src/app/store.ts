@@ -1,7 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import authReducer from '../features/auth/slices/authSlice';
-import recruitmentReducer from '../features/recruitment/slices/recruitmentSlice';
 import { authApi } from '../features/auth/api/authApi';
 import { hrDashboardApi } from '../features/hr-dashboard/api/hrDashboardApi';
 import { travelApi } from '../features/travel/api/travelApi';

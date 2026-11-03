@@ -67,21 +67,21 @@ describe('shared UI primitives', () => {
       <Sheet>
         <SheetTrigger>Open filters</SheetTrigger>
         <SheetContent side="left">
-          <SheetTitle>Recruitment filters</SheetTitle>
+          <SheetTitle>Module filters</SheetTitle>
           <p>Choose a job status.</p>
         </SheetContent>
       </Sheet>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open filters' }));
-    const sheet = await screen.findByRole('dialog', { name: 'Recruitment filters' });
+    const sheet = await screen.findByRole('dialog', { name: 'Module filters' });
     expect(sheet.className).toContain('left-0');
   });
 
   it('supports roving focus and arrow-key activation in Tabs', () => {
     render(
       <Tabs defaultValue="overview">
-        <TabsList aria-label="Recruitment sections">
+        <TabsList aria-label="Module sections">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="candidates">Candidates</TabsTrigger>
         </TabsList>

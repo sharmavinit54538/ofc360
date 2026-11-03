@@ -1,4 +1,4 @@
-﻿import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { subscribeToasts, toast } from './toast';
 import { ToastProvider } from '@/shared/ui/Toast';
@@ -27,7 +27,7 @@ describe('imperative toast bridge', () => {
   });
 
   it('updates a loading toast in place when the same id is reused', () => {
-    render(<ToastProvider><div>Recruitment</div></ToastProvider>);
+    render(<ToastProvider><div>Dashboard</div></ToastProvider>);
 
     act(() => {
       toast.loading('Parsing resume', { id: 'resume-upload', duration: 0 });

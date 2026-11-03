@@ -150,7 +150,6 @@ export const AnalyticsCenterPage: React.FC = () => {
     { id: 'expenses-travel', label: 'T&E Audit', icon: Receipt },
     { id: 'asset-audit', label: 'Assets & Capex', icon: Box },
     { id: 'statutory-compliance', label: 'Statutory Registers', icon: ShieldCheck },
-    { id: 'recruitment-reports', label: 'Recruitment Funnel', icon: BarChart2 },
     { id: 'attendance-reports', label: 'Attendance & Shifts', icon: Clock },
   ];
 
@@ -236,14 +235,6 @@ export const AnalyticsCenterPage: React.FC = () => {
 
       {activeTab === 'statutory-compliance' && (
         <StatutoryComplianceReportView
-          filters={queryFilters}
-          onBack={() => setActiveTab('overview')}
-          onSelectModule={(id) => setActiveTab(id)}
-        />
-      )}
-
-      {activeTab === 'recruitment-reports' && (
-        <RecruitmentFunnelReportView
           filters={queryFilters}
           onBack={() => setActiveTab('overview')}
           onSelectModule={(id) => setActiveTab(id)}

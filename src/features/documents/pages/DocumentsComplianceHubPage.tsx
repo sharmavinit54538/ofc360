@@ -97,8 +97,8 @@ const DOCUMENT_MODULES: DocumentModuleCard[] = [
     actionText: 'Launch PF ECR Hub',
   },
   {
-    id: 'recruitment-compliance',
-    title: 'Hiring & Candidate Compliance',
+    id: 'workforce-compliance',
+    title: 'Workforce & Policy Compliance',
     category: 'compliance',
     icon: ShieldCheck,
     gradient: 'from-cyan-500/10 via-sky-500/5 to-transparent',

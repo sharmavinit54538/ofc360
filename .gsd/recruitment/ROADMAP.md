@@ -4,10 +4,10 @@ All paths are relative to `src/features/recruitment/` in `ofc360-main`. Each wav
 
 ---
 
-## Wave 1: Foundation, State Layer, Services & Utilities [IN PROGRESS]
+## Wave 1: Foundation, State Layer, Services & Utilities [COMPLETED]
 - [x] **Spec & Roadmap**: Formalized 6-wave plan and architectural rules in `.gsd/recruitment/`.
-- [ ] **Types & Schemas**: Expanded domain types in `types/index.ts` and Zod validation schemas in `schemas/recruitment.schemas.ts`.
-- [ ] **8 Service Modules**:
+- [x] **Types & Schemas**: Expanded domain types in `types/index.ts` and Zod validation schemas in `schemas/recruitment.schemas.ts`.
+- [x] **8 Service Modules**:
   - `recruitmentApi`: Central RTK Query API slice with jobs, candidates, interviews, offers, and existing endpoints.
   - `recruiterApi`: Recruiter AI dashboard, funnel stats, matching distribution, score/recommendation endpoints.
   - `screeningApi`: Screening execution, batch polling, decision override, screening history.
@@ -16,18 +16,18 @@ All paths are relative to `src/features/recruitment/` in `ofc360-main`. Each wav
   - `candidateBookingApi`: Public interview slot retrieval and booking endpoints.
   - `automationApi`: Automation rules list, creation, rule toggle, test execution.
   - `employeeOnboardingApi`: Admin onboarding review, document verification, plus employee onboarding step submission.
-- [ ] **Domain Utilities**:
+- [x] **Domain Utilities**:
   - 14-Domain Smart JD Generator (`utils/smartJdGenerator.ts`).
   - Structured JD Normalizer (`utils/jdNormalizer.ts`).
   - Extended API Mappers with 50% Basic / 25% HRA calculation (`utils/apiMappers.ts`).
   - Dashboard & Derived Metrics Calculators (`utils/dashboardCalculators.ts`).
   - RFC 5545 `.ics` Calendar Generator (`utils/calendarIcsGenerator.ts`).
-- [ ] **Redux State Layer (`recruitmentSlice.ts`)**:
+- [x] **Redux State Layer (`recruitmentSlice.ts`)**:
   - 22 async thunks for jobs, candidates, interviews, offers, screening, and operations.
   - Request deduplication (fetch dedup) via in-memory/in-state active request locks.
   - 30-second TTL cache behavior using timestamp checks before network dispatch.
   - Store registration in `src/app/store.ts`.
-- [ ] **RBAC & Cross-App Integrations**:
+- [x] **RBAC & Cross-App Integrations**:
   - Role matrix permissions in `recruitmentRbac.ts`.
   - Executive, Manager, Autopilot rule, and AI Chat assistant hooks in `useRecruitmentCrossApp.ts`.
 

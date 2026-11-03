@@ -564,11 +564,11 @@ export const AppRoutes: React.FC = () => {
       {/* Recruitment & Performance routes redirected to Talent Hub */}
       <Route
         path="/dashboard/recruitment"
-        element={<Navigate to="/dashboard/talent?tab=recruitment" replace />}
+        element={<Navigate to="/dashboard/talent" replace />}
       />
       <Route
         path="/dashboard/performance"
-        element={<Navigate to="/dashboard/talent?tab=performance" replace />}
+        element={<Navigate to="/dashboard/talent" replace />}
       />
 
       {/* Documents Hub */}

@@ -194,3 +194,4 @@ export function calculatePipelineHealthScore(candidates: Candidate[], interviews
   const score = Math.max(10, Math.min(100, 85 - overduePenalty + volumeBonus - rejectPenalty));
   return score;
 }
+
