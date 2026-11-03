@@ -1,14 +1,14 @@
-import { RecruitmentPlaceholderPage } from '../components/RecruitmentPlaceholderPage';
-import { FilePlus } from 'lucide-react';
+/**
+ * @file ManagerRequisitionsPage.tsx
+ * @description Manager view for Job Requisitions. Re-exports the complete RequisitionsPage
+ * with role-scoped headcount and requisition controls.
+ */
 
-export const ManagerRequisitionsPage: React.FC = () => (
-  <RecruitmentPlaceholderPage
-    title="Team Requisitions"
-    subtitle="My Open Vacancies"
-    icon={FilePlus}
-    roles={['MANAGER']}
-    description="View and manage requisitions for your department, track approval status and headcount."
-  />
-);
+import React from 'react';
+import { RequisitionsPage } from './RequisitionsPage';
+
+export const ManagerRequisitionsPage: React.FC = () => {
+  return <RequisitionsPage />;
+};
 
 export default ManagerRequisitionsPage;
