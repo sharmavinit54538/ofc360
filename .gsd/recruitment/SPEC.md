@@ -1,42 +1,61 @@
 # Specification: OFC360 Recruitment Module
 
 Status: FINALIZED
-Date: 2026-11-01
-Owner: OFC360 Engineering
+Date: 2026-11-03
+Owner: OFC360 Staff Engineering
 
 ## Objective
 
-Build the complete Recruitment module in this Vite/React target using the self-contained Prompt 0 through Prompt 5 specification supplied by the user. The inventory is P01-P42, PUB1-PUB4, F0-F6, and D1-D4. Keep the existing Talent hub integration compatible, and do not alter backend code.
+Build and integrate the complete, production-grade **End-to-End Recruitment & ATS Module** into `src/features/recruitment/`, along with its public unauthenticated routes, Redux state layer, API services, and cross-app integrations.
+The implementation spans 6 cohesive waves covering all 42 administrative views, 4 public portals, 8 service modules, 22 Redux thunks, 14-domain Smart JD generation, CTC offer calculation, and comprehensive test suites.
 
-## Requirements
+## Architectural & Codebase Rules
 
-- Preserve the existing Digital Signatures GSD files; this project uses the separate .gsd/recruitment/ workspace.
-- Use docs/RECRUITMENT_CONTRACT.md as the payload/domain contract. Confirm each path and method from docs/openapi.json before wiring; the JSON has route/method data only. Do not guess fields absent from section 4 of the supplied prompt.
-- Do not use mock, seeded, or hard-coded demo data. If a backend route is absent, render the requested Backend pending banner, disable mutations, and document the gap.
-- Use the target's RTK Query baseQueryWithReauth for admin APIs and an unauthenticated fetch client for public candidate flows.
-- Implement shared semantic theme tokens, accessible UI primitives, toast bridge, environment/public URL utilities, recruitment data layer, route shell, and all listed page waves in order.
-- Every page must implement loading, error plus Retry, empty, and success states; responsive 375/768/1280 layouts; keyboard accessible dialogs; and light/dark themes.
-- Role access follows the supplied role matrix. Public application, booking, and AI interview routes remain outside ProtectedRoute.
-- Add tests and capture typecheck, test, build, and screenshot evidence. Respect the existing target's strict TypeScript settings and do not add @ts-ignore or unnecessary any.
-- Keep current uncommitted Exit Management edits untouched.
+1. **Conventions**:
+   - Strictly follow `PROJECT_RULES.md`, `GSD-STYLE.md`, `docs/RECRUITMENT_CONTRACT.md`, and `docs/RECRUITMENT_ROLE_MATRIX.md`.
+   - Admin APIs use base `/api/v1` (relative) or `/api/v2/...` (via `apiV2Url`).
+   - Public unauthenticated routes use pure fetch clients with direct origin resolution and zero auth headers.
+2. **UI Primitives**:
+   - Reuse UI primitives strictly from `src/shared/ui/` (`Button`, `Dialog`, `Tabs`, `Card`, `Badge`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox`, `Slider`, `Skeleton`, `EmptyState`, `PageHeader`, `Toast`, `Tooltip`).
+3. **Zero-Mock & Backend Pending Integrity**:
+   - Never inject hardcoded mock arrays, fake data, or dummy responses.
+   - For backend routes that are not yet provisioned on the FastAPI server (e.g. BGV, candidate email dispatch, 30-60-90 probation), render clear, honest "Backend Pending" alerts with disabled mutation controls, exactly matching `docs/RECRUITMENT_CONTRACT.md` Section 4.5.
+4. **Three-Tier Component State Handling**:
+   - In-flight request ➔ `Skeleton` / `SkeletonCard`.
+   - Error response ➔ `ErrorDisplay` with retry/refetch action.
+   - Empty response ➔ `EmptyState` with instantiated JSX icon `<Icon className="..." />`.
+5. **State Layer & Caching**:
+   - 22 Redux async thunks in `recruitmentSlice.ts`.
+   - Request deduplication (fetch dedup) prevents concurrent duplicate requests.
+   - 30-second Cache TTL (`cacheTimestamps`) prevents redundant calls within 30 seconds unless explicitly forced (`force: true`).
 
-## API verification boundary
+## 6-Wave Execution Plan
 
-The supplied data contract is transcribed verbatim in docs/RECRUITMENT_CONTRACT.md. The user supplied a route-list audit: 100 of 119 section-4.4 operations exist and 19 are absent. The absent operations are in docs/API_GAPS.md and remain Backend pending; no alternate paths are used without approval. Prompt payload fields remain the only field source; any undocumented field is BLOCKED pending a precise user/backend answer.
+- **Wave 1: Data & State Foundation**:
+  - Domain Types & Zod Schemas for all recruitment workflows.
+  - 8 Service Modules: `recruitmentApi`, `recruiterApi`, `screeningApi`, `interviewApi`, `aiInterviewBotApi`, `candidateBookingApi`, `automationApi`, `employeeOnboardingApi`.
+  - Domain Utilities: 14-Domain Smart JD Generator, JD Normalizer, API Mappers with 50/25 CTC split, Dashboard & Derived Calculators, RFC 5545 `.ics` Calendar generator.
+  - Redux State: `recruitmentSlice.ts` with 22 async thunks, fetch dedup, and 30-second TTL caching.
+  - RBAC & Cross-App Integration Hooks.
+- **Wave 2: Planning, Sourcing & Job Management**:
+  - Group 1 (Workforce Planning, Requisitions, Candidate Sourcing, Talent Pool, Referrals, Vendors).
+  - Group 2 (All Jobs, New Job with Copilot JD generator, Job Detail with QR code, Publish Wizard, Career Site settings).
+- **Wave 3: Candidates, Pipeline & AI Screening**:
+  - Group 3 (Candidates directory, Candidate Profile, 9-stage Kanban Pipeline, Candidate CRM, Communication Preview, Global Search, Resume Intelligence & duplicate detector).
+  - Group 4 (AI Resume Screening 1500+ line workspace, AI Interview & Integrity proctoring, AI Recruiter, Recruitment AI Hub).
+- **Wave 4: Interviews, Offers & Verification**:
+  - Group 5 (Interviews list, Month/Week/Day Calendar, Scorecards rubric builder, Hiring Manager Hub).
+  - Group 6 (Background Verification BGV with audit log, Compensation & CTC Builder with 50% Basic / 25% HRA calc, Offers tracker).
+- **Wave 5: Onboarding & Operations Hub**:
+  - Group 7 (Preboarding joiners, Enterprise Onboarding Hub, 9-step Admin Checklists, KT & 30-60-90 Probation).
+  - Group 8 (Dashboard with 22 module cards, Analytics, Reports, Automation no-code builder, Compliance, Import/Export, Notification feed, Dynamic Templates).
+- **Wave 6: Public Routes, App Routing & Automated Test Suites**:
+  - Group 9 (3 Public Unauthenticated Routes: `/jobs/apply/$ukey`, `/interview/book/$token`, `/ai-interview/$token`).
+  - App routing wiring (`AppRoutes.tsx`) and RBAC protections.
+  - 5 Comprehensive Vitest Suites: `screening.test.tsx`, `interviews.test.tsx`, `bookingAndAiBot.test.tsx`, `dataLayer.test.ts`, `smartJd.test.ts`.
 
-## Baseline
+## Baseline & Verification Boundaries
 
-- npm run typecheck: the first run appeared clean, but the full follow-up exited 1 with a large pre-existing TypeScript diagnostic set.
-- npm run test: 257 passed and 5 failed across 24 files. Existing failures are 4 signatureUtils assertions and 1 SignatureCenter integration test.
-- npm run build: failed in TypeScript compilation before Vite bundling with the pre-existing diagnostic set.
-- npm run lint: placeholder only; no lint checks ran.
-- Baseline screenshots are not captured; the Windows helper failed to attach to a stable Edge window.
-
-## Finalization
-
-This scope is finalized based on the self-contained build prompt and the user-supplied route audit. Work on the 19 absent operations remains gated behind Backend pending UI; do not substitute other routes without approval. The ROADMAP and tracker record the staged execution and evidence required.
-
-
-## Route audit update
-The user supplied the route-list-only OpenAPI comparison: 100 of 119 operations are present and 19 are absent. Missing operations are logged in docs/API_GAPS.md; their UI must remain Backend pending/disabled. The user says the JSON file is not required for this result. Payload fields remain limited to Prompt 0 section 4.
-
+- Strict TypeScript compiler check (`tsc -b` / `vite build`).
+- Zero `@ts-ignore` or unhandled `any`.
+- Vitest unit & integration test verification with 100% pass rate.

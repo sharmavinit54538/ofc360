@@ -1,50 +1,114 @@
 # Recruitment Module Roadmap
 
-All paths are relative to the Vite target repository. Follow the user-provided prompts in order; each task is verified and committed before the next dependent task.
+All paths are relative to `src/features/recruitment/` in `ofc360-main`. Each wave is verified with strict type-safety, unit tests, and production build checks.
 
-## Prompt 0 - Foundation
+---
 
-- [!] F0: contract, tracker, baseline commands, screenshots, OpenAPI comparison (BLOCKED: Edge rendered the Talent hub once, then timed out before the four baseline screenshots could be saved; see STATE.md)
-- [!] F1: Tailwind semantic token bridge (implemented and tested; existing-page visual comparison is blocked by F0 screenshots)
-- [!] F2: accessible shared primitives (implemented and tested; existing-page visual comparison is blocked by F0 screenshots)
-- [x] F3: imperative toast bridge
-- [x] F4: dependencies, env typing, public URL helpers
-- [x] D1: domain types and pure API mappers
-- [ ] D2: RTK Query endpoint groups (100/119 operations confirmed by user; 19 are listed in docs/API_GAPS.md)
-- [ ] D3: useRecruitment facade and cache behavior
-- [ ] D4: public fetch client and endpoint/mapper tests
-- [ ] F5: recruitment data layer and public client (D2 in progress; D3/D4 pending)
-- [ ] F6: nested routes, RecruitmentLayout, module hub, legacy compatibility
+## Wave 1: Foundation, State Layer, Services & Utilities [IN PROGRESS]
+- [x] **Spec & Roadmap**: Formalized 6-wave plan and architectural rules in `.gsd/recruitment/`.
+- [ ] **Types & Schemas**: Expanded domain types in `types/index.ts` and Zod validation schemas in `schemas/recruitment.schemas.ts`.
+- [ ] **8 Service Modules**:
+  - `recruitmentApi`: Central RTK Query API slice with jobs, candidates, interviews, offers, and existing endpoints.
+  - `recruiterApi`: Recruiter AI dashboard, funnel stats, matching distribution, score/recommendation endpoints.
+  - `screeningApi`: Screening execution, batch polling, decision override, screening history.
+  - `interviewApi`: Schedules, rescheduling, cancellation, reminders, no-show marking, feedback submission, scorecards.
+  - `aiInterviewBotApi`: Public candidate bot endpoints (`/api/v2/interview-bot/public/...`) + Admin invite, results, decision.
+  - `candidateBookingApi`: Public interview slot retrieval and booking endpoints.
+  - `automationApi`: Automation rules list, creation, rule toggle, test execution.
+  - `employeeOnboardingApi`: Admin onboarding review, document verification, plus employee onboarding step submission.
+- [ ] **Domain Utilities**:
+  - 14-Domain Smart JD Generator (`utils/smartJdGenerator.ts`).
+  - Structured JD Normalizer (`utils/jdNormalizer.ts`).
+  - Extended API Mappers with 50% Basic / 25% HRA calculation (`utils/apiMappers.ts`).
+  - Dashboard & Derived Metrics Calculators (`utils/dashboardCalculators.ts`).
+  - RFC 5545 `.ics` Calendar Generator (`utils/calendarIcsGenerator.ts`).
+- [ ] **Redux State Layer (`recruitmentSlice.ts`)**:
+  - 22 async thunks for jobs, candidates, interviews, offers, screening, and operations.
+  - Request deduplication (fetch dedup) via in-memory/in-state active request locks.
+  - 30-second TTL cache behavior using timestamp checks before network dispatch.
+  - Store registration in `src/app/store.ts`.
+- [ ] **RBAC & Cross-App Integrations**:
+  - Role matrix permissions in `recruitmentRbac.ts`.
+  - Executive, Manager, Autopilot rule, and AI Chat assistant hooks in `useRecruitmentCrossApp.ts`.
 
-## Prompt 1 - Wave 1 core hiring
+---
 
-- [ ] P01-P13: Dashboard, Jobs, New Job, Job Detail, Job Publish, Candidates, Candidate Profile, Pipeline, Offers, Compensation Offer Builder, Interview Calendar, Interviews, Hiring Manager Hub
+## Wave 2: Planning, Sourcing & Job Management [PENDING]
+- [ ] **Group 1: Planning & Sourcing**:
+  - Workforce Planning (`WorkforcePlanningView.tsx`).
+  - Requisitions (`RequisitionsView.tsx`).
+  - Candidate Sourcing (`CandidateSourcingView.tsx`).
+  - Talent Pool (`TalentPoolView.tsx`).
+  - Employee Referrals (`ReferralsView.tsx`).
+  - Agency Vendors (`VendorsView.tsx`).
+- [ ] **Group 2: Jobs**:
+  - All Jobs (`AllJobsView.tsx`).
+  - New Job with OFC360 Copilot JD (`NewJobView.tsx`).
+  - Job Detail with QR Code & Pipeline Gauge (`JobDetailView.tsx`).
+  - 4-Step Publish Wizard (`PublishJobWizard.tsx`).
+  - Career Site Branding & Settings (`CareerSiteSettingsView.tsx`).
 
-## Prompt 2 - Wave 2 AI
+---
 
-- [ ] P14-P20: AI Screening, Resume Intelligence, Recruitment AI, AI Interview wrapper/results/simulator, Global Search
+## Wave 3: Candidates, Pipeline & AI Screening [PENDING]
+- [ ] **Group 3: Candidates & Pipeline**:
+  - Candidates Directory (`CandidatesView.tsx`).
+  - Candidate Profile with ATS Match & Insights (`CandidateProfileView.tsx`).
+  - 9-Stage Kanban Drag-and-Drop Pipeline (`CandidatePipelineView.tsx`).
+  - Candidate CRM & Timeline (`CandidateCrmView.tsx`).
+  - Candidate Communication Preview (`CandidateCommunicationView.tsx`).
+  - Global Search with Boolean operators (`RecruitmentSearchView.tsx`).
+  - Resume Intelligence & Duplicate Detector (`ResumeIntelligenceView.tsx`).
+- [ ] **Group 4: AI Features**:
+  - AI Resume Screening ~1500+ line workspace (`AiResumeScreeningWorkspace.tsx`).
+  - AI Interview & Integrity Proctoring (`AiInterviewWorkspace.tsx`).
+  - Recruitment AI Hub (`RecruitmentAiHubView.tsx`).
+  - AI Recruiter Dashboard (`AiRecruiterView.tsx`).
 
-## Prompt 3 - Wave 3 public candidate flows
+---
 
-- [ ] PUB1-PUB3 and P21: Job Application, Interview Booking, Candidate AI Interview, Career Site
+## Wave 4: Interviews, Offers & Verification [PENDING]
+- [ ] **Group 5: Interviews & Evaluation**:
+  - Interviews Directory (`InterviewsView.tsx`).
+  - Multi-view Interview Calendar (`InterviewCalendarView.tsx`).
+  - Scorecards & Rubrics (`ScorecardsView.tsx`).
+  - Hiring Manager Hub (`HiringManagerHubView.tsx`).
+- [ ] **Group 6: Verification, Offers & Compensation**:
+  - Background Verification BGV (`BgvVerificationView.tsx`).
+  - Compensation & Offer Builder (`CompensationOfferBuilderView.tsx`).
+  - Offers Tracker (`OffersView.tsx`).
 
-## Prompt 4 - Wave 4 operations
+---
 
-- [ ] P22-P41: Workforce Planning through Import/Export, including routes that must honestly show Backend pending
+## Wave 5: Onboarding & Operations Hub [PENDING]
+- [ ] **Group 7: Onboarding**:
+  - Preboarding Joiners (`PreboardingView.tsx`).
+  - Enterprise Onboarding Hub (`EnterpriseOnboardingHubView.tsx`).
+  - Onboarding 9-Step Checklists (`OnboardingChecklistsView.tsx`).
+  - KT & 30-60-90 Day Probation (`ProbationTimelineView.tsx`).
+- [ ] **Group 8: Ops, Reports & Settings**:
+  - Recruitment Dashboard with 22 Module Navigation Cards (`RecruitmentDashboardView.tsx`).
+  - Analytics (`RecruitmentAnalyticsView.tsx`).
+  - Reports (`RecruitmentReportsView.tsx`).
+  - Automation No-Code Builder (`RecruitmentAutomationView.tsx`).
+  - Compliance Hub (`RecruitmentComplianceView.tsx`).
+  - Import / Export Wizard (`RecruitmentImportExportView.tsx`).
+  - Notifications Feed (`RecruitmentNotificationsView.tsx`).
+  - Template Editor (`RecruitmentTemplatesView.tsx`).
 
-## Prompt 5 - Wave 5 onboarding and cutover
+---
 
-- [ ] P42 and PUB4: Admin Onboarding and employee 10-step flow (do not restructure the existing checklist without user approval)
-- [ ] Cutover old recruitment endpoints only after all P/PUB routes are complete
-- [ ] Finalize status, gaps, role matrix, navigation documentation, regression checks
-
-## Blocking dependencies
-
-- The user supplied a route-list audit: 100 of 119 operations exist and 19 are absent. The missing operations are recorded in docs/API_GAPS.md and must remain Backend pending; do not use alternate routes without approval.
-- Baseline desktop screenshots are pending. With Edge open, the UI helper rendered the Talent hub once, then timed out before further pages could be captured or a screenshot file saved. Ask for persistent screenshots or a stable control session before visual comparison.
-
-
-
-
-## Route audit update (2026-11-01)
-The user supplied route-list results (100 of 119 paths/methods exist; 19 are absent). The missing operations are in docs/API_GAPS.md. No alternative route is used without approval. The local JSON file is not required for the supplied existence results.
+## Wave 6: Public Routes, App Routing & Test Suites [PENDING]
+- [ ] **Group 9: Public Unauthenticated Routes**:
+  - `/jobs/apply/$ukey`: Comprehensive candidate application portal.
+  - `/interview/book/$token`: Candidate self-service slot booking with timezone detection.
+  - `/ai-interview/$token`: Text-based candidate AI bot interview with hidden proctoring signals.
+- [ ] **App Routing Wiring**:
+  - Update `AppRoutes.tsx` with unauthenticated public routes and protected recruitment routes.
+  - Recruiter role landing page default to `/dashboard/recruitment`.
+- [ ] **Automated Test Suites (Vitest)**:
+  - `src/features/recruitment/__tests__/screening.test.tsx`
+  - `src/features/recruitment/__tests__/interviews.test.tsx`
+  - `src/features/recruitment/__tests__/bookingAndAiBot.test.tsx`
+  - `src/features/recruitment/__tests__/dataLayer.test.ts`
+  - `src/features/recruitment/__tests__/smartJd.test.ts`

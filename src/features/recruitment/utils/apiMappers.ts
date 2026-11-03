@@ -722,3 +722,139 @@ export const mapOffer = (input: unknown): Offer => {
     approvals: mapOfferApprovals(firstValue(record, 'approvals')),
   };
 };
+
+
+/* =========================================================================
+   EXTENDED RECRUITMENT MAPPERS: REQUISITIONS, VENDORS, REFERRALS & CTC
+   ========================================================================= */
+
+import type {
+  AgencyVendor,
+  CtcBreakdown,
+  Referral,
+  ReferralStatus,
+  Requisition,
+  RequisitionPriority,
+  RequisitionStatus,
+  VendorStatus,
+} from '../types';
+
+export const splitCtcToComponents = (annualCtc: number): CtcBreakdown => {
+  const safeCtc = Math.max(0, annualCtc);
+  const basicSalary = Math.round(safeCtc * 0.5);
+  const hra = Math.round(safeCtc * 0.25);
+  const specialAllowance = Math.max(0, safeCtc - basicSalary - hra);
+  const monthlyGross = Math.round(safeCtc / 12);
+
+  return {
+    totalCtc: safeCtc,
+    basicSalary,
+    hra,
+    specialAllowance,
+    bonus: 0,
+    joiningBonus: 0,
+    esopValue: 0,
+    monthlyGross,
+  };
+};
+
+const mapRequisitionStatus = (value: unknown): RequisitionStatus => {
+  const normalized = normalizedKey(value);
+  if (
+    normalized === 'submitted' ||
+    normalized === 'dept_head_approved' ||
+    normalized === 'finance_approved' ||
+    normalized === 'approved' ||
+    normalized === 'converted' ||
+    normalized === 'rejected'
+  ) {
+    return normalized as RequisitionStatus;
+  }
+  return 'draft';
+};
+
+const mapRequisitionPriority = (value: unknown): RequisitionPriority => {
+  const normalized = asString(value).trim().toUpperCase();
+  if (normalized === 'LOW' || normalized === 'MEDIUM' || normalized === 'HIGH' || normalized === 'URGENT') {
+    return normalized as RequisitionPriority;
+  }
+  return 'MEDIUM';
+};
+
+export const mapRequisition = (input: unknown): Requisition => {
+  const record = isRecord(input) ? input : {};
+  return {
+    id: asString(firstValue(record, 'id')),
+    title: asString(firstValue(record, 'title', 'role_title')),
+    department: asString(firstValue(record, 'department', 'department_name')),
+    headcount: asNumber(firstValue(record, 'headcount', 'vacancies'), 1),
+    plannedQuarter: asString(firstValue(record, 'planned_quarter', 'plannedQuarter'), 'Q1 2026'),
+    priority: mapRequisitionPriority(firstValue(record, 'priority')),
+    budgetMin: asNumber(firstValue(record, 'budget_min', 'budgetMin')),
+    budgetMax: asNumber(firstValue(record, 'budget_max', 'budgetMax')),
+    currency: asString(firstValue(record, 'currency'), 'INR'),
+    skills: asStringList(firstValue(record, 'skills')),
+    experienceLevel: asString(firstValue(record, 'experience_level', 'experienceLevel'), 'Mid-Level'),
+    justification: asString(firstValue(record, 'justification')),
+    status: mapRequisitionStatus(firstValue(record, 'status')),
+    createdAt: asString(firstValue(record, 'created_at', 'createdAt'), new Date().toISOString()),
+    createdBy: optionalString(firstValue(record, 'created_by', 'createdBy')),
+  };
+};
+
+export const mapVendor = (input: unknown): AgencyVendor => {
+  const record = isRecord(input) ? input : {};
+  const statusRaw = asString(firstValue(record, 'status')).toUpperCase();
+  const status: VendorStatus = statusRaw === 'PAUSED' || statusRaw === 'TERMINATED' ? statusRaw : 'ACTIVE';
+
+  return {
+    id: asString(firstValue(record, 'id')),
+    name: asString(firstValue(record, 'name', 'agency_name')),
+    contactName: asString(firstValue(record, 'contact_name', 'contactName')),
+    email: asString(firstValue(record, 'email')),
+    phone: asString(firstValue(record, 'phone')),
+    commissionRate: asNumber(firstValue(record, 'commission_rate', 'commissionRate')),
+    status,
+    activeReqsCount: optionalNumber(firstValue(record, 'active_reqs_count', 'activeReqsCount')),
+    hiresYtd: optionalNumber(firstValue(record, 'hires_ytd', 'hiresYtd')),
+    spendYtd: optionalNumber(firstValue(record, 'spend_ytd', 'spendYtd')),
+    createdAt: optionalString(firstValue(record, 'created_at', 'createdAt')),
+  };
+};
+
+export const mapReferral = (input: unknown): Referral => {
+  const record = isRecord(input) ? input : {};
+  const candidate = isRecord(firstValue(record, 'candidate')) ? (firstValue(record, 'candidate') as ApiRecord) : {};
+  const referrer = isRecord(firstValue(record, 'employee', 'referrer'))
+    ? (firstValue(record, 'employee', 'referrer') as ApiRecord)
+    : {};
+  const job = isRecord(firstValue(record, 'job')) ? (firstValue(record, 'job') as ApiRecord) : {};
+
+  const statusRaw = asString(firstValue(record, 'status')).toLowerCase();
+  let status: ReferralStatus = 'Submitted';
+  if (statusRaw.includes('interview')) status = 'Interview';
+  else if (statusRaw.includes('offer')) status = 'Offer';
+  else if (statusRaw.includes('hired')) status = 'Hired';
+  else if (statusRaw.includes('reject')) status = 'Rejected';
+
+  return {
+    id: asString(firstValue(record, 'id')),
+    candidateId: asString(firstValue(record, 'candidate_id', 'candidateId') ?? firstValue(candidate, 'id')),
+    candidateName:
+      asString(firstValue(candidate, 'name')) ||
+      namesFrom(firstValue(candidate, 'first_name'), firstValue(candidate, 'last_name')) ||
+      asString(firstValue(record, 'candidate_name')),
+    referrerEmployeeId: asString(firstValue(record, 'employee_id', 'employeeId') ?? firstValue(referrer, 'id')),
+    referrerName:
+      asString(firstValue(referrer, 'name')) ||
+      namesFrom(firstValue(referrer, 'first_name'), firstValue(referrer, 'last_name')) ||
+      asString(firstValue(record, 'referrer_name')),
+    referrerDepartment: asString(firstValue(referrer, 'department') ?? firstValue(record, 'referrer_department'), 'General'),
+    jobId: optionalString(firstValue(record, 'job_id', 'jobId') ?? firstValue(job, 'id')),
+    jobTitle: optionalString(firstValue(job, 'title') ?? firstValue(record, 'job_title')),
+    rewardAmount: asNumber(firstValue(record, 'reward_amount', 'rewardAmount')),
+    status,
+    submittedAt: asString(firstValue(record, 'created_at', 'submitted_at'), new Date().toISOString()),
+    bonusPaid: asBoolean(firstValue(record, 'bonus_paid', 'bonusPaid')),
+  };
+};
