@@ -10,6 +10,20 @@ import {
   Settings,
   MessageSquare,
   Sparkles,
+  Briefcase,
+  FileText,
+  Award,
+  ShieldCheck,
+  BarChart3,
+  FilePlus,
+  UserCheck,
+  CheckSquare,
+  FileCheck,
+  Laptop,
+  HardDrive,
+  Compass,
+  Gift,
+  ClipboardList,
 } from 'lucide-react';
 import { GeminiIcon } from '@/shared/ui/GeminiIcon';
 
@@ -22,6 +36,7 @@ export type SidebarSection =
   | 'overview'
   | 'workforce'
   | 'talent'
+  | 'recruitment'
   | 'attendance'
   | 'payroll'
   | 'reports'
@@ -45,6 +60,10 @@ export interface DashboardTabItem {
   badge?: string;
   children?: DashboardTabItem[];
   component?: React.LazyExoticComponent<React.ComponentType<any>>;
+  roles?: string[];
+  badgeKey?: string;
+  badgeVariant?: 'default' | 'destructive';
+  condition?: (user: { has_assigned_interviews?: boolean } | null) => boolean;
 }
 
 export interface SidebarSectionConfig {
@@ -79,60 +98,68 @@ export const SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     order: 2,
   },
   {
+    id: 'recruitment',
+    label: 'TALENT & RECRUITMENT',
+    icon: Briefcase,
+    collapsible: true,
+    defaultExpanded: true,
+    order: 3,
+  },
+  {
     id: 'attendance',
     label: 'Attendance',
     icon: CalendarDays,
     collapsible: false,
-    order: 3,
+    order: 4,
   },
   {
     id: 'payroll',
     label: 'Payroll & Benefits',
     icon: CreditCard,
     collapsible: false,
-    order: 4,
+    order: 5,
   },
   {
     id: 'reports',
     label: 'Reports',
     icon: LineChart,
     collapsible: false,
-    order: 5,
+    order: 6,
   },
   {
     id: 'aihub',
     label: 'AI Hub',
     icon: GeminiIconMono,
     collapsible: false,
-    order: 6,
+    order: 7,
   },
   {
     id: 'connect',
     label: 'Connect',
     icon: MessageSquare,
     collapsible: false,
-    order: 7,
+    order: 8,
   },
   {
     id: 'documents',
     label: 'Documents',
     icon: FolderKanban,
     collapsible: false,
-    order: 8,
+    order: 9,
   },
   {
     id: 'hrops',
     label: 'HR Operations',
     icon: Activity,
     collapsible: false,
-    order: 9,
+    order: 10,
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: Settings,
     collapsible: false,
-    order: 10,
+    order: 11,
   },
 ];
 
@@ -147,6 +174,28 @@ const AIHubPage = React.lazy(() => import('@/features/ai-hub/pages/AIHubPage'));
 const DocumentsComplianceHubPage = React.lazy(() => import('@/features/documents/pages/DocumentsComplianceHubPage'));
 const HrOpsHubPage = React.lazy(() => import('@/features/hr-ops/pages/HrOpsHubPage'));
 const ConnectPage = React.lazy(() => import('@/features/connect/pages/ConnectPage'));
+
+// Recruitment pages (lazy loaded)
+const RecruitmentDashboardPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentDashboardPage'));
+const RequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/RequisitionsPage'));
+const JobOpeningsPage = React.lazy(() => import('@/features/recruitment/pages/JobOpeningsPage'));
+const CandidatePipelinePage = React.lazy(() => import('@/features/recruitment/pages/CandidatePipelinePage'));
+const InterviewSchedulerPage = React.lazy(() => import('@/features/recruitment/pages/InterviewSchedulerPage'));
+const OfferManagementPage = React.lazy(() => import('@/features/recruitment/pages/OfferManagementPage'));
+const BGVPage = React.lazy(() => import('@/features/recruitment/pages/BGVPage'));
+const RecruitmentReportsPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentReportsPage'));
+
+const ManagerRequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/ManagerRequisitionsPage'));
+const ManagerCandidatesPage = React.lazy(() => import('@/features/recruitment/pages/ManagerCandidatesPage'));
+const ManagerInterviewsPage = React.lazy(() => import('@/features/recruitment/pages/ManagerInterviewsPage'));
+const ManagerOffersPage = React.lazy(() => import('@/features/recruitment/pages/ManagerOffersPage'));
+
+const ITAdminOnboardingPage = React.lazy(() => import('@/features/recruitment/pages/ITAdminOnboardingPage'));
+const ITAdminAssetsPage = React.lazy(() => import('@/features/recruitment/pages/ITAdminAssetsPage'));
+
+const EmployeeCareersPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeCareersPage'));
+const EmployeeReferralsPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeReferralsPage'));
+const EmployeeInterviewsPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeInterviewsPage'));
 
 export const DASHBOARD_TABS: DashboardTabItem[] = [
   // ==========================================
@@ -189,7 +238,215 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 4. ATTENDANCE (1 tab - links to /dashboard/attendance)
+  // 4. RECRUITMENT (17 tabs) - TALENT & RECRUITMENT section
+  // ==========================================
+  // GROUP A: HR_ADMIN & HR_EXECUTIVE (8 Tabs)
+  {
+    id: 'recruitment-dashboard',
+    label: 'Overview Dashboard',
+    icon: LayoutDashboard,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/dashboard',
+    component: RecruitmentDashboardPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+  },
+  {
+    id: 'recruitment-requisitions',
+    label: 'Job Requisitions',
+    icon: FileText,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/requisitions',
+    component: RequisitionsPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'pending_req_approvals_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'recruitment-jobs',
+    label: 'Job Openings',
+    icon: Briefcase,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/jobs',
+    component: JobOpeningsPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'active_openings_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'recruitment-candidates',
+    label: 'Candidates & ATS',
+    icon: Users,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/candidates',
+    component: CandidatePipelinePage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'new_applications_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'recruitment-interviews',
+    label: 'Interview Scheduler',
+    icon: CalendarDays,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/interviews',
+    component: InterviewSchedulerPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'today_interviews_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'recruitment-offers',
+    label: 'Offer Management',
+    icon: Award,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/offers',
+    component: OfferManagementPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'pending_offer_approvals_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'recruitment-bgv',
+    label: 'BGV Management',
+    icon: ShieldCheck,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/bgv',
+    component: BGVPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+    badgeKey: 'bgv_discrepancy_alerts_count',
+    badgeVariant: 'destructive',
+  },
+  {
+    id: 'recruitment-reports',
+    label: 'Recruitment Reports',
+    icon: BarChart3,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/recruitment/reports',
+    component: RecruitmentReportsPage,
+    roles: ['HR_ADMIN', 'HR_EXECUTIVE'],
+  },
+
+  // GROUP B: MANAGER (4 Tabs)
+  {
+    id: 'manager-requisitions',
+    label: 'Team Requisitions',
+    icon: FilePlus,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/manager/requisitions',
+    component: ManagerRequisitionsPage,
+    roles: ['MANAGER'],
+    badgeKey: 'my_open_vacancies_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'manager-candidates',
+    label: 'Candidate Reviews',
+    icon: UserCheck,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/manager/candidates',
+    component: ManagerCandidatesPage,
+    roles: ['MANAGER'],
+    badgeKey: 'pending_profile_reviews_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'manager-interviews',
+    label: 'Panel Interviews',
+    icon: CheckSquare,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/manager/interviews',
+    component: ManagerInterviewsPage,
+    roles: ['MANAGER'],
+    badgeKey: 'overdue_scorecards_count',
+    badgeVariant: 'destructive',
+  },
+  {
+    id: 'manager-offers',
+    label: 'Offer Approvals',
+    icon: FileCheck,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/manager/offers',
+    component: ManagerOffersPage,
+    roles: ['MANAGER'],
+    badgeKey: 'pending_my_offer_approvals_count',
+    badgeVariant: 'default',
+  },
+
+  // GROUP C: IT_ADMIN (2 Tabs)
+  {
+    id: 'itadmin-onboarding',
+    label: 'Onboarding IT Queue',
+    icon: Laptop,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/it-admin/onboarding-queue',
+    component: ITAdminOnboardingPage,
+    roles: ['IT_ADMIN'],
+    badgeKey: 'pending_it_provisioning_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'itadmin-assets',
+    label: 'Asset Allocation',
+    icon: HardDrive,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/it-admin/assets',
+    component: ITAdminAssetsPage,
+    roles: ['IT_ADMIN'],
+  },
+
+  // GROUP D: EMPLOYEE (3 Tabs)
+  {
+    id: 'employee-careers',
+    label: 'Internal Careers (IJP)',
+    icon: Compass,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/careers/internal',
+    component: EmployeeCareersPage,
+    roles: ['EMPLOYEE'],
+  },
+  {
+    id: 'employee-referrals',
+    label: 'My Referrals',
+    icon: Gift,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/employee/referrals',
+    component: EmployeeReferralsPage,
+    roles: ['EMPLOYEE'],
+    badgeKey: 'active_referral_updates_count',
+    badgeVariant: 'default',
+  },
+  {
+    id: 'employee-interviews',
+    label: 'Assigned Interviews',
+    icon: ClipboardList,
+    group: 'recruitment',
+    section: 'recruitment',
+    path: '/employee/interviews',
+    component: EmployeeInterviewsPage,
+    roles: ['EMPLOYEE'],
+    badgeKey: 'pending_scorecards_count',
+    badgeVariant: 'default',
+    condition: (user) => Boolean(user?.has_assigned_interviews),
+  },
+
+  // ==========================================
+  // 5. ATTENDANCE (1 tab - links to /dashboard/attendance)
   // Combines Attendance & Leave Management
   // ==========================================
   {
@@ -203,7 +460,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 5. PAYROLL & BENEFITS (1 tab - links to /dashboard/payroll)
+  // 6. PAYROLL & BENEFITS (1 tab - links to /dashboard/payroll)
   // ==========================================
   {
     id: 'payroll',
@@ -216,7 +473,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 6. Reports (1 tab - links to /dashboard/reports)
+  // 7. Reports (1 tab - links to /dashboard/reports)
   // ==========================================
   {
     id: 'reports',
@@ -229,7 +486,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 7. AI Hub (1 tab - links to /dashboard/ai-hub)
+  // 8. AI Hub (1 tab - links to /dashboard/ai-hub)
   // ==========================================
   {
     id: 'aihub',
@@ -242,7 +499,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 8. CONNECT (1 tab - links to /dashboard/connect)
+  // 9. CONNECT (1 tab - links to /dashboard/connect)
   // ==========================================
   {
     id: 'connect',
@@ -255,7 +512,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 9. Documents (1 tab - links to /dashboard/documents)
+  // 10. Documents (1 tab - links to /dashboard/documents)
   // ==========================================
   {
     id: 'documents',
@@ -268,7 +525,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 9. HR OPERATIONS (1 tab - links to /dashboard/hr-ops)
+  // 11. HR OPERATIONS (1 tab - links to /dashboard/hr-ops)
   // ==========================================
   {
     id: 'hrops',
@@ -281,7 +538,7 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
   },
 
   // ==========================================
-  // 10. SETTINGS (1 tab - links to /settings)
+  // 12. SETTINGS (1 tab - links to /settings)
   // ==========================================
   {
     id: 'settings',
@@ -296,7 +553,6 @@ export const DASHBOARD_TABS: DashboardTabItem[] = [
 
 export const LEGACY_ALIASES: Record<string, string> = {
   'recruitment': 'talent',
-  'recruitment-dashboard': 'talent',
   'performance': 'talent',
   'performance-dashboard': 'talent',
   'leave': 'attendance',
@@ -304,11 +560,11 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'ai-insights': 'analytics-center',
   'hrops-dashboard': 'hrops',
   'all-jobs': 'talent',
-  'requisitions': 'talent',
-  'candidates': 'talent',
-  'pipeline': 'talent',
-  'interviews': 'talent',
-  'offers': 'talent',
+  'requisitions': 'recruitment-requisitions',
+  'candidates': 'recruitment-candidates',
+  'pipeline': 'recruitment-candidates',
+  'interviews': 'recruitment-interviews',
+  'offers': 'recruitment-offers',
   'aihub-dashboard': 'aihub',
   'chat-assistant': 'aihub',
   'meeting-intelligence': 'aihub',
@@ -317,7 +573,7 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'autonomous-workflows': 'aihub',
   'analytics-center': 'reports',
   'hiring-reports': 'reports',
-  'recruitment-analytics': 'reports',
+  'recruitment-analytics': 'recruitment-reports',
   'recruitment-compliance': 'documents',
   'compliance-monitor': 'documents',
   'policy-assistant': 'documents',
@@ -336,6 +592,23 @@ export const LEGACY_ALIASES: Record<string, string> = {
   'timesheets': 'attendance',
   'exit-management': 'hrops',
   'offboarding': 'hrops',
+  'job-requisitions': 'recruitment-requisitions',
+  'job-openings': 'recruitment-jobs',
+  'ats-pipeline': 'recruitment-candidates',
+  'interview-scheduler': 'recruitment-interviews',
+  'offer-management': 'recruitment-offers',
+  'bgv-management': 'recruitment-bgv',
+  'recruitment-reports': 'recruitment-reports',
+  'team-requisitions': 'manager-requisitions',
+  'candidate-reviews': 'manager-candidates',
+  'panel-interviews': 'manager-interviews',
+  'offer-approvals': 'manager-offers',
+  'onboarding-queue': 'itadmin-onboarding',
+  'asset-allocation': 'itadmin-assets',
+  'internal-careers': 'employee-careers',
+  'ijp': 'employee-careers',
+  'my-referrals': 'employee-referrals',
+  'assigned-interviews': 'employee-interviews',
 };
 
 /**

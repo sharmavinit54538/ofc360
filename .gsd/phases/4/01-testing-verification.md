@@ -4,22 +4,21 @@ plan: 1
 wave: 4
 depends_on: ["3.1"]
 files_modified:
-  - src/features/recruitment/__tests__/DashboardKpiCards.test.tsx
-  - src/features/recruitment/__tests__/HiringFunnelChart.test.tsx
-  - src/features/recruitment/__tests__/SourceEfficiencyChart.test.tsx
-  - src/features/recruitment/__tests__/TimeToHireChart.test.tsx
-  - src/features/recruitment/__tests__/RecruitmentDashboardOverview.test.tsx
+  - src/features/recruitment/__tests__/sidebarBadgesApi.test.ts
+  - src/features/dashboard/components/__tests__/DashboardSidebar.test.tsx
+  - src/features/dashboard/components/__tests__/dashboardTabs.data.test.ts
 autonomous: true
 must_haves:
   truths:
-    - "All calculator functions have unit tests"
-    - "All components have render tests with loading/empty/error states"
-    - "Integration test for dashboard overview with mocked API"
+    - "Sidebar badges API tests pass with mocked responses"
+    - "DashboardSidebar renders correct tabs for each role"
+    - "Badges display dynamic counts from API"
+    - "RBAC filtering works for all 6 roles"
     - "TypeScript compilation passes with zero errors"
     - "Build succeeds"
-    - "All existing tests still pass"
+    - "All existing tests still pass (262+ tests)"
   artifacts:
-    - "Component test files"
+    - "Test files for sidebar badges and sidebar rendering"
     - "Clean typecheck output"
     - "Successful build"
 ---
@@ -27,90 +26,103 @@ must_haves:
 # Plan 4.1: Testing, TypeCheck & Build Verification
 
 ## Objective
-Write comprehensive tests for all new components and calculators, run TypeScript type checking, and verify the build succeeds. Ensure no regressions in existing tests.
+Write comprehensive tests for the sidebar badge API and DashboardSidebar component, run TypeScript type checking, and verify the build succeeds. Ensure no regressions in existing tests.
 
 ## Context
 Load for context:
 - .gsd/SPEC.md
-- src/features/recruitment/__tests__/ (existing test patterns)
 - src/test/setup.ts (Vitest setup)
 - package.json (test scripts)
 - vitest.config.ts
+- src/features/recruitment/__tests__/ (existing test patterns)
+- src/features/dashboard/components/__tests__/ (if exists)
 
 ## Tasks
 
 <task type="auto">
-  <name>Write component tests for DashboardKpiCards</name>
-  <files>src/features/recruitment/__tests__/DashboardKpiCards.test.tsx</files>
+  <name>Write tests for sidebar badges API</name>
+  <files>src/features/recruitment/__tests__/sidebarBadgesApi.test.ts</files>
   <action>
-    Write Vitest + React Testing Library tests for DashboardKpiCards:
+    Write Vitest tests for sidebarBadgesApi using MSW (Mock Service Worker):
     
     Test Cases:
-    1. Renders 12 skeleton cards when isLoading=true
-    2. Renders 12 KPI cards with correct values when data provided
-    3. Shows compact ErrorDisplay when error prop provided
-    4. Shows "No data" hints when all KPI values are 0
-    5. Retry button calls onRetry callback
-    6. Responsive grid classes applied correctly
-    7. Dark mode classes present
-    8. Each card shows primary value, secondary metrics, trend indicator
+    1. Fetches badges from correct endpoint (/sidebar/badges)
+    2. Returns typed SidebarBadgesResponse
+    3. Handles empty response (all counts 0 or undefined)
+    4. Handles partial response (only some badges present)
+    5. Polling interval configured (refetchInterval: 30000)
+    6. Tag-based caching works (providesTags: ['SidebarBadges'])
+    7. Error handling for 401/403/500 responses
     
-    Mock Data:
-    - Create mock RecruitmentDashboardKPIs object with realistic values
-    - Test with partial data (some null/undefined)
+    Mock different role responses:
+    - HR_ADMIN: all badge fields populated
+    - RECRUITER: subset of badges
+    - MANAGER: manager-specific badges
+    - IT_ADMIN: IT-specific badges
+    - EMPLOYEE: employee-specific badges
+    - SUPER_ADMIN: all badges
     
-    Follow existing patterns from RecruitmentKpiCards.test.tsx if exists.
+    Follow existing MSW patterns from other test files.
   </action>
-  <verify>npm test -- src/features/recruitment/__tests__/DashboardKpiCards.test.tsx</verify>
+  <verify>npm test -- src/features/recruitment/__tests__/sidebarBadgesApi.test.ts</verify>
   <done>Tests exist, all pass, good coverage</done>
 </task>
 
 <task type="auto">
-  <name>Write component tests for chart components</name>
-  <files>src/features/recruitment/__tests__/HiringFunnelChart.test.tsx, src/features/recruitment/__tests__/SourceEfficiencyChart.test.tsx, src/features/recruitment/__tests__/TimeToHireChart.test.tsx</files>
+  <name>Write tests for DashboardSidebar recruitment integration</name>
+  <files>src/features/dashboard/components/__tests__/DashboardSidebar.test.tsx</files>
   <action>
-    Write tests for each chart component:
+    Write comprehensive tests for DashboardSidebar with recruitment integration:
     
-    Common Test Cases (each chart):
-    1. Renders skeleton when isLoading=true
-    2. Renders AnalyticsEmptyState when data is empty array
-    3. Renders ErrorDisplay when error prop provided
-    4. Renders chart SVG/Canvas when data provided
-    5. Retry button calls onRetry callback
-    6. Tooltip/hover interactions (if testable)
+    Test Cases:
+    1. Renders recruitment section for HR_ADMIN
+    2. Shows all 8 HR_ADMIN/RECRUITER tabs with correct badges
+    3. Shows only 4 MANAGER tabs for MANAGER role
+    4. Shows only 2 IT_ADMIN tabs for IT_ADMIN role
+    5. Shows 3 EMPLOYEE tabs for EMPLOYEE role (interviews conditional)
+    6. Hides employee interviews tab when has_assigned_interviews is false
+    7. Shows employee interviews tab when has_assigned_interviews is true
+    8. Shows all tabs for SUPER_ADMIN
+    9. Badge counts display correctly from API response
+    10. Loading skeletons shown during badge fetch
+    11. No badges shown when count is 0 or undefined
+    12. Collapsed mode shows badges correctly
+    13. Mobile drawer mode works with recruitment tabs
+    14. Section collapsible state works
     
-    Chart-Specific:
-    - HiringFunnelChart: Verify 8 stages rendered, conversion % displayed
-    - SourceEfficiencyChart: Verify horizontal bars, two series, hire rate labels
-    - TimeToHireChart: Verify two lines, benchmark line, tooltip data
+    Mock:
+    - useGetSidebarBadgesQuery with different badge responses
+    - useRBAC with different roles
+    - useAuth with user.has_assigned_interviews flag
     
-    Mock Recharts components if needed for shallow rendering.
+    Use React Testing Library with proper RTL queries.
   </action>
-  <verify>npm test -- src/features/recruitment/__tests__/HiringFunnelChart.test.tsx src/features/recruitment/__tests__/SourceEfficiencyChart.test.tsx src/features/recruitment/__tests__/TimeToHireChart.test.tsx</verify>
-  <done>All chart tests exist and pass</done>
+  <verify>npm test -- src/features/dashboard/components/__tests__/DashboardSidebar.test.tsx</verify>
+  <done>Tests exist, all pass, good coverage</done>
 </task>
 
 <task type="auto">
-  <name>Write integration test for RecruitmentDashboardOverview</name>
-  <files>src/features/recruitment/__tests__/RecruitmentDashboardOverview.test.tsx</files>
+  <name>Write tests for dashboardTabs.data recruitment config</name>
+  <files>src/features/dashboard/components/__tests__/dashboardTabs.data.test.ts</files>
   <action>
-    Write integration test for the composed dashboard:
+    Write unit tests for the recruitment sidebar configuration:
     
     Test Cases:
-    1. Renders loading state initially
-    2. Fetches data via useGetDashboardOverviewQuery (mock with MSW)
-    3. Displays KPI cards with fetched data
-    4. Displays all three charts with computed data
-    5. Filter changes trigger query refetch with new params
-    6. Date range preset buttons work
-    7. Error boundary catches query errors
-    8. RBAC: filters locked/hidden for RECRUITER role
+    1. SIDEBAR_SECTIONS includes recruitment section with correct order
+    2. DASHBOARD_TABS includes all 17 recruitment tabs
+    3. Each tab has correct roles array
+    4. Each tab has correct badgeKey mapping
+    5. Employee interviews tab has condition property
+    6. LEGACY_ALIASES includes all recruitment aliases
+    7. getModuleOfTab returns 'recruitment' for recruitment tab IDs
+    8. getTabsBySection('recruitment') returns all recruitment tabs
+    9. resolveLegacyAlias works for recruitment aliases
+    10. Tab icons are valid React components
     
-    Use MSW (Mock Service Worker) to mock the /recruitment/dashboard/overview endpoint.
-    Follow existing MSW patterns from other test files.
+    Pure unit tests - no React rendering needed.
   </action>
-  <verify>npm test -- src/features/recruitment/__tests__/RecruitmentDashboardOverview.test.tsx</verify>
-  <done>Integration test exists, passes with mocked API</done>
+  <verify>npm test -- src/features/dashboard/components/__tests__/dashboardTabs.data.test.ts</verify>
+  <done>Tests exist, all pass</done>
 </task>
 
 <task type="auto">
@@ -121,6 +133,7 @@ Load for context:
     - Focus on new files but run full project check
     - Fix any type errors that arise
     - Ensure strict mode compliance
+    - Check for unused imports, missing types, etc.
   </action>
   <verify>npm run typecheck</verify>
   <done>TypeScript compilation passes with zero errors</done>
@@ -135,6 +148,7 @@ Load for context:
     2. Run build: npm run build
     3. Verify no regressions in existing tests (262 tests should still pass)
     4. Verify build output is clean
+    5. Check bundle size impact
   </action>
   <verify>npm test && npm run build</verify>
   <done>All tests pass (262+ new), build succeeds</done>
@@ -145,11 +159,12 @@ Load for context:
 <verification>
 After all tasks, verify:
 - [ ] All new component tests pass
-- [ ] All calculator tests pass (from plan 1.2)
-- [ ] Integration test passes
+- [ ] All API tests pass
 - [ ] TypeScript typecheck: 0 errors
 - [ ] Build succeeds
 - [ ] Existing 262 tests still pass (no regressions)
+- [ ] Recruitment sidebar works for all 6 roles
+- [ ] Badges are dynamic (no hardcoded values)
 </verification>
 
 <success_criteria>

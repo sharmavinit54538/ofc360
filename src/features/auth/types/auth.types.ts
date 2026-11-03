@@ -7,6 +7,7 @@
 export type UserRole =
   | 'SUPER_ADMIN'
   | 'HR_ADMIN'
+  | 'HR_EXECUTIVE'
   | 'MANAGER'
   | 'EMPLOYEE'
   | 'IT_ADMIN';
@@ -57,6 +58,7 @@ export interface User {
   isTwoFactorEnabled: boolean;
   lastLoginAt?: string;
   createdAt: string;
+  has_assigned_interviews?: boolean;
 }
 
 export interface AuthTokens {

@@ -628,3 +628,12 @@ export interface GeneratedJd {
   skills: string[];
   markdown: string;
 }
+
+export type {
+  RecruitmentRole,
+  SidebarBadgesResponse,
+  BadgeVariant,
+  RecruitmentSidebarTab,
+  RecruitmentSidebarSectionConfig,
+} from './sidebar.types';
+export { RECRUITMENT_SIDEBAR_SECTION } from './sidebar.types';

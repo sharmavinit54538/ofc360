@@ -7,6 +7,7 @@ import {
   type DashboardTabItem,
   type SidebarSection,
 } from './dashboardTabs.data';
+import { RecruitmentSidebarSection } from '@/features/recruitment/components/RecruitmentSidebarSection';
 
 export interface DashboardSidebarProps {
   activeTab?: string;
@@ -29,6 +30,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     overview: true,
     workforce: true,
     talent: true,
+    recruitment: true,
     attendance: true,
     payroll: true,
     reports: true,
@@ -66,6 +68,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       overview: [],
       workforce: [],
       talent: [],
+      recruitment: [],
       attendance: [],
       payroll: [],
       reports: [],
@@ -255,6 +258,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   };
 
   const renderSection = (sectionConfig: typeof SIDEBAR_SECTIONS[0], isCollapsed: boolean) => {
+    // Special handling for recruitment section - use dedicated component with RBAC & badges
+    if (sectionConfig.id === 'recruitment') {
+      return (
+        <RecruitmentSidebarSection
+          key="recruitment"
+          collapsed={isCollapsed}
+          onTabChange={onTabChange}
+          onMobileClose={onMobileClose}
+        />
+      );
+    }
+
     const tabs = sectionTabs[sectionConfig.id] || [];
     const isExpanded = expandedSections[sectionConfig.id];
     const isCollapsible = sectionConfig.collapsible;

@@ -40,6 +40,28 @@ import { DashboardAttendanceHolidaysRoute } from '@/routes/dashboard.attendance.
 import { UnauthorizedPage } from '@/features/dashboard/pages/UnauthorizedPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 
+// Recruitment Module (lazy loaded)
+const RecruitmentDashboardPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentDashboardPage'));
+const RequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/RequisitionsPage'));
+const JobOpeningsPage = React.lazy(() => import('@/features/recruitment/pages/JobOpeningsPage'));
+const CandidatePipelinePage = React.lazy(() => import('@/features/recruitment/pages/CandidatePipelinePage'));
+const InterviewSchedulerPage = React.lazy(() => import('@/features/recruitment/pages/InterviewSchedulerPage'));
+const OfferManagementPage = React.lazy(() => import('@/features/recruitment/pages/OfferManagementPage'));
+const BGVPage = React.lazy(() => import('@/features/recruitment/pages/BGVPage'));
+const RecruitmentReportsPage = React.lazy(() => import('@/features/recruitment/pages/RecruitmentReportsPage'));
+
+const ManagerRequisitionsPage = React.lazy(() => import('@/features/recruitment/pages/ManagerRequisitionsPage'));
+const ManagerCandidatesPage = React.lazy(() => import('@/features/recruitment/pages/ManagerCandidatesPage'));
+const ManagerInterviewsPage = React.lazy(() => import('@/features/recruitment/pages/ManagerInterviewsPage'));
+const ManagerOffersPage = React.lazy(() => import('@/features/recruitment/pages/ManagerOffersPage'));
+
+const ITAdminOnboardingPage = React.lazy(() => import('@/features/recruitment/pages/ITAdminOnboardingPage'));
+const ITAdminAssetsPage = React.lazy(() => import('@/features/recruitment/pages/ITAdminAssetsPage'));
+
+const EmployeeCareersPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeCareersPage'));
+const EmployeeReferralsPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeReferralsPage'));
+const EmployeeInterviewsPage = React.lazy(() => import('@/features/recruitment/pages/EmployeeInterviewsPage'));
+
 // Settings Module
 import { SettingsLayout } from '@/features/settings/components/SettingsLayout';
 import { SettingsOverview } from '@/features/settings/components/SettingsOverview';
@@ -582,10 +604,155 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Recruitment & Performance routes redirected to Talent Hub */}
+      {/* Recruitment Management System (RMS/ATS) */}
+      {/* HR_ADMIN & HR_EXECUTIVE routes */}
+      <Route
+        path="/recruitment/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <RecruitmentDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/requisitions"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <RequisitionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/jobs"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <JobOpeningsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/candidates"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <CandidatePipelinePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/interviews"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE', 'MANAGER']}>
+            <InterviewSchedulerPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/offers"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <OfferManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/bgv"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <BGVPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruitment/reports"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'HR_EXECUTIVE']}>
+            <RecruitmentReportsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* MANAGER routes */}
+      <Route
+        path="/manager/requisitions"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+            <ManagerRequisitionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manager/candidates"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+            <ManagerCandidatesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manager/interviews"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+            <ManagerInterviewsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manager/offers"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']}>
+            <ManagerOffersPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* IT_ADMIN routes */}
+      <Route
+        path="/it-admin/onboarding-queue"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'IT_ADMIN']}>
+            <ITAdminOnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/it-admin/assets"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'IT_ADMIN']}>
+            <ITAdminAssetsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* EMPLOYEE routes */}
+      <Route
+        path="/careers/internal"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}>
+            <EmployeeCareersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee/referrals"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}>
+            <EmployeeReferralsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee/interviews"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE', 'IT_ADMIN']}>
+            <EmployeeInterviewsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Legacy redirects */}
       <Route
         path="/dashboard/recruitment"
-        element={<Navigate to="/dashboard/talent" replace />}
+        element={<Navigate to="/recruitment/dashboard" replace />}
       />
       <Route
         path="/dashboard/performance"

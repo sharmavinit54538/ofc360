@@ -25,6 +25,7 @@ import { SkeletonTableRow } from '@/shared/ui/Skeleton';
 import { useRBAC } from '@/features/auth/hooks/useRBAC';
 import { cn } from '@/shared/lib/utils';
 import type { EmployeeItem } from '../types/workforce.types';
+import { resolveEmployeeRole } from '../utils/roleUtils';
 
 export interface EmployeeDirectoryTableProps {
   employees: EmployeeItem[];
@@ -222,13 +223,29 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
     };
   }, [openMenuId]);
 
-  // Filter employees if filtering locally
+  // Set of reporting manager IDs from all available employees
+  const reportingManagerIds = useMemo(() => {
+    const set = new Set<string>();
+    const pool = allEmployees && allEmployees.length > 0 ? allEmployees : employees;
+    for (const e of pool) {
+      const mgrId =
+        e.reportingManager?.id ||
+        e.reportingManagerId ||
+        (e as any).manager_id ||
+        (e as any).managerId ||
+        (e as any).reporting_manager_id;
+      if (mgrId) set.add(String(mgrId).trim());
+    }
+    return set;
+  }, [allEmployees, employees]);
+
+  // Filter employees respecting resolved role
   const displayedEmployees = useMemo(() => {
     if (activeRoleTab === 'ALL') return employees;
     return employees.filter(
-      (e) => (e.role || 'EMPLOYEE').toUpperCase() === activeRoleTab
+      (e) => resolveEmployeeRole(e, reportingManagerIds) === activeRoleTab
     );
-  }, [employees, activeRoleTab]);
+  }, [employees, activeRoleTab, reportingManagerIds]);
 
   return (
     <div className="w-full">
@@ -242,7 +259,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
           const count =
             tab.id === 'ALL'
               ? employees.length
-              : employees.filter((e) => (e.role || 'EMPLOYEE').toUpperCase() === tab.id).length;
+              : employees.filter((e) => resolveEmployeeRole(e, reportingManagerIds) === tab.id).length;
 
           return (
             <button
@@ -313,7 +330,7 @@ export const EmployeeDirectoryTable: React.FC<EmployeeDirectoryTableProps> = ({
                       variant: 'slate' as BadgeVariant,
                     };
 
-                    const roleKey = (emp.role || 'EMPLOYEE').toUpperCase();
+                    const roleKey = resolveEmployeeRole(emp, reportingManagerIds);
                     const roleBadge = ROLE_BADGE[roleKey] ?? ROLE_BADGE.EMPLOYEE;
 
                     const isMenuOpen = openMenuId === emp.id;

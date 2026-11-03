@@ -326,12 +326,19 @@ export interface DesignationQueryParams {
  */
 export interface OrgChartNode {
   id: string;
+  employeeCode?: string;
   name: string;
+  email?: string;
+  phone?: string;
   designation: string;
   department: string;
+  location?: string;
+  status?: EmployeeStatus | string;
   avatarUrl?: string | null;
   role?: WorkforceRole | string;
   subordinates: OrgChartNode[];
   children?: OrgChartNode[];
   managerId?: string | null;
+  managerName?: string | null;
+  level?: number;
 }
