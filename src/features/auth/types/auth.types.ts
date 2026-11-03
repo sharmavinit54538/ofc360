@@ -250,6 +250,11 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
     'hrms:payroll', 'hrms:attendance', 'hrms:leaves', 'hrms:performance',
     'reports:view', 'reports:export',
   ],
+  HR_EXECUTIVE: [
+    'users:read', 'users:write',
+    'hrms:payroll', 'hrms:attendance', 'hrms:leaves', 'hrms:performance',
+    'reports:view',
+  ],
   MANAGER: [
     'users:read',
     'hrms:attendance', 'hrms:leaves', 'hrms:performance',

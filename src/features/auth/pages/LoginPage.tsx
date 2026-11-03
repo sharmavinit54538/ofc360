@@ -103,11 +103,11 @@ export const LoginPage: React.FC = () => {
         '';
 
       // DEV-only shape inspection log (booleans/flags only, zero tokens)
-      const rawUser =
+      const rawUser: any =
         rawResponse?.data?.user ??
-        rawResponse?.user ??
-        rawResponse?.data?.userData ??
-        rawResponse?.userData ??
+        (rawResponse as any)?.user ??
+        (rawResponse as any)?.data?.userData ??
+        (rawResponse as any)?.userData ??
         (rawResponse?.data && typeof rawResponse.data === 'object' ? rawResponse.data : rawResponse);
 
       const is_email_verified = rawUser?.is_email_verified;

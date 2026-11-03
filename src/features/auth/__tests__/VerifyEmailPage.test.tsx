@@ -3,7 +3,6 @@
  * @description Unit tests for VerifyEmailPage handling of missing vid/token and "already verified" resend errors.
  */
 
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';

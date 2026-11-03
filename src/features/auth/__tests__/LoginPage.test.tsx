@@ -6,7 +6,6 @@
  * - no token + verification_id => verify-email
  */
 
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -85,7 +84,7 @@ describe('LoginPage - Token Priority & Verification Routing', () => {
       </Provider>
     );
 
-    fireEvent.change(screen.getByLabelText(/Email Address/i), {
+    fireEvent.change(screen.getByLabelText(/Work email/i), {
       target: { value: 'verified_user@ofc360.com' },
     });
     fireEvent.change(screen.getByLabelText(/Password/i), {
@@ -129,7 +128,7 @@ describe('LoginPage - Token Priority & Verification Routing', () => {
       </Provider>
     );
 
-    fireEvent.change(screen.getByLabelText(/Email Address/i), {
+    fireEvent.change(screen.getByLabelText(/Work email/i), {
       target: { value: 'unverified_user@ofc360.com' },
     });
     fireEvent.change(screen.getByLabelText(/Password/i), {
