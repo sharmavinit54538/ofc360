@@ -85,6 +85,105 @@ describe('Auth Flow & Normalization', () => {
       expect(normalized.user.email).toBe('superadmin@ofc360.com');
       expect(normalized.user.activeRole).toBe('SUPER_ADMIN');
     });
+
+    it('requiresEmailVerification = false when token exists and no explicit verification flag', () => {
+      const response = {
+        data: {
+          access_token: 'valid_jwt_token',
+          verification_id: 'vid_123',
+          user: { id: 'u1', email: 'user@ofc360.com' },
+        },
+      };
+      const normalized = normalizeAuthResponse(response);
+      expect(normalized.requiresEmailVerification).toBe(false);
+    });
+
+    it('requiresEmailVerification = true when no token is present and verification_id exists', () => {
+      const response = {
+        data: {
+          verification_id: 'vid_123',
+          email: 'user@ofc360.com',
+        },
+      };
+      const normalized = normalizeAuthResponse(response);
+      expect(normalized.requiresEmailVerification).toBe(true);
+    });
+
+    it('requiresEmailVerification = true when explicit backend flag is true', () => {
+      const response = {
+        requires_email_verification: true,
+        data: {
+          access_token: 'valid_jwt_token',
+          user: { id: 'u1', email: 'user@ofc360.com' },
+        },
+      };
+      const normalized = normalizeAuthResponse(response);
+      expect(normalized.requiresEmailVerification).toBe(true);
+    });
+  });
+
+  describe('normalizeUser isEmailVerified OR logic', () => {
+    it('evaluates isEmailVerified as true when is_email_verified is false but is_verified is true', () => {
+      const user = normalizeUser({
+        id: 'u1',
+        email: 'user@ofc360.com',
+        is_email_verified: false,
+        is_verified: true,
+      });
+      expect(user.isEmailVerified).toBe(true);
+    });
+
+    it('evaluates isEmailVerified as true when email_verified is "true" or 1', () => {
+      const user1 = normalizeUser({
+        id: 'u1',
+        email: 'user@ofc360.com',
+        is_email_verified: false,
+        email_verified: 'true',
+      });
+      expect(user1.isEmailVerified).toBe(true);
+
+      const user2 = normalizeUser({
+        id: 'u2',
+        email: 'user2@ofc360.com',
+        is_email_verified: 0,
+        is_verified: 1,
+      });
+      expect(user2.isEmailVerified).toBe(true);
+    });
+
+    it('evaluates isEmailVerified as false when all present flags are false', () => {
+      const user = normalizeUser({
+        id: 'u1',
+        email: 'user@ofc360.com',
+        is_email_verified: false,
+        is_verified: false,
+      });
+      expect(user.isEmailVerified).toBe(false);
+    });
+
+    it('defaults isEmailVerified to true when none of the 4 verification flags are present', () => {
+      const user = normalizeUser({
+        id: 'u1',
+        email: 'user@ofc360.com',
+      });
+      expect(user.isEmailVerified).toBe(true);
+    });
+
+    it('does not read verification flags from jwtPayload to avoid claim leakage', () => {
+      // jwtPayload has is_email_verified: false, but rawUser has is_verified: true
+      const user1 = normalizeUser(
+        { id: 'u1', email: 'user@ofc360.com', is_verified: true },
+        { is_email_verified: false }
+      );
+      expect(user1.isEmailVerified).toBe(true);
+
+      // jwtPayload has is_email_verified: true, but rawUser has is_email_verified: false
+      const user2 = normalizeUser(
+        { id: 'u2', email: 'user@ofc360.com', is_email_verified: false },
+        { is_email_verified: true, is_verified: true }
+      );
+      expect(user2.isEmailVerified).toBe(false);
+    });
   });
 
   describe('normalizeRole and ROLE_DASHBOARD_ROUTES', () => {
