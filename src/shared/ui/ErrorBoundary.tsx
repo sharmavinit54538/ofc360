@@ -36,11 +36,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ errorInfo });
-    // Safe diagnostic logging without exposing sensitive tokens
+    // Explicit error logging with full diagnostics (not [object Object])
+    const errorMessage = error?.message || (typeof error === 'string' ? error : 'Unknown error');
+    const errorName = error?.name || (error?.constructor?.name ?? 'Error');
+    const errorStack = error?.stack || 'No stack trace available';
+    const componentStack = errorInfo?.componentStack || 'No component stack available';
+
     console.error('[ErrorBoundary caught error]:', {
-      name: error.name,
-      message: error.message,
-      componentStack: errorInfo.componentStack?.slice(0, 500),
+      name: errorName,
+      message: errorMessage,
+      stack: errorStack,
+      componentStack: componentStack,
     });
   }
 
@@ -93,7 +99,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <summary className="cursor-pointer font-bold text-slate-600 dark:text-zinc-400 mb-1">
                   Technical Details (Development Only)
                 </summary>
-                <div>{this.state.error.toString()}</div>
+                <div className="font-semibold text-rose-600 dark:text-rose-400">
+                  {this.state.error.name}: {this.state.error.message}
+                </div>
+                {this.state.error.stack && (
+                  <pre className="mt-1 text-[10px] text-slate-600 dark:text-zinc-400 whitespace-pre-wrap">
+                    {this.state.error.stack}
+                  </pre>
+                )}
                 {this.state.errorInfo?.componentStack && (
                   <pre className="mt-2 text-[10px] text-slate-500 whitespace-pre-wrap">
                     {this.state.errorInfo.componentStack}

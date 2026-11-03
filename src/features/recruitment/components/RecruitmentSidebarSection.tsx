@@ -1,13 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, Briefcase } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Badge } from '@/shared/ui/Badge';
-import { Skeleton } from '@/shared/ui/Skeleton';
-import { useGetSidebarBadgesQuery } from '@/features/recruitment/api';
-import { useRBAC } from '@/features/auth/hooks/useRBAC';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { User } from '@/features/auth/types/auth.types';
 import {
+  ChevronDown,
+  Briefcase,
   LayoutDashboard,
   FileText,
   Users,
@@ -25,14 +19,21 @@ import {
   Gift,
   ClipboardList,
 } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Badge } from '@/shared/ui/Badge';
+import { Skeleton } from '@/shared/ui/Skeleton';
+import { useGetSidebarBadgesQuery } from '@/features/recruitment/api';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import type { User } from '@/features/auth/types/auth.types';
 
-interface RecruitmentSidebarSectionProps {
-  collapsed: boolean;
+export interface RecruitmentSidebarSectionProps {
+  collapsed?: boolean;
   onTabChange?: (tabId: string) => void;
   onMobileClose?: () => void;
 }
 
-interface RecruitmentTabConfig {
+export interface RecruitmentTabConfig {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -45,17 +46,27 @@ interface RecruitmentTabConfig {
   condition?: (user: User | null) => boolean;
 }
 
+const FallbackIcon: React.ComponentType<{ className?: string }> = Briefcase;
+
+const isValidComponent = (comp: unknown): comp is React.ComponentType<{ className?: string }> => {
+  return typeof comp === 'function' || (typeof comp === 'object' && comp !== null && '$$typeof' in comp);
+};
+
 export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps> = ({
-  collapsed,
+  collapsed = false,
   onTabChange,
   onMobileClose,
 }) => {
   const location = useLocation();
-  const { hasAnyRole, isSuperAdmin } = useRBAC();
-  const { user } = useAuth();
+  const rbac = useRBAC();
+  const hasAnyRole = rbac?.hasAnyRole;
+  const isSuperAdmin = Boolean(rbac?.isSuperAdmin);
+  const auth = useAuth();
+  const user = auth?.user ?? null;
 
   const { data: badges, isLoading: badgesLoading } = useGetSidebarBadgesQuery(undefined, {
     pollingInterval: 60000,
+    skip: !user,
   });
 
   const [expanded, setExpanded] = useState(true);
@@ -86,7 +97,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-dashboard',
         label: 'Overview Dashboard',
-        icon: iconMap['recruitment-dashboard'],
+        icon: iconMap['recruitment-dashboard'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/dashboard',
@@ -95,7 +106,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-requisitions',
         label: 'Job Requisitions',
-        icon: iconMap['recruitment-requisitions'],
+        icon: iconMap['recruitment-requisitions'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/requisitions',
@@ -106,7 +117,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-jobs',
         label: 'Job Openings',
-        icon: iconMap['recruitment-jobs'],
+        icon: iconMap['recruitment-jobs'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/jobs',
@@ -117,7 +128,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-candidates',
         label: 'Candidates & ATS',
-        icon: iconMap['recruitment-candidates'],
+        icon: iconMap['recruitment-candidates'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/candidates',
@@ -128,7 +139,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-interviews',
         label: 'Interview Scheduler',
-        icon: iconMap['recruitment-interviews'],
+        icon: iconMap['recruitment-interviews'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/interviews',
@@ -139,7 +150,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-offers',
         label: 'Offer Management',
-        icon: iconMap['recruitment-offers'],
+        icon: iconMap['recruitment-offers'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/offers',
@@ -150,7 +161,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-bgv',
         label: 'BGV Management',
-        icon: iconMap['recruitment-bgv'],
+        icon: iconMap['recruitment-bgv'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/bgv',
@@ -161,7 +172,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'recruitment-reports',
         label: 'Recruitment Reports',
-        icon: iconMap['recruitment-reports'],
+        icon: iconMap['recruitment-reports'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/recruitment/reports',
@@ -172,7 +183,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'manager-requisitions',
         label: 'Team Requisitions',
-        icon: iconMap['manager-requisitions'],
+        icon: iconMap['manager-requisitions'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/manager/requisitions',
@@ -183,7 +194,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'manager-candidates',
         label: 'Candidate Reviews',
-        icon: iconMap['manager-candidates'],
+        icon: iconMap['manager-candidates'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/manager/candidates',
@@ -194,7 +205,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'manager-interviews',
         label: 'Panel Interviews',
-        icon: iconMap['manager-interviews'],
+        icon: iconMap['manager-interviews'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/manager/interviews',
@@ -205,7 +216,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'manager-offers',
         label: 'Offer Approvals',
-        icon: iconMap['manager-offers'],
+        icon: iconMap['manager-offers'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/manager/offers',
@@ -218,7 +229,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'itadmin-onboarding',
         label: 'Onboarding IT Queue',
-        icon: iconMap['itadmin-onboarding'],
+        icon: iconMap['itadmin-onboarding'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/it-admin/onboarding-queue',
@@ -229,7 +240,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'itadmin-assets',
         label: 'Asset Allocation',
-        icon: iconMap['itadmin-assets'],
+        icon: iconMap['itadmin-assets'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/it-admin/assets',
@@ -240,7 +251,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'employee-careers',
         label: 'Internal Careers (IJP)',
-        icon: iconMap['employee-careers'],
+        icon: iconMap['employee-careers'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/careers/internal',
@@ -249,7 +260,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'employee-referrals',
         label: 'My Referrals',
-        icon: iconMap['employee-referrals'],
+        icon: iconMap['employee-referrals'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/employee/referrals',
@@ -260,49 +271,77 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
       {
         id: 'employee-interviews',
         label: 'Assigned Interviews',
-        icon: iconMap['employee-interviews'],
+        icon: iconMap['employee-interviews'] || FallbackIcon,
         group: 'recruitment',
         section: 'recruitment',
         path: '/employee/interviews',
         roles: ['EMPLOYEE'],
         badgeKey: 'pending_scorecards_count',
         badgeVariant: 'default',
-        condition: (u) => Boolean(u?.has_assigned_interviews),
+        condition: (u) => Boolean(u && typeof u === 'object' && (u as { has_assigned_interviews?: boolean }).has_assigned_interviews),
       },
     ];
 
     return tabs.map((tab) => ({
       ...tab,
-      icon: iconMap[tab.id],
+      icon: (iconMap[tab.id] && isValidComponent(iconMap[tab.id])) ? iconMap[tab.id] : FallbackIcon,
     }));
   }, []);
 
   const visibleTabs = useMemo(() => {
     return recruitmentTabs.filter((tab) => {
-      if (!tab.roles || tab.roles.length === 0) return true;
+      if (!tab) return false;
+      if (!tab.roles || !Array.isArray(tab.roles) || tab.roles.length === 0) return true;
       if (isSuperAdmin) return true;
-      if (!hasAnyRole(tab.roles)) return false;
-      if (tab.condition && !tab.condition(user)) return false;
+      if (typeof hasAnyRole === 'function' && !hasAnyRole(tab.roles)) return false;
+      if (tab.condition) {
+        try {
+          if (typeof tab.condition === 'function' && !tab.condition(user)) {
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      }
       return true;
     });
-  }, [hasAnyRole, isSuperAdmin, user]);
+  }, [hasAnyRole, isSuperAdmin, user, recruitmentTabs]);
 
   const getBadgeCount = (tab: RecruitmentTabConfig): number | undefined => {
-    if (!tab.badgeKey || !badges) return undefined;
-    return badges[tab.badgeKey as keyof typeof badges];
+    if (!tab?.badgeKey || !badges || typeof badges !== 'object') return undefined;
+    const rawValue = (badges as Record<string, unknown>)[tab.badgeKey];
+    if (typeof rawValue === 'number' && !Number.isNaN(rawValue) && Number.isFinite(rawValue)) {
+      return rawValue;
+    }
+    if (typeof rawValue === 'string') {
+      const parsed = parseInt(rawValue, 10);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+    if (rawValue && typeof rawValue === 'object') {
+      const nested = (rawValue as Record<string, unknown>).count ?? (rawValue as Record<string, unknown>).value;
+      if (typeof nested === 'number' && !Number.isNaN(nested) && Number.isFinite(nested)) {
+        return nested;
+      }
+      if (typeof nested === 'string') {
+        const parsed = parseInt(nested, 10);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      }
+    }
+    return undefined;
   };
 
   const isTabActive = (tab: RecruitmentTabConfig): boolean => {
-    if (!tab.path) return false;
-    return location.pathname === tab.path;
+    if (!tab?.path || !location?.pathname) return false;
+    return location.pathname === tab.path || location.pathname.startsWith(`${tab.path}/`);
   };
 
   const renderTabItem = (tab: RecruitmentTabConfig) => {
     const isActive = isTabActive(tab);
     const badgeCount = getBadgeCount(tab);
-    const showBadge = badgeCount !== undefined && badgeCount > 0;
-    const badgeLoading = badgesLoading && tab.badgeKey;
-    const Icon = tab.icon;
+    const showBadge = typeof badgeCount === 'number' && badgeCount > 0;
+    const badgeLoading = Boolean(badgesLoading && tab?.badgeKey);
+    const IconComponent = isValidComponent(tab?.icon) ? tab.icon : FallbackIcon;
+    const badgeDisplay = typeof badgeCount === 'number' ? (badgeCount > 99 ? '99+' : String(badgeCount)) : '';
 
     if (collapsed) {
       if (tab.path) {
@@ -311,8 +350,8 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
             key={tab.id}
             to={tab.path}
             onClick={() => {
-              onTabChange?.(tab.id);
-              onMobileClose?.();
+              if (typeof onTabChange === 'function') onTabChange(tab.id);
+              if (typeof onMobileClose === 'function') onMobileClose();
             }}
             title={tab.label}
             className={({ isActive: navActive }) => `
@@ -323,10 +362,10 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
               }
             `}
           >
-            <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+            <IconComponent className="w-[18px] h-[18px] flex-shrink-0" />
             {showBadge && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] flex items-center justify-center">
-                {badgeCount > 99 ? '99+' : badgeCount}
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] flex items-center justify-center font-medium">
+                {badgeDisplay}
               </span>
             )}
             {badgeLoading && (
@@ -343,8 +382,8 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
           aria-selected={isActive}
           aria-label={tab.label}
           onClick={() => {
-            onTabChange?.(tab.id);
-            onMobileClose?.();
+            if (typeof onTabChange === 'function') onTabChange(tab.id);
+            if (typeof onMobileClose === 'function') onMobileClose();
           }}
           className={`
             relative flex items-center justify-center px-3 py-2.5 rounded-lg transition-colors duration-150
@@ -355,10 +394,10 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
           `}
           title={tab.label}
         >
-          <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+          <IconComponent className="w-[18px] h-[18px] flex-shrink-0" />
           {showBadge && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] flex items-center justify-center">
-              {badgeCount > 99 ? '99+' : badgeCount}
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] flex items-center justify-center font-medium">
+              {badgeDisplay}
             </span>
           )}
           {badgeLoading && (
@@ -373,8 +412,8 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
         key={tab.id}
         to={tab.path || '#'}
         onClick={() => {
-          onTabChange?.(tab.id);
-          onMobileClose?.();
+          if (typeof onTabChange === 'function') onTabChange(tab.id);
+          if (typeof onMobileClose === 'function') onMobileClose();
         }}
         className={({ isActive: navActive }) => `
           w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 text-left
@@ -384,11 +423,11 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
           }
         `}
       >
-        <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+        <IconComponent className="w-[18px] h-[18px] flex-shrink-0" />
         <span className="truncate flex-1">{tab.label}</span>
         {showBadge && (
           <Badge variant={tab.badgeVariant === 'destructive' ? 'destructive' : 'brand'} size="sm" className="shrink-0">
-            {badgeCount > 99 ? '99+' : badgeCount}
+            {badgeDisplay}
           </Badge>
         )}
         {badgeLoading && (
@@ -410,7 +449,7 @@ export const RecruitmentSidebarSection: React.FC<RecruitmentSidebarSectionProps>
         <button
           type="button"
           onClick={handleToggle}
-          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider hover:text-slate-700 dark:hover:text-zinc-200 transition-colors w-full text-left"
           aria-expanded={expanded}
         >
           <Briefcase className="w-4 h-4 flex-shrink-0" />

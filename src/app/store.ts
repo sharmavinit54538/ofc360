@@ -12,6 +12,7 @@ import { performanceApi } from '../features/performance/api/performanceApi';
 import { workforceApi } from '../features/workforce/api/workforceApi';
 import { payrollApi } from '../features/payroll/api/payrollApi';
 import { recruitmentApi } from '../features/recruitment/api/recruitmentApi';
+import { sidebarBadgesApi } from '../features/recruitment/api/sidebarBadgesApi';
 import { exitsApi } from '../features/exit-management/api/exitsApi';
 import { onboardingApi } from '../features/employee-onboarding/api/onboardingApi';
 import { visitorsApi } from '../services/visitorsApi';
@@ -42,6 +43,7 @@ export const store = configureStore({
     [workforceApi.reducerPath]: workforceApi.reducer,
     [payrollApi.reducerPath]: payrollApi.reducer,
     [recruitmentApi.reducerPath]: recruitmentApi.reducer,
+    [sidebarBadgesApi.reducerPath]: sidebarBadgesApi.reducer,
     [exitsApi.reducerPath]: exitsApi.reducer,
     [onboardingApi.reducerPath]: onboardingApi.reducer,
     [visitorsApi.reducerPath]: visitorsApi.reducer,
@@ -76,6 +78,7 @@ export const store = configureStore({
       workforceApi.middleware,
       payrollApi.middleware,
       recruitmentApi.middleware,
+      sidebarBadgesApi.middleware,
       exitsApi.middleware,
       onboardingApi.middleware,
       visitorsApi.middleware,

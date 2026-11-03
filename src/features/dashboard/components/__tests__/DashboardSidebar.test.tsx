@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
-import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useRBAC } from '@/features/auth/hooks/useRBAC';
+import { useGetSidebarBadgesQuery } from '@/features/recruitment/api/sidebarBadgesApi';
 
 // Mock hooks
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
-    user: { fullName: 'Test User', email: 'test@example.com', has_assigned_interviews: false },
+    user: { fullName: 'Test User', email: 'test@example.com', has_assigned_interviews: true },
     activeRole: 'EMPLOYEE',
     isAuthenticated: true,
   })),
@@ -28,7 +30,7 @@ vi.mock('@/features/recruitment/api/sidebarBadgesApi', () => ({
 }));
 
 vi.mock('@/features/dashboard/components/dashboardTabs.data', async () => {
-  const actual = await vi.importActual('@/features/dashboard/components/dashboardTabs.data');
+  const actual = await vi.importActual<any>('@/features/dashboard/components/dashboardTabs.data');
   return {
     ...actual,
     SIDEBAR_SECTIONS: actual.SIDEBAR_SECTIONS,
@@ -39,9 +41,7 @@ vi.mock('@/features/dashboard/components/dashboardTabs.data', async () => {
 const renderSidebar = (props = {}) => {
   return render(
     <BrowserRouter>
-      <ProtectedRoute allowedRoles={['EMPLOYEE']}>
-        <DashboardSidebar {...props} />
-      </ProtectedRoute>
+      <DashboardSidebar {...props} />
     </BrowserRouter>
   );
 };
@@ -49,30 +49,43 @@ const renderSidebar = (props = {}) => {
 describe('DashboardSidebar - Recruitment Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({
+      user: { fullName: 'Test User', email: 'test@example.com', has_assigned_interviews: true } as any,
+      activeRole: 'EMPLOYEE',
+      isAuthenticated: true,
+    } as any);
+    vi.mocked(useRBAC).mockReturnValue({
+      hasAnyRole: vi.fn((roles: string[]) => roles.includes('EMPLOYEE')),
+      isSuperAdmin: false,
+    } as any);
+    vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as any);
   });
 
   describe('Role-based rendering', () => {
     it('should render recruitment section for HR_ADMIN', () => {
-      vi.mocked(require('@/features/auth/hooks/useRBAC').useRBAC).mockReturnValue({
+      vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('HR_ADMIN')),
         isSuperAdmin: false,
-      });
+      } as any);
 
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'HR Admin', email: 'hr@example.com', has_assigned_interviews: false },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'HR Admin', email: 'hr@example.com', has_assigned_interviews: false } as any,
         activeRole: 'HR_ADMIN',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
       expect(screen.getByText('TALENT & RECRUITMENT')).toBeInTheDocument();
     });
 
     it('should render all 8 HR tabs for HR_ADMIN', () => {
-      vi.mocked(require('@/features/auth/hooks/useRBAC').useRBAC).mockReturnValue({
+      vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('HR_ADMIN')),
         isSuperAdmin: false,
-      });
+      } as any);
 
       renderSidebar();
       
@@ -87,16 +100,16 @@ describe('DashboardSidebar - Recruitment Integration', () => {
     });
 
     it('should render only 4 MANAGER tabs for MANAGER role', () => {
-      vi.mocked(require('@/features/auth/hooks/useRBAC').useRBAC).mockReturnValue({
+      vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('MANAGER')),
         isSuperAdmin: false,
-      });
+      } as any);
 
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'Manager', email: 'manager@example.com', has_assigned_interviews: false },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'Manager', email: 'manager@example.com', has_assigned_interviews: false } as any,
         activeRole: 'MANAGER',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
       
@@ -111,16 +124,16 @@ describe('DashboardSidebar - Recruitment Integration', () => {
     });
 
     it('should render only 2 IT_ADMIN tabs for IT_ADMIN role', () => {
-      vi.mocked(require('@/features/auth/hooks/useRBAC').useRBAC).mockReturnValue({
+      vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn((roles: string[]) => roles.includes('IT_ADMIN')),
         isSuperAdmin: false,
-      });
+      } as any);
 
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'IT Admin', email: 'it@example.com', has_assigned_interviews: false },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'IT Admin', email: 'it@example.com', has_assigned_interviews: false } as any,
         activeRole: 'IT_ADMIN',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
       
@@ -146,26 +159,22 @@ describe('DashboardSidebar - Recruitment Integration', () => {
     });
 
     it('should NOT render Assigned Interviews tab when user.has_assigned_interviews is false', () => {
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: false },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: false } as any,
         activeRole: 'EMPLOYEE',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
-      
-      // The tab should still render but condition is handled in RecruitmentSidebarSection
-      // Actually, the condition is checked in RecruitmentSidebarSection
-      // For EMPLOYEE with has_assigned_interviews: false, the tab should be filtered out
       expect(screen.queryByText('Assigned Interviews')).not.toBeInTheDocument();
     });
 
     it('SHOULD render Assigned Interviews tab when user.has_assigned_interviews is true', () => {
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: true },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'Employee', email: 'emp@example.com', has_assigned_interviews: true } as any,
         activeRole: 'EMPLOYEE',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
       
@@ -173,20 +182,19 @@ describe('DashboardSidebar - Recruitment Integration', () => {
     });
 
     it('should render all tabs for SUPER_ADMIN', () => {
-      vi.mocked(require('@/features/auth/hooks/useRBAC').useRBAC).mockReturnValue({
+      vi.mocked(useRBAC).mockReturnValue({
         hasAnyRole: vi.fn(() => true),
         isSuperAdmin: true,
-      });
+      } as any);
 
-      vi.mocked(require('@/features/auth/hooks/useAuth').useAuth).mockReturnValue({
-        user: { fullName: 'Super Admin', email: 'super@example.com', has_assigned_interviews: true },
+      vi.mocked(useAuth).mockReturnValue({
+        user: { fullName: 'Super Admin', email: 'super@example.com', has_assigned_interviews: true } as any,
         activeRole: 'SUPER_ADMIN',
         isAuthenticated: true,
-      });
+      } as any);
 
       renderSidebar();
       
-      // Should see all 17 tabs
       expect(screen.getByText('Overview Dashboard')).toBeInTheDocument();
       expect(screen.getByText('Job Requisitions')).toBeInTheDocument();
       expect(screen.getByText('Team Requisitions')).toBeInTheDocument();
@@ -197,59 +205,52 @@ describe('DashboardSidebar - Recruitment Integration', () => {
 
   describe('Badge display', () => {
     it('should show badge skeleton while loading', () => {
-      vi.mocked(require('@/features/recruitment/api/sidebarBadgesApi').useGetSidebarBadgesQuery).mockReturnValue({
+      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
         data: undefined,
         isLoading: true,
-      });
+      } as any);
 
-      renderSidebar();
+      const { container } = renderSidebar();
       
-      // Should show skeleton loaders for badges
-      const skeletons = screen.getAllByTestId('skeleton-badge');
+      // Should show skeleton loaders for tabs with badge keys
+      const skeletons = container.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
     it('should display badge count when data is available', () => {
-      vi.mocked(require('@/features/recruitment/api/sidebarBadgesApi').useGetSidebarBadgesQuery).mockReturnValue({
+      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
         data: {
-          new_applications_count: 5,
-          today_interviews_count: 3,
           pending_scorecards_count: 2,
+          active_referral_updates_count: 7,
         },
         isLoading: false,
-      });
+      } as any);
 
       renderSidebar();
-      
-      // Should display actual badge counts (not hardcoded)
-      // The badges are rendered via the RecruitmentSidebarSection component
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(screen.getByText('7')).toBeInTheDocument();
     });
 
     it('should NOT display badge when count is 0', () => {
-      vi.mocked(require('@/features/recruitment/api/sidebarBadgesApi').useGetSidebarBadgesQuery).mockReturnValue({
+      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
         data: {
-          new_applications_count: 0,
-          today_interviews_count: 3,
+          pending_scorecards_count: 0,
         },
         isLoading: false,
-      });
+      } as any);
 
       renderSidebar();
-      
-      // Should not show badge for 0 count
+      expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
 
     it('should NOT display badge when count is undefined', () => {
-      vi.mocked(require('@/features/recruitment/api/sidebarBadgesApi').useGetSidebarBadgesQuery).mockReturnValue({
-        data: {
-          today_interviews_count: 3,
-        },
+      vi.mocked(useGetSidebarBadgesQuery).mockReturnValue({
+        data: {},
         isLoading: false,
-      });
+      } as any);
 
       renderSidebar();
-      
-      // Should not show badge for undefined count
+      expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
   });
 
@@ -260,7 +261,7 @@ describe('DashboardSidebar - Recruitment Integration', () => {
       const sectionHeader = screen.getByText('TALENT & RECRUITMENT').closest('button');
       expect(sectionHeader).toBeInTheDocument();
       
-      fireEvent.click(sectionHeader);
+      fireEvent.click(sectionHeader!);
       // Section should collapse
     });
   });
